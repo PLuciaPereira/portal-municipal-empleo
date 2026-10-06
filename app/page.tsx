@@ -1,26 +1,29 @@
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
-  BriefcaseIcon,
   BuildingIcon,
   UserIcon,
   SearchIcon,
   ShieldCheckIcon,
   CheckCircleIcon,
-  MapPinIcon,
-  ClockIcon,
 } from '@/components/ui/Icons';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
+import { JobCard } from '@/components/jobs/JobCard';
+import { getJobs } from '@/lib/jobs';
 
-export default function Home() {
+export default async function Home() {
+  const { jobs: featuredJobs } = await getJobs({ destacadasOnly: true });
+  const topJobs = featuredJobs.slice(0, 3);
+
   const rubrosDestacados = [
-    { nombre: 'Comercio y Ventas', icon: '🛍️', count: 'Múltiples vacantes' },
+    { nombre: 'Comercio y Atención al Cliente', icon: '🛍️', count: 'Múltiples vacantes' },
     { nombre: 'Gastronomía y Hotelería', icon: '🍽️', count: 'Temporada y anual' },
-    { nombre: 'Construcción y Oficios', icon: '🔨', count: 'Electricidad, plomería, obra' },
-    { nombre: 'Administración y Contable', icon: '📊', count: 'Pymes y comercios' },
-    { nombre: 'Logística y Reparto', icon: '🚚', count: 'Distribución local y regional' },
+    { nombre: 'Construcción y Mantenimiento', icon: '🔨', count: 'Electricidad, plomería, obra' },
+    { nombre: 'Administración y Contabilidad', icon: '📊', count: 'Pymes y comercios' },
+    { nombre: 'Logística y Distribución', icon: '🚚', count: 'Distribución local y regional' },
     { nombre: 'Jardinería y Parquizaciones', icon: '🌿', count: 'Mantenimiento de quintas' },
     { nombre: 'Salud y Cuidados', icon: '🩺', count: 'Asistencia y atención' },
     { nombre: 'Tecnología e Informática', icon: '💻', count: 'Soporte y diseño' },
@@ -57,9 +60,16 @@ export default function Home() {
         <div className="absolute inset-0 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:24px_24px] opacity-10" />
 
         <div className="relative max-w-5xl mx-auto text-center space-y-6">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-700/80 border border-emerald-500/50 text-emerald-100 text-xs font-medium">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            Portal Oficial de la Municipalidad de Funes
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-700/80 border border-emerald-500/50 text-emerald-100 text-xs font-medium shadow-xs">
+            <Image
+              src="/escudo-funes-blanco.png"
+              alt="Escudo Oficial de la Municipalidad de Funes"
+              width={16}
+              height={16}
+              className="w-4 h-4 object-contain shrink-0"
+              priority
+            />
+            <span>Portal Oficial de la Municipalidad de Funes</span>
           </div>
 
           <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight">
@@ -188,6 +198,38 @@ export default function Home() {
           })}
         </div>
       </section>
+
+      {/* Ofertas Laborales Destacadas */}
+      {topJobs.length > 0 && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
+            <div>
+              <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-md mb-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                Búsquedas Activas
+              </div>
+              <h2 className="text-2xl font-bold text-zinc-900">Búsquedas laborales destacadas en Funes</h2>
+              <p className="text-sm text-zinc-600 mt-1">
+                Convocatorias abiertas intermediadas por la Oficina de Empleo Municipal.
+              </p>
+            </div>
+            <Button
+              href="/ofertas"
+              variant="outline"
+              size="sm"
+              className="self-start sm:self-auto"
+            >
+              Explorar Catálogo Completo &rarr;
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {topJobs.map((job) => (
+              <JobCard key={job.id} job={job} />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Rubros de Empleo en Funes */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

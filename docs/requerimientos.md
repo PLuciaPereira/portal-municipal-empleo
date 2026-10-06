@@ -102,7 +102,8 @@ La Oficina de Empleo deberá poder revisar y gestionar las ofertas antes de que 
 
 # 6. Postulantes
 
-Los postulantes son personas que buscan empleo, residentes de Funes.
+Los postulantes son personas que buscan empleo.
+<!-- , residentes de Funes  -->
 
 El sistema deberá permitir que una persona pueda registrarse y crear su perfil laboral.
 
@@ -401,3 +402,12 @@ Administra postulantes
 → Registra resultados
 → Realiza seguimiento
 → Genera estadísticas
+
+ # 18. OFERTAS LABORALES
+  - Las ofertas laborales deben ser públicas.
+  - Cualquier persona que visite el portal puede visualizar y consultar las ofertas publicadas, sin necesidad de iniciar sesión.
+  - Sin embargo, para postularse a una oferta laboral, el usuario debe estar registrado en el sistema y haber iniciado sesión.
+  - Si una persona intenta postularse sin haber iniciado sesión, debe ser redirigida o invitada a inicia sesión.
+  - Si todavía no tiene una cuenta, debe poder acceder al registro.
+  - Una vez autenticado, debe poder realizar la postulación.
+  - Un usuario no debería poder postularse más de una vez a la misma oferta.

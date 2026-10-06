@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
-  BriefcaseIcon,
   MapPinIcon,
   PhoneIcon,
   MailIcon,
@@ -16,14 +16,20 @@ export const Footer: React.FC = () => {
           {/* Columna 1: Identidad Institucional */}
           <div className="space-y-4 md:col-span-1">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-emerald-600 flex items-center justify-center text-white">
-                <BriefcaseIcon className="w-5 h-5 text-white" />
+              <div className="w-10 h-10 rounded-xl bg-brand-800 flex items-center justify-center p-1.5 shrink-0 shadow-xs">
+                <Image
+                  src="/escudo-funes-blanco.png"
+                  alt="Escudo Oficial de la Municipalidad de Funes"
+                  width={34}
+                  height={34}
+                  className="w-full h-full object-contain"
+                />
               </div>
               <div>
                 <span className="font-bold text-white text-base block leading-tight">
                   Portal de Empleo
                 </span>
-                <span className="text-xs text-emerald-400 font-medium">
+                <span className="text-xs text-brand-400 font-medium">
                   Gobierno de Funes
                 </span>
               </div>
