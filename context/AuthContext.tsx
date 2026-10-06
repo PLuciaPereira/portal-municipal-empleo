@@ -10,8 +10,12 @@ import React, {
 } from 'react';
 import { Profile, UserRole } from '@/types/database';
 
+export interface AuthUser extends Profile {
+  email?: string;
+}
+
 interface AuthContextType {
-  user: Profile | null;
+  user: AuthUser | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   role: UserRole | null;
@@ -27,9 +31,10 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Perfiles de prueba precargados para desarrollo y testing
-export const DEMO_USERS: Record<UserRole, Profile> = {
+export const DEMO_USERS: Record<UserRole, AuthUser> = {
   postulante: {
     id: 'postulante-demo-1',
+    rol: 'postulante',
     role: 'postulante',
     email: 'lucia.vecina@funes.gob.ar',
     nombre: 'Lucía',
@@ -52,6 +57,7 @@ export const DEMO_USERS: Record<UserRole, Profile> = {
   },
   empresa: {
     id: 'empresa-demo-1',
+    rol: 'empresa',
     role: 'empresa',
     email: 'rrhh@funesmall.com.ar',
     nombre: 'Martín',
@@ -72,8 +78,32 @@ export const DEMO_USERS: Record<UserRole, Profile> = {
     created_at: '2026-08-15T09:00:00Z',
     updated_at: '2026-09-01T10:00:00Z',
   },
+  municipalidad: {
+    id: 'muni-demo-1',
+    rol: 'municipalidad',
+    role: 'municipalidad',
+    email: 'empleo@funes.gob.ar',
+    nombre: 'Oficina de Empleo',
+    apellido: 'Municipalidad de Funes',
+    dni: '25443322',
+    telefono: '341-493-6000',
+    fecha_nacimiento: '1980-01-15',
+    direccion: 'Pedro A. Ríos 1500',
+    barrio: 'Municipalidad',
+    es_residente_funes: true,
+    nivel_educativo: 'Universitario',
+    situacion_laboral_actual: 'Personal Municipal',
+    habilidades: null,
+    experiencia_resumen: null,
+    cv_url: null,
+    disponibilidad_horaria: null,
+    movilidad_propia: true,
+    created_at: '2026-01-01T08:00:00Z',
+    updated_at: '2026-09-01T10:00:00Z',
+  },
   admin: {
     id: 'admin-demo-1',
+    rol: 'admin',
     role: 'admin',
     email: 'empleo@funes.gob.ar',
     nombre: 'Coordinación',
@@ -136,7 +166,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const user = useMemo(() => {
     if (!rawUser) return null;
     try {
-      return JSON.parse(rawUser) as Profile;
+      return JSON.parse(rawUser) as AuthUser;
     } catch {
       return null;
     }
@@ -155,10 +185,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     async (email: string, role: UserRole = 'postulante'): Promise<{ success: boolean; error?: string }> => {
       try {
         const demoCandidate = Object.values(DEMO_USERS).find(
-          (u) => u.email.toLowerCase() === email.toLowerCase()
+          (u) => u.email?.toLowerCase() === email.toLowerCase()
         );
 
-        const targetUser: Profile = demoCandidate || {
+        const targetUser: AuthUser = demoCandidate || {
           ...DEMO_USERS[role],
           id: `user-${Date.now()}`,
           email,
@@ -191,8 +221,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       profileData: Partial<Profile> & { email: string; nombre: string }
     ): Promise<{ success: boolean; error?: string }> => {
       try {
-        const newProfile: Profile = {
+        const newProfile: AuthUser = {
           id: `user-postulante-${Date.now()}`,
+          rol: 'postulante',
           role: 'postulante',
           email: profileData.email,
           nombre: profileData.nombre,
