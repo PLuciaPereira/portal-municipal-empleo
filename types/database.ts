@@ -1,11 +1,12 @@
-export type UserRole = 'postulante' | 'empresa' | 'admin';
+export type UserRole = 'postulante' | 'empresa' | 'municipalidad' | 'admin';
 
 export type JobStatus =
   | 'borrador'
   | 'pendiente_revision'
   | 'publicada'
   | 'pausada'
-  | 'finalizada';
+  | 'finalizada'
+  | 'rechazada';
 
 export type ApplicationStatus =
   | 'postulado'
@@ -25,18 +26,18 @@ export interface Rubro {
   created_at: string;
 }
 
-export interface Profile {
+export interface Perfil {
   id: string;
-  role: UserRole;
-  email: string;
+  rol: UserRole;
+  role?: UserRole; // Alias de conveniencia para frontend
   nombre: string;
   apellido: string | null;
   dni: string | null;
   telefono: string | null;
   fecha_nacimiento: string | null;
   direccion: string | null;
-  barrio: string | null;
-  es_residente_funes: boolean;
+  barrio?: string | null;
+  es_residente_funes?: boolean | null;
   nivel_educativo: string | null;
   situacion_laboral_actual: string | null;
   habilidades: string[] | null;
@@ -46,9 +47,11 @@ export interface Profile {
   movilidad_propia: boolean;
   created_at: string;
   updated_at: string;
+  // Joins opcionales
+  rubros?: Rubro[];
 }
 
-export interface Company {
+export interface Empresa {
   id: string;
   user_id: string;
   razon_social: string;
@@ -67,9 +70,10 @@ export interface Company {
   updated_at: string;
 }
 
-export interface Job {
+export interface Oferta {
   id: string;
-  company_id: string;
+  empresa_id?: string;
+  company_id?: string; // Alias de compatibilidad
   rubro_id: number | null;
   titulo: string;
   descripcion: string;
@@ -83,30 +87,53 @@ export interface Job {
   estado: JobStatus;
   destacada: boolean;
   fecha_limite: string | null;
+  revisado_por?: string | null;
+  fecha_revision?: string | null;
+  motivo_rechazo?: string | null;
+  deleted_at?: string | null;
   created_at: string;
   updated_at: string;
-  // Campos opcionales tras joins:
-  company?: Company;
+  // Joins opcionales
+  empresa?: Empresa;
+  company?: Empresa;
   rubro?: Rubro;
+  rubros?: Rubro[];
 }
 
-export interface Application {
+export interface OfertaRubro {
+  oferta_id: string;
+  rubro_id: number;
+  created_at: string;
+}
+
+export interface PerfilRubro {
+  perfil_id: string;
+  rubro_id: number;
+  created_at: string;
+}
+
+export interface Postulacion {
   id: string;
-  job_id: string;
+  oferta_id?: string;
+  job_id?: string; // Alias de compatibilidad
   postulante_id: string;
   estado: ApplicationStatus;
   mensaje_postulante: string | null;
   notas_oficina_empleo: string | null;
+  derivado_por?: string | null;
+  fecha_derivacion?: string | null;
+  observaciones_derivacion?: string | null;
   created_at: string;
   updated_at: string;
-  // Campos opcionales tras joins:
-  job?: Job;
-  postulante?: Profile;
+  // Joins opcionales
+  oferta?: Oferta;
+  job?: Oferta;
+  postulante?: Perfil;
 }
 
-export interface ApplicationHistory {
+export interface HistorialPostulacion {
   id: string;
-  application_id: string;
+  postulacion_id: string;
   estado_anterior: ApplicationStatus | null;
   estado_nuevo: ApplicationStatus;
   cambiado_por: string | null;
@@ -114,11 +141,11 @@ export interface ApplicationHistory {
   created_at: string;
 }
 
-export interface FollowUp {
+export interface Seguimiento {
   id: string;
   postulante_id: string;
-  company_id: string | null;
-  application_id: string | null;
+  empresa_id: string | null;
+  postulacion_id: string | null;
   fecha_seguimiento: string;
   estado_laboral: string;
   observaciones: string;
@@ -128,7 +155,23 @@ export interface FollowUp {
   created_at: string;
 }
 
-// Representación del esquema de Supabase
+export interface SchemaMigration {
+  version: string;
+  name: string;
+  applied_at: string;
+}
+
+// Aliases retrocompatibles para el frontend
+export type Profile = Perfil;
+export type Company = Empresa;
+export type Job = Oferta;
+export type Application = Postulacion;
+export type ApplicationHistory = HistorialPostulacion;
+export type FollowUp = Seguimiento;
+export type JobRubro = OfertaRubro;
+export type ProfileRubro = PerfilRubro;
+
+// Representación fiel del esquema de Supabase
 export interface Database {
   public: {
     Tables: {
@@ -137,56 +180,71 @@ export interface Database {
         Insert: Omit<Rubro, 'id' | 'created_at'> & { id?: number; created_at?: string };
         Update: Partial<Rubro>;
       };
-      profiles: {
-        Row: Profile;
-        Insert: Omit<Profile, 'created_at' | 'updated_at'> & {
+      perfil: {
+        Row: Perfil;
+        Insert: Omit<Perfil, 'created_at' | 'updated_at' | 'rubros' | 'role' | 'barrio'> & {
           created_at?: string;
           updated_at?: string;
         };
-        Update: Partial<Profile>;
+        Update: Partial<Omit<Perfil, 'rubros' | 'role' | 'barrio'>>;
       };
-      companies: {
-        Row: Company;
-        Insert: Omit<Company, 'id' | 'created_at' | 'updated_at'> & {
-          id?: string;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: Partial<Company>;
-      };
-      jobs: {
-        Row: Job;
-        Insert: Omit<Job, 'id' | 'created_at' | 'updated_at' | 'company' | 'rubro'> & {
+      empresas: {
+        Row: Empresa;
+        Insert: Omit<Empresa, 'id' | 'created_at' | 'updated_at'> & {
           id?: string;
           created_at?: string;
           updated_at?: string;
         };
-        Update: Partial<Omit<Job, 'company' | 'rubro'>>;
+        Update: Partial<Empresa>;
       };
-      applications: {
-        Row: Application;
-        Insert: Omit<Application, 'id' | 'created_at' | 'updated_at' | 'job' | 'postulante'> & {
+      ofertas: {
+        Row: Oferta;
+        Insert: Omit<Oferta, 'id' | 'created_at' | 'updated_at' | 'empresa' | 'company' | 'rubro' | 'rubros' | 'company_id'> & {
           id?: string;
           created_at?: string;
           updated_at?: string;
         };
-        Update: Partial<Omit<Application, 'job' | 'postulante'>>;
+        Update: Partial<Omit<Oferta, 'empresa' | 'company' | 'rubro' | 'rubros' | 'company_id'>>;
       };
-      application_history: {
-        Row: ApplicationHistory;
-        Insert: Omit<ApplicationHistory, 'id' | 'created_at'> & {
+      ofertas_rubros: {
+        Row: OfertaRubro;
+        Insert: Omit<OfertaRubro, 'created_at'> & { created_at?: string };
+        Update: Partial<OfertaRubro>;
+      };
+      perfil_rubros: {
+        Row: PerfilRubro;
+        Insert: Omit<PerfilRubro, 'created_at'> & { created_at?: string };
+        Update: Partial<PerfilRubro>;
+      };
+      postulaciones: {
+        Row: Postulacion;
+        Insert: Omit<Postulacion, 'id' | 'created_at' | 'updated_at' | 'oferta' | 'job' | 'postulante' | 'job_id'> & {
+          id?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Omit<Postulacion, 'oferta' | 'job' | 'postulante' | 'job_id'>>;
+      };
+      historial_postulacion: {
+        Row: HistorialPostulacion;
+        Insert: Omit<HistorialPostulacion, 'id' | 'created_at'> & {
           id?: string;
           created_at?: string;
         };
-        Update: Partial<ApplicationHistory>;
+        Update: Partial<HistorialPostulacion>;
       };
-      follow_ups: {
-        Row: FollowUp;
-        Insert: Omit<FollowUp, 'id' | 'created_at'> & {
+      seguimiento: {
+        Row: Seguimiento;
+        Insert: Omit<Seguimiento, 'id' | 'created_at'> & {
           id?: string;
           created_at?: string;
         };
-        Update: Partial<FollowUp>;
+        Update: Partial<Seguimiento>;
+      };
+      _schema_migrations: {
+        Row: SchemaMigration;
+        Insert: Omit<SchemaMigration, 'applied_at'> & { applied_at?: string };
+        Update: Partial<SchemaMigration>;
       };
     };
   };
