@@ -64,7 +64,7 @@ export const Navbar: React.FC = () => {
       : `${user?.nombre || 'Usuario'} ${user?.apellido || ''}`.trim();
 
   return (
-    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-zinc-200">
+    <header className="sticky top-0 z-50 bg-surface/95 backdrop-blur-md border-b border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo y Branding Institucional */}
@@ -80,7 +80,7 @@ export const Navbar: React.FC = () => {
               />
             </div>
             <div className="flex flex-col">
-              <span className="font-bold text-zinc-900 leading-tight text-base sm:text-lg">
+              <span className="font-bold text-foreground leading-tight text-base sm:text-lg">
                 Portal de Empleo
               </span>
               <span className="text-xs text-brand-800 font-medium tracking-wide">
@@ -97,8 +97,8 @@ export const Navbar: React.FC = () => {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`text-sm font-medium transition-colors hover:text-emerald-700 ${
-                    isActive ? 'text-emerald-700 font-semibold' : 'text-zinc-600'
+                  className={`text-sm font-medium transition-colors hover:text-brand-800 ${
+                    isActive ? 'text-brand-800 font-bold' : 'text-muted-foreground'
                   }`}
                 >
                   {link.label}
@@ -188,12 +188,12 @@ export const Navbar: React.FC = () => {
 
       {/* Menú Desplegable Móvil */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-zinc-200 bg-white px-4 pt-3 pb-6 space-y-4">
+        <div className="md:hidden border-t border-border bg-surface px-4 pt-3 pb-6 space-y-4">
           {isAuthenticated && (
-            <div className="p-3 bg-zinc-50 rounded-xl border border-zinc-200 flex items-center justify-between">
+            <div className="p-3 bg-brand-50/60 rounded-xl border border-brand-200 flex items-center justify-between">
               <div>
-                <span className="text-xs text-zinc-500 block">Conectado como:</span>
-                <span className="font-bold text-sm text-zinc-900 block truncate max-w-[180px]">
+                <span className="text-xs text-muted-foreground block">Conectado como:</span>
+                <span className="font-bold text-sm text-foreground block truncate max-w-[180px]">
                   {displayName}
                 </span>
                 <Badge variant={roleBadgeVariant} size="sm" className="mt-0.5">
@@ -204,7 +204,7 @@ export const Navbar: React.FC = () => {
                 <Link
                   href={dashboardHref}
                   onClick={() => setMobileMenuOpen(false)}
-                  className="text-xs text-emerald-700 font-bold hover:underline"
+                  className="text-xs text-brand-800 font-bold hover:underline"
                 >
                   Ir a {dashboardLabel} &rarr;
                 </Link>
@@ -214,7 +214,7 @@ export const Navbar: React.FC = () => {
                     logout();
                     setMobileMenuOpen(false);
                   }}
-                  className="text-xs text-rose-600 font-semibold px-2 py-0.5 rounded bg-white border border-rose-200"
+                  className="text-xs text-destructive font-semibold px-2 py-0.5 rounded bg-surface border border-rose-200 cursor-pointer"
                 >
                   Cerrar sesión
                 </button>
@@ -222,13 +222,13 @@ export const Navbar: React.FC = () => {
             </div>
           )}
 
-          <nav className="flex flex-col space-y-2">
+          <nav className="flex flex-col space-y-1">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
                 onClick={() => setMobileMenuOpen(false)}
-                className="px-3 py-2 text-base font-medium text-zinc-700 hover:text-emerald-700 hover:bg-emerald-50/50 rounded-lg transition-colors"
+                className="px-3 py-2 text-base font-medium text-foreground hover:text-brand-800 hover:bg-brand-50 rounded-lg transition-colors"
               >
                 {link.label}
               </Link>
@@ -236,7 +236,7 @@ export const Navbar: React.FC = () => {
           </nav>
 
           {!isAuthenticated && (
-            <div className="pt-3 border-t border-zinc-100 flex flex-col gap-2.5">
+            <div className="pt-3 border-t border-border/60 flex flex-col gap-2.5">
               <Button
                 href="/login"
                 variant="primary"
@@ -260,7 +260,7 @@ export const Navbar: React.FC = () => {
                 href="/registro/empresa"
                 variant="ghost"
                 size="md"
-                className="w-full justify-center text-zinc-600 border border-zinc-200"
+                className="w-full justify-center text-foreground border border-border"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <BuildingIcon className="w-4 h-4 mr-2" />
@@ -269,9 +269,9 @@ export const Navbar: React.FC = () => {
               <Link
                 href="/login?redirect=/admin"
                 onClick={() => setMobileMenuOpen(false)}
-                className="text-center text-xs text-zinc-500 hover:text-zinc-800 pt-2 flex items-center justify-center gap-1"
+                className="text-center text-xs text-muted-foreground hover:text-foreground pt-2 flex items-center justify-center gap-1"
               >
-                <ShieldCheckIcon className="w-3.5 h-3.5 text-zinc-400" />
+                <ShieldCheckIcon className="w-3.5 h-3.5 text-brand-700" />
                 Acceso Oficina de Empleo
               </Link>
             </div>

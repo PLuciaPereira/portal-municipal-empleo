@@ -46,22 +46,22 @@ export const Footer: React.FC = () => {
             </h4>
             <ul className="space-y-2.5 text-xs text-zinc-400">
               <li>
-                <Link href="/ofertas" className="hover:text-emerald-400 transition-colors">
+                <Link href="/ofertas" className="hover:text-brand-300 transition-colors">
                   Ofertas Laborales Activas
                 </Link>
               </li>
               <li>
-                <Link href="/#como-funciona" className="hover:text-emerald-400 transition-colors">
+                <Link href="/#como-funciona" className="hover:text-brand-300 transition-colors">
                   Cómo funciona el proceso
                 </Link>
               </li>
               <li>
-                <Link href="/postulantes" className="hover:text-emerald-400 transition-colors">
+                <Link href="/registro" className="hover:text-brand-300 transition-colors">
                   Registro para Postulantes
                 </Link>
               </li>
               <li>
-                <Link href="/empresas" className="hover:text-emerald-400 transition-colors">
+                <Link href="/registro/empresa" className="hover:text-brand-300 transition-colors">
                   Espacio para Empresas
                 </Link>
               </li>
@@ -75,15 +75,15 @@ export const Footer: React.FC = () => {
             </h4>
             <ul className="space-y-2.5 text-xs text-zinc-400">
               <li className="flex items-start gap-2">
-                <MapPinIcon className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                <MapPinIcon className="w-4 h-4 text-brand-400 shrink-0 mt-0.5" />
                 <span>Municipalidad de Funes, Santa Fe</span>
               </li>
               <li className="flex items-center gap-2">
-                <PhoneIcon className="w-4 h-4 text-emerald-500 shrink-0" />
+                <PhoneIcon className="w-4 h-4 text-brand-400 shrink-0" />
                 <span>Atención: Lunes a Viernes de 7:00 a 13:00 hs</span>
               </li>
               <li className="flex items-center gap-2">
-                <MailIcon className="w-4 h-4 text-emerald-500 shrink-0" />
+                <MailIcon className="w-4 h-4 text-brand-400 shrink-0" />
                 <span>empleo@funes.gob.ar</span>
               </li>
             </ul>
@@ -91,7 +91,7 @@ export const Footer: React.FC = () => {
 
           {/* Columna 4: Privacidad e Intermediación */}
           <div className="bg-zinc-800/60 p-4 rounded-xl border border-zinc-700/60">
-            <div className="flex items-center gap-2 mb-2 text-emerald-400">
+            <div className="flex items-center gap-2 mb-2 text-brand-400">
               <ShieldCheckIcon className="w-4 h-4" />
               <span className="text-xs font-semibold uppercase tracking-wide">
                 Intermediación Segura
@@ -101,7 +101,7 @@ export const Footer: React.FC = () => {
               Los datos personales y CVs son resguardados por la Oficina de Empleo. Las empresas solo acceden a postulantes preseleccionados para cada puesto.
             </p>
             <Link
-              href="/admin"
+              href="/login?redirect=/admin"
               className="text-xs text-zinc-400 hover:text-white underline underline-offset-2 transition-colors block"
             >
               Acceso a gestión interna

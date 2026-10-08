@@ -53,8 +53,7 @@ interface AuthContextType {
   appliedJobIds: string[];
   login: (
     email: string,
-    password?: string,
-    role?: UserRole
+    password?: string
   ) => Promise<{ success: boolean; error?: string; role?: UserRole }>;
   loginAsDemo: (role: UserRole) => void;
   logout: () => Promise<void>;
@@ -191,6 +190,43 @@ export const DEMO_USERS: Record<UserRole, AuthUser> = {
   },
 };
 
+// Cuentas de demostración adicionales y alias reconocidos en modo desarrollo / demo
+export const DEMO_ACCOUNTS_BY_EMAIL: Record<string, AuthUser> = {
+  // Postulantes
+  'lucia.vecina@funes.gob.ar': DEMO_USERS.postulante,
+  'postulante@funes.gob.ar': DEMO_USERS.postulante,
+
+  // Empresas
+  'rrhh@funesmall.com.ar': DEMO_USERS.empresa,
+  'contacto@novatechfunes.com.ar': {
+    ...DEMO_USERS.empresa,
+    id: 'empresa-demo-novatech',
+    email: 'contacto@novatechfunes.com.ar',
+    nombre: 'Martín',
+    empresa: {
+      ...DEMO_USERS.empresa.empresa!,
+      id: 'emp-demo-novatech',
+      user_id: 'empresa-demo-novatech',
+      razon_social: 'NovaTech Funes S.A.S.',
+      nombre_fantasia: 'NovaTech Funes',
+      cuit: '30-71998877-6',
+      direccion: 'Av. Arturo Illia 1200',
+      email_contacto: 'contacto@novatechfunes.com.ar',
+      rubro: 'Tecnología',
+      descripcion: 'Desarrollo de software y servicios tecnológicos en Funes.',
+    },
+  },
+  'empresa@funes.gob.ar': DEMO_USERS.empresa,
+
+  // Administración / Oficina de Empleo
+  'admin@funes.gob.ar': {
+    ...DEMO_USERS.admin,
+    email: 'admin@funes.gob.ar',
+  },
+  'coordinacion.empleo@funes.gob.ar': DEMO_USERS.admin,
+  'empleo@funes.gob.ar': DEMO_USERS.municipalidad,
+};
+
 const STORAGE_KEY_USER = 'portal_funes_current_user';
 const STORAGE_KEY_APPLICATIONS = 'portal_funes_user_applications';
 
@@ -229,7 +265,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   // Función para cargar los datos del perfil y la empresa desde Supabase
-  const loadUserData = useCallback(async (userId: string, email?: string) => {
+  const loadUserData = useCallback(async (userId: string, email?: string): Promise<AuthUser | null> => {
     try {
       const supabase = createClient();
       const { data: perfilData, error: perfilError } = await supabase
@@ -240,7 +276,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       if (perfilError) {
         console.warn('Perfil no encontrado aún o en proceso de creación:', perfilError.message);
-        return;
+        return null;
       }
 
       let empresaData: Empresa | null = null;
@@ -265,8 +301,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setEmpresa(empresaData);
       setDemoCookie(perfilData.rol);
       localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(authUser));
+      return authUser;
     } catch (err) {
       console.error('Error al sincronizar datos de usuario:', err);
+      return null;
     }
   }, []);
 
@@ -348,8 +386,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const login = useCallback(
     async (
       email: string,
-      password?: string,
-      role?: UserRole
+      password?: string
     ): Promise<{ success: boolean; error?: string; role?: UserRole }> => {
       setIsLoading(true);
       const cleanEmail = email.trim();
@@ -378,34 +415,41 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           }
 
           if (data.user) {
-            await loadUserData(data.user.id, data.user.email);
+            const loadedUser = await loadUserData(data.user.id, data.user.email);
             setIsLoading(false);
-            const userRole = (data.user.user_metadata?.rol as UserRole) || 'postulante';
-            return { success: true, role: userRole };
+            if (!loadedUser) {
+              return {
+                success: false,
+                error: 'No se pudo cargar el perfil de usuario asociado en la base de datos.',
+              };
+            }
+            return { success: true, role: loadedUser.rol };
           }
         }
 
         // Modo desarrollo / Usuarios Demo
-        const demoCandidate = Object.values(DEMO_USERS).find(
-          (u) => u.email?.toLowerCase() === cleanEmail.toLowerCase()
-        );
+        const demoCandidate =
+          DEMO_ACCOUNTS_BY_EMAIL[cleanEmail.toLowerCase()] ||
+          Object.values(DEMO_USERS).find(
+            (u) => u.email?.toLowerCase() === cleanEmail.toLowerCase()
+          );
 
-        const targetUser: AuthUser = demoCandidate || {
-          ...DEMO_USERS[role || 'postulante'],
-          id: `user-${Date.now()}`,
-          email: cleanEmail,
-          nombre: cleanEmail.split('@')[0],
-          rol: role || 'postulante',
-          role: role || 'postulante',
-        };
+        if (!demoCandidate) {
+          setIsLoading(false);
+          return {
+            success: false,
+            error:
+              'Correo o contraseña no válidos. En modo local sin conexión a Supabase, utilizá las cuentas demo autorizadas (ej. lucia.vecina@funes.gob.ar, contacto@novatechfunes.com.ar / rrhh@funesmall.com.ar, admin@funes.gob.ar) o los accesos rápidos inferiores.',
+          };
+        }
 
-        setUser(targetUser);
-        if (targetUser.empresa) setEmpresa(targetUser.empresa);
-        setDemoCookie(targetUser.rol);
-        localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(targetUser));
+        setUser(demoCandidate);
+        if (demoCandidate.empresa) setEmpresa(demoCandidate.empresa);
+        setDemoCookie(demoCandidate.rol);
+        localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(demoCandidate));
         window.dispatchEvent(new Event('portal_funes_auth_changed'));
         setIsLoading(false);
-        return { success: true, role: targetUser.rol };
+        return { success: true, role: demoCandidate.rol };
       } catch (err: unknown) {
         setIsLoading(false);
         const message = err instanceof Error ? err.message : 'Error al iniciar sesión';

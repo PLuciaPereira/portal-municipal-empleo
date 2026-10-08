@@ -21,6 +21,14 @@ import {
   Filter,
   Share2,
   Sparkles,
+  ShoppingBag,
+  Utensils,
+  Hammer,
+  Truck,
+  Trees,
+  HeartPulse,
+  Laptop,
+  ArrowRight,
   LucideProps,
 } from 'lucide-react';
 
@@ -108,4 +116,36 @@ export const ShareIcon: React.FC<IconProps> = ({ className = 'w-5 h-5', ...props
 
 export const SparklesIcon: React.FC<IconProps> = ({ className = 'w-5 h-5', ...props }) => (
   <Sparkles className={className} {...props} />
+);
+
+export const ShoppingBagIcon: React.FC<IconProps> = ({ className = 'w-5 h-5', ...props }) => (
+  <ShoppingBag className={className} {...props} />
+);
+
+export const UtensilsIcon: React.FC<IconProps> = ({ className = 'w-5 h-5', ...props }) => (
+  <Utensils className={className} {...props} />
+);
+
+export const HammerIcon: React.FC<IconProps> = ({ className = 'w-5 h-5', ...props }) => (
+  <Hammer className={className} {...props} />
+);
+
+export const TruckIcon: React.FC<IconProps> = ({ className = 'w-5 h-5', ...props }) => (
+  <Truck className={className} {...props} />
+);
+
+export const TreesIcon: React.FC<IconProps> = ({ className = 'w-5 h-5', ...props }) => (
+  <Trees className={className} {...props} />
+);
+
+export const HeartPulseIcon: React.FC<IconProps> = ({ className = 'w-5 h-5', ...props }) => (
+  <HeartPulse className={className} {...props} />
+);
+
+export const LaptopIcon: React.FC<IconProps> = ({ className = 'w-5 h-5', ...props }) => (
+  <Laptop className={className} {...props} />
+);
+
+export const ArrowRightIcon: React.FC<IconProps> = ({ className = 'w-5 h-5', ...props }) => (
+  <ArrowRight className={className} {...props} />
 );

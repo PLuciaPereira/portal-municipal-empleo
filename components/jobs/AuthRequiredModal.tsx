@@ -43,7 +43,7 @@ export const AuthRequiredModal: React.FC<AuthRequiredModalProps> = ({
       return;
     }
 
-    const res = await login(email, 'postulante');
+    const res = await login(email, password);
     if (res.success) {
       onLoginSuccess();
     } else {

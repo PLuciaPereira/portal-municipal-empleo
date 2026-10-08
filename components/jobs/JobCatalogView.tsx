@@ -124,16 +124,16 @@ export const JobCatalogView: React.FC<JobCatalogViewProps> = ({
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-8">
       {/* Banner de Cabecera */}
-      <div className="bg-gradient-to-r from-emerald-900 via-emerald-800 to-teal-900 rounded-2xl p-6 sm:p-10 text-white relative overflow-hidden shadow-sm">
+      <div className="bg-brand-900 border border-brand-800 rounded-2xl p-6 sm:p-10 text-white relative overflow-hidden shadow-sm">
         <div className="relative z-10 max-w-3xl space-y-3">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-700/70 border border-emerald-500/40 text-emerald-100 text-xs font-medium">
-            <ShieldCheckIcon className="w-3.5 h-3.5 text-emerald-300" />
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-brand-800/90 border border-brand-700/60 text-brand-100 text-xs font-semibold shadow-xs">
+            <ShieldCheckIcon className="w-3.5 h-3.5 text-brand-300" />
             Bolsa de Empleo Municipal &bull; Funes, Santa Fe
           </div>
-          <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight">
+          <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-white">
             Ofertas Laborales Vigentes
           </h1>
-          <p className="text-sm sm:text-base text-emerald-100/90 leading-relaxed">
+          <p className="text-sm sm:text-base text-brand-100/90 leading-relaxed">
             Consultá las búsquedas activas de comercios y empresas de Funes. Postulate de manera gratuita; la Oficina de Empleo acompaña y preselecciona cada postulación con absoluta confidencialidad.
           </p>
         </div>
@@ -142,15 +142,15 @@ export const JobCatalogView: React.FC<JobCatalogViewProps> = ({
       {/* Etiquetas de filtros activos */}
       {hasActiveFilters && (
         <div className="flex flex-wrap items-center gap-2 pt-1 pb-2">
-          <span className="text-xs font-semibold text-zinc-500 mr-1">Filtros aplicados:</span>
+          <span className="text-xs font-semibold text-muted-foreground mr-1">Filtros aplicados:</span>
 
           {filters.query && (
-            <Badge variant="emerald" className="gap-1.5 pl-2.5 pr-1.5 py-1">
+            <Badge variant="brand" className="gap-1.5 pl-2.5 pr-1.5 py-1">
               <span>Búsqueda: &ldquo;{filters.query}&rdquo;</span>
               <button
                 type="button"
                 onClick={() => setFilters({ ...filters, query: '' })}
-                className="hover:text-emerald-950 p-0.5"
+                className="hover:text-brand-950 p-0.5 cursor-pointer"
                 aria-label="Quitar filtro de búsqueda"
               >
                 <XMarkIcon className="w-3.5 h-3.5" />
@@ -159,12 +159,12 @@ export const JobCatalogView: React.FC<JobCatalogViewProps> = ({
           )}
 
           {filters.rubro !== 'todos' && (
-            <Badge variant="blue" className="gap-1.5 pl-2.5 pr-1.5 py-1">
+            <Badge variant="brand" className="gap-1.5 pl-2.5 pr-1.5 py-1">
               <span>Rubro: {filters.rubro}</span>
               <button
                 type="button"
                 onClick={() => setFilters({ ...filters, rubro: 'todos' })}
-                className="hover:text-sky-950 p-0.5"
+                className="hover:text-brand-950 p-0.5 cursor-pointer"
                 aria-label="Quitar filtro de rubro"
               >
                 <XMarkIcon className="w-3.5 h-3.5" />
@@ -173,12 +173,12 @@ export const JobCatalogView: React.FC<JobCatalogViewProps> = ({
           )}
 
           {filters.jornada !== 'todas' && (
-            <Badge variant="amber" className="gap-1.5 pl-2.5 pr-1.5 py-1">
+            <Badge variant="zinc" className="gap-1.5 pl-2.5 pr-1.5 py-1">
               <span>Jornada: {filters.jornada}</span>
               <button
                 type="button"
                 onClick={() => setFilters({ ...filters, jornada: 'todas' })}
-                className="hover:text-amber-950 p-0.5"
+                className="hover:text-foreground p-0.5 cursor-pointer"
                 aria-label="Quitar filtro de jornada"
               >
                 <XMarkIcon className="w-3.5 h-3.5" />
@@ -187,12 +187,12 @@ export const JobCatalogView: React.FC<JobCatalogViewProps> = ({
           )}
 
           {filters.zona !== 'todas' && (
-            <Badge variant="purple" className="gap-1.5 pl-2.5 pr-1.5 py-1">
+            <Badge variant="brand" className="gap-1.5 pl-2.5 pr-1.5 py-1">
               <span>Zona: {filters.zona}</span>
               <button
                 type="button"
                 onClick={() => setFilters({ ...filters, zona: 'todas' })}
-                className="hover:text-purple-950 p-0.5"
+                className="hover:text-brand-950 p-0.5 cursor-pointer"
                 aria-label="Quitar filtro de zona"
               >
                 <XMarkIcon className="w-3.5 h-3.5" />
@@ -201,12 +201,12 @@ export const JobCatalogView: React.FC<JobCatalogViewProps> = ({
           )}
 
           {filters.destacadasOnly && (
-            <Badge variant="emerald" className="gap-1.5 pl-2.5 pr-1.5 py-1">
+            <Badge variant="brand" className="gap-1.5 pl-2.5 pr-1.5 py-1">
               <span>Solo destacadas</span>
               <button
                 type="button"
                 onClick={() => setFilters({ ...filters, destacadasOnly: false })}
-                className="hover:text-emerald-950 p-0.5"
+                className="hover:text-brand-950 p-0.5 cursor-pointer"
                 aria-label="Quitar filtro de solo destacadas"
               >
                 <XMarkIcon className="w-3.5 h-3.5" />
@@ -217,7 +217,7 @@ export const JobCatalogView: React.FC<JobCatalogViewProps> = ({
           <button
             type="button"
             onClick={handleReset}
-            className="text-xs text-rose-600 hover:text-rose-800 font-medium ml-2 hover:underline"
+            className="text-xs text-destructive hover:text-rose-800 font-semibold ml-2 hover:underline cursor-pointer"
           >
             Limpiar todos
           </button>
@@ -238,11 +238,11 @@ export const JobCatalogView: React.FC<JobCatalogViewProps> = ({
 
         {/* Listado de Ofertas */}
         <section className="flex-1 w-full space-y-4">
-          <div className="flex items-center justify-between text-xs sm:text-sm text-zinc-500 pb-2 border-b border-zinc-200">
+          <div className="flex items-center justify-between text-xs sm:text-sm text-muted-foreground pb-2 border-b border-border">
             <span>
-              Mostrando <strong className="text-zinc-900 font-bold">{filteredJobs.length}</strong> {filteredJobs.length === 1 ? 'oferta' : 'ofertas laborales'}
+              Mostrando <strong className="text-foreground font-bold">{filteredJobs.length}</strong> {filteredJobs.length === 1 ? 'oferta' : 'ofertas laborales'}
             </span>
-            <span className="text-emerald-700 font-medium hidden sm:inline">
+            <span className="text-brand-800 font-semibold hidden sm:inline">
               Funes y área metropolitana
             </span>
           </div>
@@ -255,15 +255,15 @@ export const JobCatalogView: React.FC<JobCatalogViewProps> = ({
             </div>
           ) : (
             /* Estado sin resultados */
-            <div className="bg-white rounded-2xl border border-zinc-200 p-8 sm:p-12 text-center space-y-4">
-              <div className="w-14 h-14 rounded-full bg-zinc-100 text-zinc-400 mx-auto flex items-center justify-center">
+            <div className="bg-surface rounded-2xl border border-border p-8 sm:p-12 text-center space-y-4">
+              <div className="w-14 h-14 rounded-2xl bg-brand-100 text-brand-800 mx-auto flex items-center justify-center border border-brand-200">
                 <SearchIcon className="w-7 h-7" />
               </div>
               <div className="space-y-1 max-w-sm mx-auto">
-                <h3 className="text-lg font-bold text-zinc-900">
+                <h3 className="text-lg font-bold text-foreground">
                   No se encontraron ofertas coincidentes
                 </h3>
-                <p className="text-sm text-zinc-500 leading-relaxed">
+                <p className="text-sm text-muted-foreground leading-relaxed">
                   Probá modificando o limpiando los filtros para ver todas las oportunidades disponibles en Funes.
                 </p>
               </div>
@@ -276,22 +276,22 @@ export const JobCatalogView: React.FC<JobCatalogViewProps> = ({
           )}
 
           {/* Banner de invitación a registrar CV general */}
-          <div className="bg-white rounded-2xl border border-zinc-200/80 p-6 sm:p-8 mt-8 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-xs">
+          <div className="bg-surface rounded-2xl border border-border p-6 sm:p-8 mt-8 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-xs">
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0">
+              <div className="w-12 h-12 rounded-xl bg-brand-100 text-brand-800 flex items-center justify-center shrink-0 border border-brand-200">
                 <UserIcon className="w-6 h-6" />
               </div>
               <div className="space-y-1">
-                <h4 className="font-bold text-zinc-900 text-base">
+                <h4 className="font-bold text-foreground text-base">
                   ¿No encontraste un puesto afín a tu perfil?
                 </h4>
-                <p className="text-xs sm:text-sm text-zinc-600 leading-relaxed">
+                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
                   Cargá tus datos y tu CV en la base general de la Oficina de Empleo. Cuando una empresa busque un perfil similar al tuyo, podremos convocarte directamente.
                 </p>
               </div>
             </div>
             <Button
-              href="/postulantes"
+              href="/registro"
               variant="outline"
               size="md"
               className="shrink-0 w-full sm:w-auto"

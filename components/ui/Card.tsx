@@ -12,9 +12,9 @@ export const Card: React.FC<CardProps> = ({
 }) => {
   return (
     <div
-      className={`bg-white rounded-xl border border-zinc-200/80 shadow-xs overflow-hidden ${
+      className={`bg-surface rounded-2xl border border-border shadow-xs overflow-hidden ${
         hoverEffect
-          ? 'transition-all duration-200 hover:shadow-md hover:border-emerald-300'
+          ? 'transition-all duration-200 hover:shadow-card hover:border-brand-600/70'
           : ''
       } ${className}`}
       {...props}
@@ -30,7 +30,7 @@ export const CardHeader: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
   ...props
 }) => {
   return (
-    <div className={`p-5 border-b border-zinc-100 ${className}`} {...props}>
+    <div className={`p-5 sm:p-6 border-b border-border/60 ${className}`} {...props}>
       {children}
     </div>
   );
@@ -43,7 +43,7 @@ export const CardTitle: React.FC<React.HTMLAttributes<HTMLHeadingElement>> = ({
 }) => {
   return (
     <h3
-      className={`text-lg font-semibold text-zinc-900 tracking-tight ${className}`}
+      className={`text-lg font-bold text-foreground tracking-tight ${className}`}
       {...props}
     >
       {children}
@@ -57,7 +57,7 @@ export const CardDescription: React.FC<React.HTMLAttributes<HTMLParagraphElement
   ...props
 }) => {
   return (
-    <p className={`text-sm text-zinc-500 mt-1 ${className}`} {...props}>
+    <p className={`text-sm text-muted-foreground mt-1 leading-relaxed ${className}`} {...props}>
       {children}
     </p>
   );
@@ -69,7 +69,7 @@ export const CardContent: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
   ...props
 }) => {
   return (
-    <div className={`p-5 ${className}`} {...props}>
+    <div className={`p-5 sm:p-6 ${className}`} {...props}>
       {children}
     </div>
   );
@@ -82,7 +82,7 @@ export const CardFooter: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
 }) => {
   return (
     <div
-      className={`p-5 bg-zinc-50/50 border-t border-zinc-100 flex items-center justify-between ${className}`}
+      className={`p-5 sm:p-6 bg-brand-50/40 border-t border-border/60 flex items-center justify-between ${className}`}
       {...props}
     >
       {children}
