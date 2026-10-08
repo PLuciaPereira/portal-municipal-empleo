@@ -18,7 +18,7 @@ import { Badge } from '@/components/ui/Badge';
 export const Navbar: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, empresa, isAuthenticated, logout } = useAuth();
 
   const navLinks = [
     { label: 'Ofertas Laborales', href: '/ofertas' },
@@ -26,12 +26,42 @@ export const Navbar: React.FC = () => {
     { label: 'Oficina de Empleo', href: '/#contacto' },
   ];
 
+  const role = user?.rol || user?.role;
+
   const roleLabel =
-    user?.role === 'postulante'
+    role === 'postulante'
       ? 'Postulante'
-      : user?.role === 'empresa'
+      : role === 'empresa'
       ? 'Empresa'
+      : role === 'admin'
+      ? 'Administrador'
       : 'Oficina de Empleo';
+
+  const roleBadgeVariant =
+    role === 'empresa'
+      ? 'blue'
+      : role === 'admin' || role === 'municipalidad'
+      ? 'zinc'
+      : 'emerald';
+
+  const dashboardHref =
+    role === 'empresa'
+      ? '/empresa'
+      : role === 'admin' || role === 'municipalidad'
+      ? '/admin'
+      : '/postulante';
+
+  const dashboardLabel =
+    role === 'empresa'
+      ? 'Panel Empresa'
+      : role === 'admin' || role === 'municipalidad'
+      ? 'Panel Municipal'
+      : 'Mi Panel';
+
+  const displayName =
+    role === 'empresa' && (empresa?.nombre_fantasia || empresa?.razon_social)
+      ? empresa.nombre_fantasia || empresa.razon_social
+      : `${user?.nombre || 'Usuario'} ${user?.apellido || ''}`.trim();
 
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-zinc-200">
@@ -81,23 +111,35 @@ export const Navbar: React.FC = () => {
           <div className="hidden md:flex items-center gap-3">
             {isAuthenticated ? (
               <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2 text-xs">
-                  <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold">
-                    {user?.nombre.charAt(0)}
+                <Link
+                  href={dashboardHref}
+                  className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-zinc-100 transition-colors text-left"
+                >
+                  <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-xs shrink-0">
+                    {displayName.charAt(0)}
                   </div>
-                  <div className="flex flex-col text-left">
-                    <span className="font-semibold text-zinc-900 leading-tight">
-                      {user?.nombre} {user?.apellido}
+                  <div className="flex flex-col">
+                    <span className="font-semibold text-zinc-900 leading-tight text-xs max-w-[140px] truncate">
+                      {displayName}
                     </span>
-                    <Badge variant="emerald" size="sm" className="text-[10px] py-0 px-1.5 self-start">
+                    <Badge variant={roleBadgeVariant} size="sm" className="text-[10px] py-0 px-1.5 self-start">
                       {roleLabel}
                     </Badge>
                   </div>
-                </div>
+                </Link>
+
+                <Button
+                  href={dashboardHref}
+                  variant="outline"
+                  size="sm"
+                  className="text-xs font-semibold"
+                >
+                  {dashboardLabel}
+                </Button>
 
                 <button
                   type="button"
-                  onClick={logout}
+                  onClick={() => logout()}
                   className="text-xs text-zinc-500 hover:text-rose-600 font-medium px-2 py-1 rounded hover:bg-zinc-100 transition-colors"
                 >
                   Salir
@@ -106,7 +148,7 @@ export const Navbar: React.FC = () => {
             ) : (
               <>
                 <Link
-                  href="/empresas"
+                  href="/registro/empresa"
                   className="text-xs sm:text-sm font-medium text-zinc-700 hover:text-emerald-800 px-3 py-1.5 rounded-lg hover:bg-zinc-100 transition-colors flex items-center gap-1.5"
                 >
                   <BuildingIcon className="w-4 h-4 text-zinc-500" />
@@ -126,7 +168,7 @@ export const Navbar: React.FC = () => {
             )}
           </div>
 
-          {/* Botón Móvil */}
+          {/* Botón Menú Móvil */}
           <div className="flex md:hidden items-center gap-2">
             <button
               type="button"
@@ -148,26 +190,35 @@ export const Navbar: React.FC = () => {
       {mobileMenuOpen && (
         <div className="md:hidden border-t border-zinc-200 bg-white px-4 pt-3 pb-6 space-y-4">
           {isAuthenticated && (
-            <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200 flex items-center justify-between">
+            <div className="p-3 bg-zinc-50 rounded-xl border border-zinc-200 flex items-center justify-between">
               <div>
                 <span className="text-xs text-zinc-500 block">Conectado como:</span>
-                <span className="font-bold text-sm text-zinc-900">
-                  {user?.nombre} {user?.apellido}
+                <span className="font-bold text-sm text-zinc-900 block truncate max-w-[180px]">
+                  {displayName}
                 </span>
-                <Badge variant="emerald" size="sm" className="mt-0.5">
+                <Badge variant={roleBadgeVariant} size="sm" className="mt-0.5">
                   {roleLabel}
                 </Badge>
               </div>
-              <button
-                type="button"
-                onClick={() => {
-                  logout();
-                  setMobileMenuOpen(false);
-                }}
-                className="text-xs text-rose-600 font-semibold px-2 py-1 rounded bg-white border border-rose-200"
-              >
-                Cerrar sesión
-              </button>
+              <div className="flex flex-col items-end gap-1.5">
+                <Link
+                  href={dashboardHref}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="text-xs text-emerald-700 font-bold hover:underline"
+                >
+                  Ir a {dashboardLabel} &rarr;
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => {
+                    logout();
+                    setMobileMenuOpen(false);
+                  }}
+                  className="text-xs text-rose-600 font-semibold px-2 py-0.5 rounded bg-white border border-rose-200"
+                >
+                  Cerrar sesión
+                </button>
+              </div>
             </div>
           )}
 
@@ -206,17 +257,17 @@ export const Navbar: React.FC = () => {
                 Registrarme como Postulante
               </Button>
               <Button
-                href="/empresas"
+                href="/registro/empresa"
                 variant="ghost"
                 size="md"
-                className="w-full justify-center text-zinc-600"
+                className="w-full justify-center text-zinc-600 border border-zinc-200"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <BuildingIcon className="w-4 h-4 mr-2" />
-                Espacio Empresas
+                Registrar Empresa o Comercio
               </Button>
               <Link
-                href="/admin"
+                href="/login?redirect=/admin"
                 onClick={() => setMobileMenuOpen(false)}
                 className="text-center text-xs text-zinc-500 hover:text-zinc-800 pt-2 flex items-center justify-center gap-1"
               >
