@@ -18,13 +18,32 @@ import {
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectUrl = searchParams.get('redirect') || '/ofertas';
+  const redirectUrl = searchParams.get('redirect');
 
   const { login, loginAsDemo, isLoading } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [selectedRole, setSelectedRole] = useState<UserRole>('postulante');
   const [error, setError] = useState<string | null>(null);
+
+  const getTargetUrlForRole = (role?: UserRole): string => {
+    if (
+      redirectUrl &&
+      redirectUrl.startsWith('/') &&
+      !redirectUrl.startsWith('//') &&
+      !redirectUrl.startsWith('/login') &&
+      !redirectUrl.startsWith('/registro')
+    ) {
+      // Validar que la ruta de redirección pertenezca a su rol si es una ruta protegida
+      if (redirectUrl.startsWith('/postulante') && role === 'postulante') return redirectUrl;
+      if (redirectUrl.startsWith('/empresa') && role === 'empresa') return redirectUrl;
+      if (redirectUrl.startsWith('/admin') && (role === 'admin' || role === 'municipalidad')) return redirectUrl;
+      if (redirectUrl.startsWith('/ofertas')) return redirectUrl;
+    }
+
+    if (role === 'empresa') return '/empresa';
+    if (role === 'admin' || role === 'municipalidad') return '/admin';
+    return '/postulante';
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,17 +54,24 @@ function LoginForm() {
       return;
     }
 
-    const res = await login(email, selectedRole);
+    if (!password) {
+      setError('Por favor ingresá tu contraseña.');
+      return;
+    }
+
+    const res = await login(email, password);
     if (res.success) {
-      router.push(redirectUrl);
+      const target = getTargetUrlForRole(res.role);
+      router.push(target);
     } else {
-      setError(res.error || 'Credenciales incorrectas');
+      setError(res.error || 'Credenciales incorrectas.');
     }
   };
 
   const handleDemoLogin = (role: UserRole) => {
     loginAsDemo(role);
-    router.push(redirectUrl);
+    const target = getTargetUrlForRole(role);
+    router.push(target);
   };
 
   return (
@@ -80,36 +106,6 @@ function LoginForm() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-1">
-              <label className="block text-xs font-semibold text-zinc-700">
-                Tipo de cuenta
-              </label>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setSelectedRole('postulante')}
-                  className={`py-2 px-3 rounded-lg text-xs font-semibold border transition-colors ${
-                    selectedRole === 'postulante'
-                      ? 'bg-emerald-50 border-emerald-300 text-emerald-900'
-                      : 'bg-white border-zinc-200 text-zinc-600 hover:bg-zinc-50'
-                  }`}
-                >
-                  Soy Postulante
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSelectedRole('empresa')}
-                  className={`py-2 px-3 rounded-lg text-xs font-semibold border transition-colors ${
-                    selectedRole === 'empresa'
-                      ? 'bg-sky-50 border-sky-300 text-sky-900'
-                      : 'bg-white border-zinc-200 text-zinc-600 hover:bg-zinc-50'
-                  }`}
-                >
-                  Soy Empresa
-                </button>
-              </div>
-            </div>
-
             <Input
               label="Correo Electrónico"
               type="email"
@@ -125,6 +121,7 @@ function LoginForm() {
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              required
             />
 
             <Button
@@ -149,36 +146,47 @@ function LoginForm() {
                 onClick={() => handleDemoLogin('postulante')}
                 className="py-1.5 px-3 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 text-xs font-semibold flex items-center justify-between transition-colors"
               >
-                <span>Postulante: Lucía Fernández (Funes)</span>
-                <CheckCircleIcon className="w-4 h-4 text-emerald-700" />
+                <span>Postulante: Lucía Fernández (lucia.vecina@funes.gob.ar)</span>
+                <CheckCircleIcon className="w-4 h-4 text-emerald-700 shrink-0" />
               </button>
               <button
                 type="button"
                 onClick={() => handleDemoLogin('empresa')}
                 className="py-1.5 px-3 rounded-lg bg-sky-50 hover:bg-sky-100 text-sky-900 border border-sky-200 text-xs font-semibold flex items-center justify-between transition-colors"
               >
-                <span>Empresa: Funes Mall Retail</span>
-                <BuildingIcon className="w-4 h-4 text-sky-700" />
+                <span>Empresa: Funes Mall / NovaTech (contacto@novatechfunes.com.ar)</span>
+                <BuildingIcon className="w-4 h-4 text-sky-700 shrink-0" />
               </button>
               <button
                 type="button"
                 onClick={() => handleDemoLogin('admin')}
                 className="py-1.5 px-3 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-900 border border-zinc-300 text-xs font-semibold flex items-center justify-between transition-colors"
               >
-                <span>Oficina de Empleo (Administración)</span>
-                <ShieldCheckIcon className="w-4 h-4 text-zinc-700" />
+                <span>Oficina de Empleo / Admin (admin@funes.gob.ar)</span>
+                <ShieldCheckIcon className="w-4 h-4 text-zinc-700 shrink-0" />
               </button>
             </div>
           </div>
 
-          <div className="text-center pt-2 text-xs text-zinc-600 border-t border-zinc-100">
-            ¿No tenés cuenta aún?{' '}
-            <Link
-              href={`/registro?redirect=${encodeURIComponent(redirectUrl)}`}
-              className="font-bold text-emerald-700 hover:text-emerald-900 underline"
-            >
-              Registrate como Postulante
-            </Link>
+          <div className="text-center pt-2 space-y-1.5 text-xs text-zinc-600 border-t border-zinc-100">
+            <div>
+              ¿No tenés cuenta aún?{' '}
+              <Link
+                href="/registro"
+                className="font-bold text-emerald-700 hover:text-emerald-900 underline"
+              >
+                Registrate como Postulante
+              </Link>
+            </div>
+            <div>
+              ¿Tenés una empresa en Funes?{' '}
+              <Link
+                href="/registro/empresa"
+                className="font-bold text-sky-700 hover:text-sky-900 underline"
+              >
+                Registrá tu Empresa acá
+              </Link>
+            </div>
           </div>
         </CardContent>
       </Card>

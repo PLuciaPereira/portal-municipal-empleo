@@ -4,19 +4,30 @@
   /* ==========================================================================
      PALETA DE MARCA (Sección 5.1 & 6 del Design System)
      ========================================================================== */
+  --color-brand-950: #042f1d;
   --color-brand-900: #06452b;
   --color-brand-800: #075a36;
-  --color-brand-600: #307a52;
-  --color-brand-400: #69bd91;
+  --color-brand-700: #126b42;
+  --color-brand-600: #1e7048;
+  --color-brand-500: #2a7e53;
+  --color-brand-400: #4eaa7b;
+  --color-brand-300: #88cfa8;
+  --color-brand-200: #c2e5d1;
   --color-brand-100: #e3f2e9;
+  --color-brand-50: #f2f8f4;
 
   /* Escala numérica de Primary alineada a la marca */
+  --color-primary-950: #042f1d;
   --color-primary-900: #06452b;
   --color-primary-800: #075a36;
-  --color-primary-600: #075a36;
-  --color-primary-500: #307a52;
-  --color-primary-400: #69bd91;
+  --color-primary-700: #126b42;
+  --color-primary-600: #1e7048;
+  --color-primary-500: #2a7e53;
+  --color-primary-400: #4eaa7b;
+  --color-primary-300: #88cfa8;
+  --color-primary-200: #c2e5d1;
   --color-primary-100: #e3f2e9;
+  --color-primary-50: #f2f8f4;
 
   /* ==========================================================================
      TOKENS SEMÁNTICOS (Sección 5.2, 5.3, 6, 12, 14)
@@ -26,8 +37,10 @@
   --color-page: #f5f8f6;
   --color-surface: #ffffff;
   --color-border: #dce8e0;
-  --color-foreground: #202b26;
-  --color-muted-foreground: #66756b;
+  --color-border-hover: #b5d1c0;
+  --color-foreground: #192620;
+  --color-muted-foreground: #4f6357;
+  --color-placeholder: #6e8276;
   --color-muted: #e3f2e9;
 
   /* Componentes e Interacción (Primary & Secondary) */
@@ -47,9 +60,9 @@
   --color-sidebar-border: rgba(255, 255, 255, 0.12);
 
   /* Estados y Feedback (Sección 5.3) */
-  --color-success: #16a34a;
+  --color-success: #15803d;
   --color-success-foreground: #ffffff;
-  --color-warning: #d97706;
+  --color-warning: #b45309;
   --color-warning-foreground: #ffffff;
   --color-danger: #dc2626;
   --color-danger-foreground: #ffffff;
@@ -61,8 +74,8 @@
   /* ==========================================================================
      TIPOGRAFÍA (Sección 7)
      ========================================================================== */
-  --font-sans: var(--font-geist-sans), Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-mono: var(--font-geist-mono), monospace;
+  --font-sans: var(--font-inter), Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: monospace;
 
   --text-caption: 0.75rem;
   --text-caption--line-height: 1rem;
@@ -149,18 +162,27 @@
 
 :root {
   /* Variables directas para compatibilidad con código CSS estándar (Sección 6) */
+  --brand-950: #042f1d;
   --brand-900: #06452b;
   --brand-800: #075a36;
-  --brand-600: #307a52;
-  --brand-400: #69bd91;
+  --brand-700: #126b42;
+  --brand-600: #1e7048;
+  --brand-500: #2a7e53;
+  --brand-400: #4eaa7b;
+  --brand-300: #88cfa8;
+  --brand-200: #c2e5d1;
   --brand-100: #e3f2e9;
+  --brand-50: #f2f8f4;
 
   --background: #f5f8f6;
+  --page: #f5f8f6;
   --surface: #ffffff;
   --border: #dce8e0;
+  --border-hover: #b5d1c0;
 
-  --foreground: #202b26;
-  --muted-foreground: #66756b;
+  --foreground: #192620;
+  --muted-foreground: #4f6357;
+  --placeholder: #6e8276;
 
   --primary: #075a36;
   --primary-hover: #06452b;

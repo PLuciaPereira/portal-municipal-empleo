@@ -55,3 +55,6 @@ Después de realizar cambios, explicar brevemente:
 2. Qué se cambió.
 3. Si se agregaron dependencias.
 4. Si hay algo que deba probarse manualmente.
+
+
+<!-- agy --dangerously-skip-permissions -->

@@ -1,7 +1,16 @@
 import React from 'react';
 
 export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
-  variant?: 'emerald' | 'blue' | 'amber' | 'zinc' | 'rose' | 'purple';
+  variant?:
+    | 'brand'
+    | 'secondary'
+    | 'emerald'
+    | 'blue'
+    | 'amber'
+    | 'zinc'
+    | 'rose'
+    | 'purple'
+    | 'destructive';
   size?: 'sm' | 'md';
 }
 
@@ -12,7 +21,7 @@ export const Badge: React.FC<BadgeProps> = ({
   className = '',
   ...props
 }) => {
-  const baseStyles = 'inline-flex items-center font-medium rounded-full';
+  const baseStyles = 'inline-flex items-center font-semibold rounded-full';
 
   const sizeStyles = {
     sm: 'px-2 py-0.5 text-xs',
@@ -20,12 +29,15 @@ export const Badge: React.FC<BadgeProps> = ({
   };
 
   const variantStyles = {
-    emerald: 'bg-emerald-50 text-emerald-700 border border-emerald-200/80',
-    blue: 'bg-sky-50 text-sky-700 border border-sky-200/80',
-    amber: 'bg-amber-50 text-amber-800 border border-amber-200/80',
-    zinc: 'bg-zinc-100 text-zinc-700 border border-zinc-200/80',
-    rose: 'bg-rose-50 text-rose-700 border border-rose-200/80',
-    purple: 'bg-purple-50 text-purple-700 border border-purple-200/80',
+    brand: 'bg-brand-100 text-brand-900 border border-brand-300',
+    secondary: 'bg-brand-100 text-brand-900 border border-brand-300',
+    emerald: 'bg-brand-100 text-brand-900 border border-brand-300',
+    blue: 'bg-sky-50 text-sky-900 border border-sky-200',
+    amber: 'bg-amber-50 text-amber-900 border border-amber-200',
+    zinc: 'bg-zinc-100 text-zinc-800 border border-zinc-200',
+    rose: 'bg-rose-50 text-rose-900 border border-rose-200',
+    purple: 'bg-purple-50 text-purple-900 border border-purple-200',
+    destructive: 'bg-rose-50 text-destructive border border-rose-200',
   };
 
   return (

@@ -2,20 +2,18 @@
 
 import React, { useState, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardContent } from '@/components/ui/Card';
 import Image from 'next/image';
-import { ShieldCheckIcon } from '@/components/ui/Icons';
+import { ShieldCheckIcon, CheckCircleIcon } from '@/components/ui/Icons';
 
 function RegisterForm() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const redirectUrl = searchParams.get('redirect') || '/ofertas';
-
   const { register, isLoading } = useAuth();
+
   const [formData, setFormData] = useState({
     nombre: '',
     apellido: '',
@@ -28,6 +26,7 @@ function RegisterForm() {
   });
 
   const [error, setError] = useState<string | null>(null);
+  const [successConfirmation, setSuccessConfirmation] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,6 +38,10 @@ function RegisterForm() {
     }
     if (!formData.dni.trim()) {
       setError('Por favor ingresá tu DNI.');
+      return;
+    }
+    if (!formData.telefono.trim()) {
+      setError('Por favor ingresá tu teléfono o celular de contacto.');
       return;
     }
     if (!formData.email.trim() || !formData.email.includes('@')) {
@@ -56,16 +59,49 @@ function RegisterForm() {
       dni: formData.dni,
       telefono: formData.telefono,
       email: formData.email,
+      password: formData.password,
       es_residente_funes: formData.esResidenteFunes,
       barrio: formData.barrio,
     });
 
     if (res.success) {
-      router.push(redirectUrl);
+      if (res.requiresEmailConfirmation) {
+        setSuccessConfirmation(true);
+      } else {
+        router.push('/postulante');
+      }
     } else {
       setError(res.error || 'No se pudo crear la cuenta.');
     }
   };
+
+  if (successConfirmation) {
+    return (
+      <div className="max-w-md w-full mx-auto space-y-6">
+        <Card className="border-emerald-200 shadow-sm bg-white">
+          <CardContent className="p-8 text-center space-y-4">
+            <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto">
+              <CheckCircleIcon className="w-8 h-8" />
+            </div>
+            <h2 className="text-xl font-bold text-zinc-900">
+              ¡Cuenta creada exitosamente!
+            </h2>
+            <p className="text-sm text-zinc-600 leading-relaxed">
+              Te enviamos un correo electrónico a <span className="font-semibold text-zinc-900">{formData.email}</span> con las instrucciones para confirmar tu cuenta.
+            </p>
+            <div className="p-3 bg-zinc-50 border border-zinc-200 rounded-lg text-xs text-zinc-500">
+              Una vez confirmada, podrás iniciar sesión y completar tu currículum.
+            </div>
+            <div className="pt-2">
+              <Button href="/login" variant="primary" className="w-full justify-center">
+                Ir a Iniciar Sesión
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-xl w-full mx-auto space-y-6">
@@ -95,7 +131,7 @@ function RegisterForm() {
           <div className="p-3 bg-emerald-50 border border-emerald-200/70 rounded-xl text-xs text-emerald-950 flex items-start gap-2.5">
             <ShieldCheckIcon className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
             <p className="leading-relaxed">
-              Al registrarte podrás postularte a las ofertas vigentes y formar parte de la base oficial de empleo de Funes. Tu información no es pública ni se comparte sin previa intermediación municipal.
+              Al registrarte podrás postularte a las ofertas laborales y formar parte de la base oficial de empleo de Funes. Tu información no es pública ni se comparte sin previa intermediación municipal.
             </p>
           </div>
 
@@ -126,13 +162,13 @@ function RegisterForm() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <Input
                 label="DNI *"
-                placeholder="Sin puntos"
+                placeholder="Sin puntos ni espacios"
                 value={formData.dni}
                 onChange={(e) => setFormData({ ...formData, dni: e.target.value })}
                 required
               />
               <Input
-                label="Teléfono / WhatsApp *"
+                label="Teléfono / Celular *"
                 placeholder="Ej: 341 555-0123"
                 value={formData.telefono}
                 onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
@@ -190,7 +226,7 @@ function RegisterForm() {
 
             {formData.esResidenteFunes && (
               <Input
-                label="Barrio de Funes"
+                label="Barrio de Funes (opcional)"
                 placeholder="Ej: Cantegril, Don Mateo, Centro, Funes City..."
                 value={formData.barrio}
                 onChange={(e) => setFormData({ ...formData, barrio: e.target.value })}
@@ -204,18 +240,29 @@ function RegisterForm() {
               className="w-full justify-center"
               isLoading={isLoading}
             >
-              Crear Cuenta y Continuar
+              Crear Cuenta de Postulante
             </Button>
           </form>
 
-          <div className="text-center pt-2 text-xs text-zinc-600 border-t border-zinc-100">
-            ¿Ya tenés una cuenta registrada?{' '}
-            <Link
-              href={`/login?redirect=${encodeURIComponent(redirectUrl)}`}
-              className="font-bold text-emerald-700 hover:text-emerald-900 underline"
-            >
-              Iniciá Sesión acá
-            </Link>
+          <div className="text-center pt-2 space-y-1.5 text-xs text-zinc-600 border-t border-zinc-100">
+            <div>
+              ¿Ya tenés una cuenta registrada?{' '}
+              <Link
+                href="/login"
+                className="font-bold text-emerald-700 hover:text-emerald-900 underline"
+              >
+                Iniciá Sesión acá
+              </Link>
+            </div>
+            <div>
+              ¿Buscás personal para tu comercio o empresa?{' '}
+              <Link
+                href="/registro/empresa"
+                className="font-bold text-sky-700 hover:text-sky-900 underline"
+              >
+                Registrate como Empresa
+              </Link>
+            </div>
           </div>
         </CardContent>
       </Card>

@@ -5,45 +5,66 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
   error?: string;
   hint?: string;
   leftIcon?: React.ReactNode;
+  inputSize?: 'md' | 'lg';
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ label, error, hint, leftIcon, className = '', id, ...props }, ref) => {
+  (
+    {
+      label,
+      error,
+      hint,
+      leftIcon,
+      inputSize = 'md',
+      className = '',
+      id,
+      ...props
+    },
+    ref
+  ) => {
     const inputId = id || (label ? label.toLowerCase().replace(/\s+/g, '-') : undefined);
+
+    const isLg = inputSize === 'lg';
 
     return (
       <div className="w-full space-y-1.5">
         {label && (
           <label
             htmlFor={inputId}
-            className="block text-sm font-medium text-zinc-700"
+            className="block text-sm font-medium text-foreground"
           >
             {label}
           </label>
         )}
-        <div className="relative">
+        <div className="relative group">
           {leftIcon && (
-            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-zinc-400">
+            <div
+              className={`absolute inset-y-0 left-0 ${
+                isLg ? 'w-12' : 'w-10'
+              } flex items-center justify-center pointer-events-none text-placeholder transition-colors group-focus-within:text-brand-800`}
+            >
               {leftIcon}
             </div>
           )}
           <input
             id={inputId}
             ref={ref}
-            className={`w-full rounded-lg border bg-white py-2 text-sm text-zinc-900 transition-colors placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-offset-1 ${
-              leftIcon ? 'pl-10 pr-3.5' : 'px-3.5'
+            className={`w-full rounded-xl border bg-surface text-foreground transition-all duration-150 placeholder:text-placeholder focus:outline-none focus:ring-3 ${
+              isLg
+                ? `h-13 text-base ${leftIcon ? 'pl-12 pr-4' : 'px-4'}`
+                : `h-10 text-sm ${leftIcon ? 'pl-10 pr-3.5' : 'px-3.5'}`
             } ${
               error
-                ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-200'
-                : 'border-zinc-300 focus:border-emerald-600 focus:ring-emerald-100'
-            } disabled:bg-zinc-100 disabled:cursor-not-allowed ${className}`}
+                ? 'border-destructive focus:border-destructive focus:ring-destructive/20'
+                : 'border-border hover:border-brand-600/70 focus:border-brand-800 focus:ring-brand-800/15'
+            } disabled:bg-page disabled:text-muted-foreground/60 disabled:cursor-not-allowed ${className}`}
             {...props}
           />
         </div>
         {error ? (
-          <p className="text-xs text-rose-600">{error}</p>
+          <p className="text-xs text-destructive font-medium">{error}</p>
         ) : hint ? (
-          <p className="text-xs text-zinc-500">{hint}</p>
+          <p className="text-xs text-muted-foreground">{hint}</p>
         ) : null}
       </div>
     );
