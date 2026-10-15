@@ -102,7 +102,7 @@ export async function middleware(request: NextRequest) {
   if (isAuthRoute && user && userRole) {
     let dashboardUrl = '/postulante';
     if (userRole === 'empresa') dashboardUrl = '/empresa';
-    if (userRole === 'admin' || userRole === 'municipalidad') dashboardUrl = '/admin';
+    if (userRole === 'admin') dashboardUrl = '/admin';
 
     return NextResponse.redirect(new URL(dashboardUrl, request.url));
   }
@@ -133,7 +133,7 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL(dest, request.url));
     }
 
-    if (isAdminRoute && userRole !== 'admin' && userRole !== 'municipalidad') {
+    if (isAdminRoute && userRole !== 'admin') {
       const dest = userRole === 'empresa' ? '/empresa' : '/postulante';
       return NextResponse.redirect(new URL(dest, request.url));
     }

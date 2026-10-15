@@ -33,28 +33,26 @@ export const Navbar: React.FC = () => {
       ? 'Postulante'
       : role === 'empresa'
       ? 'Empresa'
-      : role === 'admin'
-      ? 'Administrador'
-      : 'Oficina de Empleo';
+      : 'Administrador';
 
   const roleBadgeVariant =
     role === 'empresa'
       ? 'blue'
-      : role === 'admin' || role === 'municipalidad'
+      : role === 'admin'
       ? 'zinc'
       : 'emerald';
 
   const dashboardHref =
     role === 'empresa'
       ? '/empresa'
-      : role === 'admin' || role === 'municipalidad'
+      : role === 'admin'
       ? '/admin'
       : '/postulante';
 
   const dashboardLabel =
     role === 'empresa'
       ? 'Panel Empresa'
-      : role === 'admin' || role === 'municipalidad'
+      : role === 'admin'
       ? 'Panel Municipal'
       : 'Mi Panel';
 

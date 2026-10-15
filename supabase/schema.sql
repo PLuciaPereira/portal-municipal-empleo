@@ -64,8 +64,8 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     telefono TEXT,
     fecha_nacimiento DATE,
     direccion TEXT,
-    barrio TEXT,
-    es_residente_funes BOOLEAN DEFAULT true NOT NULL,
+    localidad TEXT,
+    es_residente_funes BOOLEAN DEFAULT false NOT NULL,
     nivel_educativo TEXT,
     situacion_laboral_actual TEXT,
     habilidades TEXT[],
@@ -273,36 +273,161 @@ $$;
 
 -- Trigger para crear perfil automáticamente al registrarse en Supabase Auth
 CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
 DECLARE
-    user_role_val user_role;
+    requested_role TEXT;
+    final_role public.user_role;
+    v_cuit TEXT;
+    v_razon_social TEXT;
+    v_nombre_fantasia TEXT;
+    v_dni TEXT;
+    v_clean_dni TEXT;
+    v_direccion TEXT;
+    v_localidad TEXT;
+    v_es_residente BOOLEAN;
 BEGIN
-    user_role_val := COALESCE(
-        (NEW.raw_user_meta_data->>'role')::user_role,
-        'postulante'::user_role
-    );
+    requested_role := NEW.raw_user_meta_data->>'rol';
+    IF requested_role IS NULL THEN
+        requested_role := NEW.raw_user_meta_data->>'role';
+    END IF;
 
-    INSERT INTO public.profiles (
+    -- Solo se permite 'postulante' o 'empresa' desde el registro público.
+    -- El rol municipal/admin únicamente puede asignarse de forma interna/administrativa.
+    IF requested_role = 'empresa' THEN
+        final_role := 'empresa'::public.user_role;
+    ELSE
+        final_role := 'postulante'::public.user_role;
+    END IF;
+
+    -- A. Normalización y validación preventiva de DNI numérico
+    v_dni := trim(NEW.raw_user_meta_data->>'dni');
+    IF v_dni IS NOT NULL AND length(v_dni) > 0 THEN
+        -- Extraer solo dígitos numéricos (removiendo puntos, guiones y espacios)
+        v_clean_dni := regexp_replace(v_dni, '\D', '', 'g');
+
+        -- Comparar unicidad contra los dígitos de los DNIs ya registrados
+        IF length(v_clean_dni) > 0 THEN
+            IF EXISTS (
+                SELECT 1
+                FROM public.perfil
+                WHERE regexp_replace(COALESCE(dni, ''), '\D', '', 'g') = v_clean_dni
+                  AND id <> NEW.id
+            ) THEN
+                RAISE EXCEPTION 'El DNI ingresado ya se encuentra registrado en el sistema.';
+            END IF;
+        ELSE
+            v_clean_dni := NULL;
+        END IF;
+    ELSE
+        v_clean_dni := NULL;
+    END IF;
+
+    -- B. Normalización de Dirección y Localidad
+    v_direccion := NULLIF(trim(NEW.raw_user_meta_data->>'direccion'), '');
+    v_localidad := NULLIF(trim(NEW.raw_user_meta_data->>'localidad'), '');
+
+    -- C. Cálculo derivado de residencia en Funes:
+    -- es_residente_funes = (LOWER(TRIM(localidad)) = 'funes')
+    -- Si la localidad es NULL o no provista, es_residente_funes es false (sin inventar 'Funes').
+    IF v_localidad IS NOT NULL AND lower(trim(v_localidad)) = 'funes' THEN
+        v_es_residente := true;
+    ELSE
+        v_es_residente := false;
+    END IF;
+
+    -- D. Inserción del perfil de usuario (idempotente)
+    INSERT INTO public.perfil (
         id,
-        email,
-        role,
+        rol,
         nombre,
         apellido,
         dni,
-        telefono
+        telefono,
+        direccion,
+        localidad,
+        es_residente_funes
     ) VALUES (
         NEW.id,
-        NEW.email,
-        user_role_val,
-        COALESCE(NEW.raw_user_meta_data->>'nombre', 'Usuario'),
-        NEW.raw_user_meta_data->>'apellido',
-        NEW.raw_user_meta_data->>'dni',
-        NEW.raw_user_meta_data->>'telefono'
-    );
+        final_role,
+        COALESCE(NULLIF(trim(NEW.raw_user_meta_data->>'nombre'), ''), 'Usuario'),
+        NULLIF(trim(NEW.raw_user_meta_data->>'apellido'), ''),
+        v_clean_dni,
+        NULLIF(trim(NEW.raw_user_meta_data->>'telefono'), ''),
+        v_direccion,
+        v_localidad,
+        v_es_residente
+    )
+    ON CONFLICT (id) DO NOTHING;
+
+    -- E. Si el rol es 'empresa', crear el registro en public.empresas
+    IF final_role = 'empresa' THEN
+        v_cuit := trim(NEW.raw_user_meta_data->>'cuit');
+        v_razon_social := trim(NEW.raw_user_meta_data->>'razon_social');
+        v_nombre_fantasia := COALESCE(
+            NULLIF(trim(NEW.raw_user_meta_data->>'nombre_fantasia'), ''),
+            NULLIF(v_razon_social, ''),
+            'Empresa'
+        );
+
+        -- Validación preventiva de CUIT duplicado
+        IF v_cuit IS NOT NULL AND length(v_cuit) > 0 THEN
+            IF EXISTS (SELECT 1 FROM public.empresas WHERE cuit = v_cuit AND user_id <> NEW.id) THEN
+                RAISE EXCEPTION 'El CUIT ingresado ya se encuentra registrado en el sistema.';
+            END IF;
+        END IF;
+
+        IF v_razon_social IS NOT NULL AND length(v_razon_social) > 0
+           AND v_cuit IS NOT NULL AND length(v_cuit) > 0 THEN
+            INSERT INTO public.empresas (
+                user_id,
+                razon_social,
+                nombre_fantasia,
+                cuit,
+                direccion,
+                localidad,
+                telefono,
+                email_contacto,
+                persona_contacto,
+                rubro,
+                descripcion,
+                sitio_web,
+                verificada,
+                estado
+            ) VALUES (
+                NEW.id,
+                v_razon_social,
+                v_nombre_fantasia,
+                v_cuit,
+                COALESCE(v_direccion, 'Funes'),
+                COALESCE(v_localidad, 'Funes'),
+                COALESCE(
+                    NULLIF(trim(NEW.raw_user_meta_data->>'telefono_contacto'), ''),
+                    NULLIF(trim(NEW.raw_user_meta_data->>'telefono'), ''),
+                    'Sin especificar'
+                ),
+                COALESCE(NEW.email, NULLIF(trim(NEW.raw_user_meta_data->>'email_contacto'), ''), ''),
+                COALESCE(
+                    NULLIF(trim(NEW.raw_user_meta_data->>'persona_contacto'), ''),
+                    NULLIF(trim(NEW.raw_user_meta_data->>'nombre'), ''),
+                    'Contacto Principal'
+                ),
+                NULLIF(trim(NEW.raw_user_meta_data->>'rubro'), ''),
+                NULLIF(trim(NEW.raw_user_meta_data->>'descripcion'), ''),
+                NULLIF(trim(NEW.raw_user_meta_data->>'sitio_web'), ''),
+                false,
+                'pendiente'::public.estado_empresa
+            )
+            ON CONFLICT (user_id) DO NOTHING;
+        END IF;
+    END IF;
 
     RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created

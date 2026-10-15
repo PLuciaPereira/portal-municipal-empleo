@@ -66,10 +66,16 @@ export default function PostulanteDashboardPage() {
                     {user?.es_residente_funes ? 'Funes (Residente)' : 'Otra localidad'}
                   </span>
                 </div>
-                {user?.barrio && (
+                {user?.direccion && (
                   <div className="flex justify-between py-1 border-b border-zinc-50">
-                    <span className="text-zinc-500">Barrio:</span>
-                    <span className="font-semibold text-zinc-800">{user?.barrio}</span>
+                    <span className="text-zinc-500">Dirección:</span>
+                    <span className="font-semibold text-zinc-800">{user?.direccion}</span>
+                  </div>
+                )}
+                {user?.localidad && (
+                  <div className="flex justify-between py-1 border-b border-zinc-50">
+                    <span className="text-zinc-500">Localidad:</span>
+                    <span className="font-semibold text-zinc-800">{user?.localidad}</span>
                   </div>
                 )}
               </div>

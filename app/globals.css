@@ -212,4 +212,10 @@
     color: var(--color-foreground);
     font-family: var(--font-sans);
   }
+
+  /* Soporte de pantalla completa para vistas divididas (v2c) entre Navbar y Footer */
+  main:has(> .portal-fullpage-layout) {
+    display: flex;
+    flex-direction: column;
+  }
 }

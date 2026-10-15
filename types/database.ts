@@ -1,4 +1,4 @@
-export type UserRole = 'postulante' | 'empresa' | 'municipalidad' | 'admin';
+export type UserRole = 'postulante' | 'empresa' | 'admin';
 
 export type JobStatus =
   | 'borrador'
@@ -59,7 +59,6 @@ export type Perfil = {
   telefono: string | null;
   fecha_nacimiento: string | null;
   direccion: string | null;
-  barrio?: string | null;
   localidad?: string | null;
   es_residente_funes?: boolean | null;
   nivel_educativo: string | null;
@@ -69,8 +68,6 @@ export type Perfil = {
   cv_url: string | null;
   disponibilidad_horaria: string | null;
   movilidad_propia: boolean;
-  es_admin_general?: boolean;
-  es_superadmin?: boolean;
   activo?: boolean;
   deleted_at?: string | null;
   created_at: string;
@@ -160,6 +157,7 @@ export type Postulacion = {
   observaciones_derivacion?: string | null;
   motivo_rechazo_empresa?: string | null;
   fecha_rechazo_empresa?: string | null;
+  fecha_respuesta_empresa?: string | null;
   created_at: string;
   updated_at: string;
   // Joins opcionales
@@ -239,6 +237,7 @@ export type VistaCandidatoEmpresa = {
   fecha_derivacion: string | null;
   motivo_rechazo_empresa: string | null;
   fecha_rechazo_empresa: string | null;
+  fecha_respuesta_empresa?: string | null;
 };
 
 export type SchemaMigration = {
@@ -275,8 +274,6 @@ export type Database = {
         Insert: Omit<Perfil, 'created_at' | 'updated_at' | 'rubros' | 'curriculums' | 'role'> & {
           created_at?: string;
           updated_at?: string;
-          es_admin_general?: boolean;
-          es_superadmin?: boolean;
           activo?: boolean;
           localidad?: string | null;
           deleted_at?: string | null;
@@ -352,6 +349,7 @@ export type Database = {
           observaciones_derivacion?: string | null;
           motivo_rechazo_empresa?: string | null;
           fecha_rechazo_empresa?: string | null;
+          fecha_respuesta_empresa?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -390,15 +388,6 @@ export type Database = {
         Update: Partial<Omit<PostulanteCurso, 'curso' | 'postulante'>>;
         Relationships: [];
       };
-      seguimiento: {
-        Row: Seguimiento;
-        Insert: Omit<Seguimiento, 'id' | 'created_at'> & {
-          id?: string;
-          created_at?: string;
-        };
-        Update: Partial<Seguimiento>;
-        Relationships: [];
-      };
       _schema_migrations: {
         Row: SchemaMigration;
         Insert: Omit<SchemaMigration, 'applied_at'> & { applied_at?: string };
@@ -414,10 +403,6 @@ export type Database = {
     };
     Functions: {
       is_admin: {
-        Args: Record<string, never>;
-        Returns: boolean;
-      };
-      is_superadmin: {
         Args: Record<string, never>;
         Returns: boolean;
       };
@@ -438,14 +423,8 @@ export type Database = {
       responder_candidato_empresa: {
         Args: {
           p_postulacion_id: string;
-          p_decision: string;
+          p_decision: 'contratado' | 'rechazado';
           p_motivo_rechazo?: string;
-        };
-        Returns: void;
-      };
-      registrar_contratacion_empresa: {
-        Args: {
-          p_postulacion_id: string;
         };
         Returns: void;
       };
@@ -462,12 +441,6 @@ export type Database = {
         };
         Returns: void;
       };
-      transferir_superadmin: {
-        Args: {
-          p_nuevo_superadmin_id: string;
-        };
-        Returns: void;
-      };
       desactivar_admin: {
         Args: {
           p_admin_id: string;
@@ -477,18 +450,6 @@ export type Database = {
       reactivar_admin: {
         Args: {
           p_admin_id: string;
-        };
-        Returns: void;
-      };
-      quitar_rol_admin: {
-        Args: {
-          p_admin_id: string;
-        };
-        Returns: void;
-      };
-      promover_admin: {
-        Args: {
-          p_usuario_id: string;
         };
         Returns: void;
       };

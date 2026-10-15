@@ -16,23 +16,12 @@ import {
 export default function AdminDashboardPage() {
   const { user } = useAuth();
 
-  const isSuperAdmin = user?.es_superadmin;
-  const isAdminGeneral = user?.es_admin_general || isSuperAdmin;
-
   return (
     <PageContainer>
       <PageHeader
         title="Oficina de Empleo · Municipalidad de Funes"
         description="Panel de intermediación laboral, validación institucional de empresas y gestión de búsquedas de empleo."
-        badge={
-          isSuperAdmin ? (
-            <Badge variant="rose">Superadministrador</Badge>
-          ) : isAdminGeneral ? (
-            <Badge variant="zinc">Administrador General</Badge>
-          ) : (
-            <Badge variant="emerald">Oficina de Empleo</Badge>
-          )
-        }
+        badge={<Badge variant="emerald">Administración Municipal</Badge>}
       />
 
       {/* Tarjetas de Métricas de Intermediación */}
@@ -108,13 +97,7 @@ export default function AdminDashboardPage() {
               <div className="space-y-2.5 pt-3 border-t border-zinc-100 text-xs">
                 <div className="flex justify-between py-1 border-b border-zinc-50">
                   <span className="text-zinc-500">Rol:</span>
-                  <span className="font-semibold text-zinc-800">
-                    {isSuperAdmin
-                      ? 'Superadministrador Activo'
-                      : isAdminGeneral
-                      ? 'Administrador General'
-                      : 'Personal Oficina de Empleo'}
-                  </span>
+                  <span className="font-semibold text-zinc-800">Administrador de Empleo</span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-zinc-50">
                   <span className="text-zinc-500">Jurisdicción:</span>

@@ -25,8 +25,9 @@ export interface RegisterPostulanteData {
   apellido?: string;
   dni?: string;
   telefono?: string;
-  es_residente_funes?: boolean;
-  barrio?: string;
+  direccion?: string;
+  localidad?: string;
+  acepta_terminos?: boolean;
 }
 
 export interface RegisterEmpresaData {
@@ -42,6 +43,7 @@ export interface RegisterEmpresaData {
   rubro?: string;
   descripcion?: string;
   sitio_web?: string;
+  acepta_terminos?: boolean;
 }
 
 interface AuthContextType {
@@ -83,7 +85,7 @@ export const DEMO_USERS: Record<UserRole, AuthUser> = {
     telefono: '341-555-1234',
     fecha_nacimiento: '1995-04-12',
     direccion: 'Av. Santa Fe 1820',
-    barrio: 'Centro',
+    localidad: 'Funes',
     es_residente_funes: true,
     nivel_educativo: 'Secundario Completo',
     situacion_laboral_actual: 'Búsqueda activa',
@@ -106,7 +108,7 @@ export const DEMO_USERS: Record<UserRole, AuthUser> = {
     telefono: '341-493-1000',
     fecha_nacimiento: '1985-08-20',
     direccion: 'Santa Fe 1600',
-    barrio: 'Centro',
+    localidad: 'Funes',
     es_residente_funes: true,
     nivel_educativo: 'Universitario',
     situacion_laboral_actual: 'Responsable de RRHH',
@@ -140,29 +142,6 @@ export const DEMO_USERS: Record<UserRole, AuthUser> = {
       updated_at: '2026-09-01T10:00:00Z',
     },
   },
-  municipalidad: {
-    id: 'muni-demo-1',
-    rol: 'municipalidad',
-    role: 'municipalidad',
-    email: 'empleo@funes.gob.ar',
-    nombre: 'Oficina de Empleo',
-    apellido: 'Municipalidad de Funes',
-    dni: '25443322',
-    telefono: '341-493-6000',
-    fecha_nacimiento: '1980-01-15',
-    direccion: 'Pedro A. Ríos 1500',
-    barrio: 'Municipalidad',
-    es_residente_funes: true,
-    nivel_educativo: 'Universitario',
-    situacion_laboral_actual: 'Personal Municipal',
-    habilidades: null,
-    experiencia_resumen: null,
-    cv_url: null,
-    disponibilidad_horaria: null,
-    movilidad_propia: true,
-    created_at: '2026-01-01T08:00:00Z',
-    updated_at: '2026-09-01T10:00:00Z',
-  },
   admin: {
     id: 'admin-demo-1',
     rol: 'admin',
@@ -174,17 +153,15 @@ export const DEMO_USERS: Record<UserRole, AuthUser> = {
     telefono: '341-493-6000',
     fecha_nacimiento: '1980-01-15',
     direccion: 'Pedro A. Ríos 1500',
-    barrio: 'Municipalidad',
+    localidad: 'Funes',
     es_residente_funes: true,
     nivel_educativo: 'Universitario',
-    situacion_laboral_actual: 'Superadministrador',
+    situacion_laboral_actual: 'Administrador de Empleo',
     habilidades: null,
     experiencia_resumen: null,
     cv_url: null,
     disponibilidad_horaria: null,
     movilidad_propia: true,
-    es_admin_general: true,
-    es_superadmin: true,
     created_at: '2026-01-01T08:00:00Z',
     updated_at: '2026-09-01T10:00:00Z',
   },
@@ -224,7 +201,7 @@ export const DEMO_ACCOUNTS_BY_EMAIL: Record<string, AuthUser> = {
     email: 'admin@funes.gob.ar',
   },
   'coordinacion.empleo@funes.gob.ar': DEMO_USERS.admin,
-  'empleo@funes.gob.ar': DEMO_USERS.municipalidad,
+  'empleo@funes.gob.ar': DEMO_USERS.admin,
 };
 
 const STORAGE_KEY_USER = 'portal_funes_current_user';
@@ -498,6 +475,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     ): Promise<{ success: boolean; error?: string; requiresEmailConfirmation?: boolean }> => {
       setIsLoading(true);
       try {
+        const cleanDni = data.dni ? data.dni.replace(/\D/g, '') : null;
+        const trimmedLocalidad = data.localidad?.trim() || null;
+        const isResidenteFunes = trimmedLocalidad
+          ? trimmedLocalidad.toLowerCase() === 'funes'
+          : false;
+
         if (isSupabaseConfigured && data.password) {
           const supabase = createClient();
           const { data: signUpData, error } = await supabase.auth.signUp({
@@ -508,10 +491,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 rol: 'postulante',
                 nombre: data.nombre.trim(),
                 apellido: data.apellido?.trim() || null,
-                dni: data.dni?.trim() || null,
+                dni: cleanDni,
                 telefono: data.telefono?.trim() || null,
-                es_residente_funes: data.es_residente_funes ?? false,
-                barrio: data.barrio?.trim() || null,
+                direccion: data.direccion?.trim() || null,
+                localidad: trimmedLocalidad,
+                acepta_terminos: data.acepta_terminos ?? true,
               },
             },
           });
@@ -519,10 +503,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           if (error) {
             setIsLoading(false);
             let errorMsg = error.message;
-            if (error.message.includes('User already registered')) {
+            const lower = error.message.toLowerCase();
+            if (lower.includes('user already registered') || lower.includes('already registered')) {
               errorMsg = 'Ya existe una cuenta registrada con este correo electrónico.';
-            } else if (error.message.includes('Password should be at least')) {
+            } else if (lower.includes('password should be at least')) {
               errorMsg = 'La contraseña debe tener al menos 6 caracteres.';
+            } else if (
+              lower.includes('dni ingresado ya se encuentra registrado') ||
+              lower.includes('dni') ||
+              error.message.includes('perfil_dni_key')
+            ) {
+              errorMsg = 'El DNI ingresado ya se encuentra registrado en el sistema.';
             }
             return { success: false, error: errorMsg };
           }
@@ -540,19 +531,45 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
 
         // Modo demo / sin conexión a Supabase
+        // 1. Validar DNI duplicado entre usuarios demo
+        if (cleanDni) {
+          const dniExistsInDemo = Object.values(DEMO_USERS).some(
+            (u) => u.dni && u.dni.replace(/\D/g, '') === cleanDni
+          );
+          if (dniExistsInDemo) {
+            setIsLoading(false);
+            return {
+              success: false,
+              error: 'El DNI ingresado ya se encuentra registrado en el sistema.',
+            };
+          }
+        }
+
+        // 2. Validar email duplicado entre usuarios demo
+        const emailExistsInDemo = Object.values(DEMO_USERS).some(
+          (u) => u.email && u.email.toLowerCase() === data.email.trim().toLowerCase()
+        );
+        if (emailExistsInDemo) {
+          setIsLoading(false);
+          return {
+            success: false,
+            error: 'Ya existe una cuenta registrada con este correo electrónico.',
+          };
+        }
+
         const newProfile: AuthUser = {
           id: `user-postulante-${Date.now()}`,
           rol: 'postulante',
           role: 'postulante',
-          email: data.email,
-          nombre: data.nombre,
-          apellido: data.apellido || null,
-          dni: data.dni || null,
-          telefono: data.telefono || null,
+          email: data.email.trim(),
+          nombre: data.nombre.trim(),
+          apellido: data.apellido?.trim() || null,
+          dni: cleanDni,
+          telefono: data.telefono?.trim() || null,
           fecha_nacimiento: null,
-          direccion: null,
-          barrio: data.barrio || null,
-          es_residente_funes: data.es_residente_funes ?? true,
+          direccion: data.direccion?.trim() || null,
+          localidad: trimmedLocalidad,
+          es_residente_funes: isResidenteFunes,
           nivel_educativo: 'Secundario Completo',
           situacion_laboral_actual: 'Búsqueda activa',
           habilidades: [],
@@ -607,6 +624,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 rubro: data.rubro || null,
                 descripcion: data.descripcion?.trim() || null,
                 sitio_web: data.sitio_web?.trim() || null,
+                acepta_terminos: data.acepta_terminos ?? true,
               },
             },
           });
@@ -618,33 +636,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
               errorMsg = 'Ya existe una cuenta registrada con este correo electrónico.';
             } else if (error.message.includes('Password should be at least')) {
               errorMsg = 'La contraseña debe tener al menos 6 caracteres.';
+            } else if (error.message.includes('CUIT ingresado ya se encuentra registrado') || error.message.includes('cuit')) {
+              errorMsg = 'El CUIT ingresado ya se encuentra registrado en el sistema.';
             }
             return { success: false, error: errorMsg };
           }
 
-          // Si hay sesión activa inmediata, insertar en public.empresas si el trigger no corrió
+          // El trigger handle_new_user() crea atómicamente el perfil y la empresa en el servidor
           if (signUpData.session && signUpData.user) {
-            try {
-              await supabase.from('empresas').insert({
-                user_id: signUpData.user.id,
-                razon_social: data.razon_social.trim(),
-                nombre_fantasia: data.nombre_fantasia?.trim() || data.razon_social.trim(),
-                cuit: data.cuit.trim(),
-                direccion: data.direccion.trim(),
-                localidad: data.localidad?.trim() || 'Funes',
-                telefono: data.telefono.trim(),
-                email_contacto: data.email.trim(),
-                persona_contacto: data.persona_contacto.trim(),
-                rubro: data.rubro || null,
-                descripcion: data.descripcion?.trim() || null,
-                sitio_web: data.sitio_web?.trim() || null,
-                verificada: false,
-                estado: 'pendiente',
-              });
-            } catch {
-              // Si el trigger ya lo insertó, ignorar
-            }
-
             await loadUserData(signUpData.user.id, data.email);
             setIsLoading(false);
             return { success: true, requiresEmailConfirmation: false };

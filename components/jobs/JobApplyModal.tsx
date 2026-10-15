@@ -36,7 +36,8 @@ export const JobApplyModal: React.FC<JobApplyModalProps> = ({
     telefono: user?.telefono || '',
     email: user?.email || '',
     esResidenteFunes: user?.es_residente_funes ?? true,
-    barrio: user?.barrio || '',
+    direccion: user?.direccion || '',
+    localidad: user?.localidad || (user?.es_residente_funes ? 'Funes' : ''),
     mensaje: '',
     aceptaTerminos: true,
   });
@@ -89,7 +90,8 @@ export const JobApplyModal: React.FC<JobApplyModalProps> = ({
         telefono: formData.telefono,
         email: formData.email,
         esResidenteFunes: formData.esResidenteFunes,
-        barrio: formData.barrio,
+        direccion: formData.direccion,
+        localidad: formData.localidad,
         mensaje: formData.mensaje,
       });
 
@@ -229,10 +231,10 @@ export const JobApplyModal: React.FC<JobApplyModalProps> = ({
                   required
                 />
                 <Input
-                  label="Barrio de Funes *"
-                  placeholder="Ej: Centro, Cantegril, Don Mateo"
-                  value={formData.barrio}
-                  onChange={(e) => setFormData({ ...formData, barrio: e.target.value })}
+                  label="Localidad de residencia *"
+                  placeholder="Ej: Funes, Rosario, Roldán"
+                  value={formData.localidad}
+                  onChange={(e) => setFormData({ ...formData, localidad: e.target.value })}
                   required
                 />
               </div>

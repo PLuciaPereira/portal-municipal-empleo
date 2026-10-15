@@ -454,6 +454,29 @@ export async function getAllJobIds(): Promise<string[]> {
 }
 
 export async function getRubros(): Promise<Rubro[]> {
+  const isSupabaseConfigured =
+    typeof process !== 'undefined' &&
+    !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
+    !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (isSupabaseConfigured) {
+    try {
+      const { createClient } = await import('@/lib/supabase/client');
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from('rubros')
+        .select('*')
+        .eq('activo', true)
+        .order('nombre');
+
+      if (!error && data && data.length > 0) {
+        return data as Rubro[];
+      }
+    } catch {
+      // Fallback a mock en caso de fallo de conexión
+    }
+  }
+
   return MOCK_RUBROS.filter((r) => r.activo);
 }
 
@@ -487,7 +510,8 @@ export interface ApplicationInput {
   telefono: string;
   dni: string;
   esResidenteFunes: boolean;
-  barrio?: string;
+  direccion?: string;
+  localidad?: string;
   mensaje?: string;
   situacionLaboral?: string;
 }
