@@ -3,6 +3,8 @@ import type { Metadata } from 'next';
 import { getJobs, getRubros } from '@/lib/jobs';
 import { JobCatalogView } from '@/components/jobs/JobCatalogView';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Ofertas Laborales en Funes | Portal de Empleo',
   description:

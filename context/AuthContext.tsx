@@ -57,7 +57,6 @@ interface AuthContextType {
     email: string,
     password?: string
   ) => Promise<{ success: boolean; error?: string; role?: UserRole }>;
-  loginAsDemo: (role: UserRole) => void;
   logout: () => Promise<void>;
   register: (
     data: RegisterPostulanteData
@@ -72,152 +71,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Perfiles de prueba precargados para testing y desarrollo
-export const DEMO_USERS: Record<UserRole, AuthUser> = {
-  postulante: {
-    id: 'postulante-demo-1',
-    rol: 'postulante',
-    role: 'postulante',
-    email: 'lucia.vecina@funes.gob.ar',
-    nombre: 'Lucía',
-    apellido: 'Fernández',
-    dni: '38123456',
-    telefono: '341-555-1234',
-    fecha_nacimiento: '1995-04-12',
-    direccion: 'Av. Santa Fe 1820',
-    localidad: 'Funes',
-    es_residente_funes: true,
-    nivel_educativo: 'Secundario Completo',
-    situacion_laboral_actual: 'Búsqueda activa',
-    habilidades: ['Atención al cliente', 'Manejo de caja', 'Ventas', 'Office'],
-    experiencia_resumen: '3 años de experiencia en comercios locales y atención de salón.',
-    cv_url: null,
-    disponibilidad_horaria: 'Full-time / Turno mañana o tarde',
-    movilidad_propia: true,
-    created_at: '2026-09-01T10:00:00Z',
-    updated_at: '2026-09-01T10:00:00Z',
-  },
-  empresa: {
-    id: 'empresa-demo-1',
-    rol: 'empresa',
-    role: 'empresa',
-    email: 'rrhh@funesmall.com.ar',
-    nombre: 'Martín',
-    apellido: 'Rodríguez',
-    dni: '30998877',
-    telefono: '341-493-1000',
-    fecha_nacimiento: '1985-08-20',
-    direccion: 'Santa Fe 1600',
-    localidad: 'Funes',
-    es_residente_funes: true,
-    nivel_educativo: 'Universitario',
-    situacion_laboral_actual: 'Responsable de RRHH',
-    habilidades: null,
-    experiencia_resumen: null,
-    cv_url: null,
-    disponibilidad_horaria: null,
-    movilidad_propia: true,
-    created_at: '2026-08-15T09:00:00Z',
-    updated_at: '2026-09-01T10:00:00Z',
-    empresa: {
-      id: 'emp-demo-uuid-1',
-      user_id: 'empresa-demo-1',
-      razon_social: 'Funes Mall Retail S.A.',
-      nombre_fantasia: 'Funes Mall',
-      cuit: '30-71234567-8',
-      direccion: 'Santa Fe 1600',
-      localidad: 'Funes',
-      telefono: '341-493-1000',
-      email_contacto: 'rrhh@funesmall.com.ar',
-      persona_contacto: 'Martín Rodríguez',
-      rubro: 'Comercio',
-      descripcion: 'Centro comercial y tiendas minoristas en Funes.',
-      sitio_web: 'https://funesmall.com.ar',
-      verificada: true,
-      estado: 'aprobada',
-      motivo_rechazo: null,
-      revisado_por: null,
-      fecha_revision: '2026-08-16T10:00:00Z',
-      created_at: '2026-08-15T09:00:00Z',
-      updated_at: '2026-09-01T10:00:00Z',
-    },
-  },
-  admin: {
-    id: 'admin-demo-1',
-    rol: 'admin',
-    role: 'admin',
-    email: 'coordinacion.empleo@funes.gob.ar',
-    nombre: 'Coordinación',
-    apellido: 'Oficina de Empleo',
-    dni: '25443322',
-    telefono: '341-493-6000',
-    fecha_nacimiento: '1980-01-15',
-    direccion: 'Pedro A. Ríos 1500',
-    localidad: 'Funes',
-    es_residente_funes: true,
-    nivel_educativo: 'Universitario',
-    situacion_laboral_actual: 'Administrador de Empleo',
-    habilidades: null,
-    experiencia_resumen: null,
-    cv_url: null,
-    disponibilidad_horaria: null,
-    movilidad_propia: true,
-    created_at: '2026-01-01T08:00:00Z',
-    updated_at: '2026-09-01T10:00:00Z',
-  },
-};
-
-// Cuentas de demostración adicionales y alias reconocidos en modo desarrollo / demo
-export const DEMO_ACCOUNTS_BY_EMAIL: Record<string, AuthUser> = {
-  // Postulantes
-  'lucia.vecina@funes.gob.ar': DEMO_USERS.postulante,
-  'postulante@funes.gob.ar': DEMO_USERS.postulante,
-
-  // Empresas
-  'rrhh@funesmall.com.ar': DEMO_USERS.empresa,
-  'contacto@novatechfunes.com.ar': {
-    ...DEMO_USERS.empresa,
-    id: 'empresa-demo-novatech',
-    email: 'contacto@novatechfunes.com.ar',
-    nombre: 'Martín',
-    empresa: {
-      ...DEMO_USERS.empresa.empresa!,
-      id: 'emp-demo-novatech',
-      user_id: 'empresa-demo-novatech',
-      razon_social: 'NovaTech Funes S.A.S.',
-      nombre_fantasia: 'NovaTech Funes',
-      cuit: '30-71998877-6',
-      direccion: 'Av. Arturo Illia 1200',
-      email_contacto: 'contacto@novatechfunes.com.ar',
-      rubro: 'Tecnología',
-      descripcion: 'Desarrollo de software y servicios tecnológicos en Funes.',
-    },
-  },
-  'empresa@funes.gob.ar': DEMO_USERS.empresa,
-
-  // Administración / Oficina de Empleo
-  'admin@funes.gob.ar': {
-    ...DEMO_USERS.admin,
-    email: 'admin@funes.gob.ar',
-  },
-  'coordinacion.empleo@funes.gob.ar': DEMO_USERS.admin,
-  'empleo@funes.gob.ar': DEMO_USERS.admin,
-};
-
-const STORAGE_KEY_USER = 'portal_funes_current_user';
 const STORAGE_KEY_APPLICATIONS = 'portal_funes_user_applications';
-
-function setDemoCookie(role: string) {
-  if (typeof document !== 'undefined') {
-    document.cookie = `portal_funes_demo_role=${role}; path=/; max-age=86400; SameSite=Lax`;
-  }
-}
-
-function clearDemoCookie() {
-  if (typeof document !== 'undefined') {
-    document.cookie = `portal_funes_demo_role=; path=/; max-age=0; SameSite=Lax`;
-  }
-}
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const router = useRouter();
@@ -241,7 +95,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return Boolean(url && key && !url.includes('tu-proyecto'));
   }, []);
 
-  // Función para cargar los datos del perfil y la empresa desde Supabase
+  // Cargar datos de perfil y empresa verificando que la cuenta esté activa y sin baja lógica
   const loadUserData = useCallback(async (userId: string, email?: string): Promise<AuthUser | null> => {
     try {
       const supabase = createClient();
@@ -249,10 +103,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         .from('perfil')
         .select('*')
         .eq('id', userId)
-        .single();
+        .is('deleted_at', null)
+        .eq('activo', true)
+        .maybeSingle();
 
-      if (perfilError) {
-        console.warn('Perfil no encontrado aún o en proceso de creación:', perfilError.message);
+      if (perfilError || !perfilData) {
+        console.warn('Perfil no encontrado, inactivo o con baja lógica:', perfilError?.message);
+        setUser(null);
+        setEmpresa(null);
+        setAppliedJobIds([]);
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem(STORAGE_KEY_APPLICATIONS);
+          localStorage.removeItem('portal_funes_application_details');
+        }
         return null;
       }
 
@@ -276,18 +139,56 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       setUser(authUser);
       setEmpresa(empresaData);
-      setDemoCookie(perfilData.rol);
-      localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(authUser));
+
+      // Sincronizar postulaciones activas reales del usuario desde public.postulaciones
+      // (excluyendo aquellas retiradas voluntariamente para permitir reactivación en ofertas vigentes)
+      if (perfilData.rol === 'postulante') {
+        try {
+          const { data: userApps } = await supabase
+            .from('postulaciones')
+            .select('oferta_id')
+            .eq('postulante_id', userId)
+            .neq('estado', 'retirado_por_postulante');
+
+          if (userApps) {
+            const validJobIds = userApps
+              .map((app) => app.oferta_id)
+              .filter((id): id is string => typeof id === 'string' && id.length > 0);
+            setAppliedJobIds(validJobIds);
+            if (typeof window !== 'undefined') {
+              localStorage.setItem(STORAGE_KEY_APPLICATIONS, JSON.stringify(validJobIds));
+            }
+          }
+        } catch {
+          // No bloquear el inicio de sesión si falla la consulta de postulaciones
+        }
+      } else {
+        setAppliedJobIds([]);
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem(STORAGE_KEY_APPLICATIONS);
+          localStorage.removeItem('portal_funes_application_details');
+        }
+      }
+
       return authUser;
     } catch (err) {
       console.error('Error al sincronizar datos de usuario:', err);
+      setUser(null);
+      setEmpresa(null);
+      setAppliedJobIds([]);
       return null;
     }
   }, []);
 
-  // Inicialización y escucha de estado de autenticación
+  // Inicialización y escucha de sesión en tiempo real
   useEffect(() => {
     let isMounted = true;
+
+    // Limpieza de cualquier cookie demo residual en el cliente
+    if (typeof document !== 'undefined') {
+      document.cookie = 'portal_funes_demo_role=; path=/; max-age=0; SameSite=Lax';
+      localStorage.removeItem('portal_funes_current_user');
+    }
 
     const initAuth = async () => {
       if (isSupabaseConfigured) {
@@ -299,27 +200,28 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
           if (session?.user && isMounted) {
             await loadUserData(session.user.id, session.user.email);
-            setIsLoading(false);
-            return;
+          } else {
+            setUser(null);
+            setEmpresa(null);
+            setAppliedJobIds([]);
+            if (typeof window !== 'undefined') {
+              localStorage.removeItem(STORAGE_KEY_APPLICATIONS);
+              localStorage.removeItem('portal_funes_application_details');
+            }
           }
         } catch (err) {
           console.warn('Error inicializando sesión con Supabase:', err);
+          setUser(null);
+          setEmpresa(null);
+          setAppliedJobIds([]);
         }
+      } else {
+        setUser(null);
+        setEmpresa(null);
+        setAppliedJobIds([]);
       }
 
-      // Si no hay sesión activa en Supabase, verificar si hay usuario de prueba guardado
       if (isMounted) {
-        try {
-          const localUser = localStorage.getItem(STORAGE_KEY_USER);
-          if (localUser) {
-            const parsed = JSON.parse(localUser) as AuthUser;
-            setUser(parsed);
-            if (parsed.empresa) setEmpresa(parsed.empresa);
-            setDemoCookie(parsed.rol || parsed.role || 'postulante');
-          }
-        } catch {
-          // Ignorar
-        }
         setIsLoading(false);
       }
     };
@@ -338,8 +240,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             } else if (event === 'SIGNED_OUT') {
               setUser(null);
               setEmpresa(null);
-              clearDemoCookie();
-              localStorage.removeItem(STORAGE_KEY_USER);
+              setAppliedJobIds([]);
+              if (typeof window !== 'undefined') {
+                localStorage.removeItem(STORAGE_KEY_APPLICATIONS);
+                localStorage.removeItem('portal_funes_application_details');
+              }
             }
             setIsLoading(false);
           }
@@ -350,7 +255,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           authListener.subscription.unsubscribe();
         };
       } catch {
-        // Ignorar
+        // Ignorar errores al desuscribir
       }
     }
 
@@ -359,7 +264,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
   }, [isSupabaseConfigured, loadUserData]);
 
-  // Iniciar sesión
+  // Iniciar sesión real contra Supabase Auth
   const login = useCallback(
     async (
       email: string,
@@ -368,65 +273,57 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setIsLoading(true);
       const cleanEmail = email.trim();
 
-      try {
-        if (isSupabaseConfigured && password) {
-          const supabase = createClient();
-          const { data, error } = await supabase.auth.signInWithPassword({
-            email: cleanEmail,
-            password,
-          });
-
-          if (error) {
-            setIsLoading(false);
-            let errorMsg = 'Error al iniciar sesión.';
-            if (error.message.includes('Invalid login credentials')) {
-              errorMsg = 'Correo electrónico o contraseña incorrectos.';
-            } else if (error.message.includes('Email not confirmed')) {
-              errorMsg = 'Debés confirmar tu correo electrónico antes de ingresar.';
-            } else if (error.message.includes('Too many requests')) {
-              errorMsg = 'Demasiados intentos fallidos. Por favor aguardá unos minutos.';
-            } else {
-              errorMsg = error.message;
-            }
-            return { success: false, error: errorMsg };
-          }
-
-          if (data.user) {
-            const loadedUser = await loadUserData(data.user.id, data.user.email);
-            setIsLoading(false);
-            if (!loadedUser) {
-              return {
-                success: false,
-                error: 'No se pudo cargar el perfil de usuario asociado en la base de datos.',
-              };
-            }
-            return { success: true, role: loadedUser.rol };
-          }
-        }
-
-        // Modo desarrollo / Usuarios Demo
-        const demoCandidate =
-          DEMO_ACCOUNTS_BY_EMAIL[cleanEmail.toLowerCase()] ||
-          Object.values(DEMO_USERS).find(
-            (u) => u.email?.toLowerCase() === cleanEmail.toLowerCase()
-          );
-
-        if (!demoCandidate) {
-          setIsLoading(false);
-          return {
-            success: false,
-            error:
-              'Correo o contraseña no válidos. En modo local sin conexión a Supabase, utilizá las cuentas demo autorizadas (ej. lucia.vecina@funes.gob.ar, contacto@novatechfunes.com.ar / rrhh@funesmall.com.ar, admin@funes.gob.ar) o los accesos rápidos inferiores.',
-          };
-        }
-
-        setUser(demoCandidate);
-        if (demoCandidate.empresa) setEmpresa(demoCandidate.empresa);
-        setDemoCookie(demoCandidate.rol);
-        localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(demoCandidate));
-        window.dispatchEvent(new Event('portal_funes_auth_changed'));
+      if (!password) {
         setIsLoading(false);
-        return { success: true, role: demoCandidate.rol };
+        return { success: false, error: 'Por favor ingresá tu contraseña.' };
+      }
+
+      if (!isSupabaseConfigured) {
+        setIsLoading(false);
+        return {
+          success: false,
+          error: 'El servicio de autenticación no está configurado correctamente.',
+        };
+      }
+
+      try {
+        const supabase = createClient();
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: cleanEmail,
+          password,
+        });
+
+        if (error) {
+          setIsLoading(false);
+          let errorMsg = 'Error al iniciar sesión.';
+          if (error.message.includes('Invalid login credentials')) {
+            errorMsg = 'Correo electrónico o contraseña incorrectos.';
+          } else if (error.message.includes('Email not confirmed')) {
+            errorMsg = 'Debés confirmar tu correo electrónico antes de ingresar.';
+          } else if (error.message.includes('Too many requests')) {
+            errorMsg = 'Demasiados intentos fallidos. Por favor aguardá unos minutos.';
+          } else {
+            errorMsg = error.message;
+          }
+          return { success: false, error: errorMsg };
+        }
+
+        if (data.user) {
+          const loadedUser = await loadUserData(data.user.id, data.user.email);
+          if (!loadedUser) {
+            await supabase.auth.signOut();
+            setIsLoading(false);
+            return {
+              success: false,
+              error: 'Tu cuenta no posee un perfil activo o habilitado en el Portal de Empleo.',
+            };
+          }
+          setIsLoading(false);
+          return { success: true, role: loadedUser.rol };
+        }
+
+        setIsLoading(false);
+        return { success: false, error: 'No se pudo iniciar sesión.' };
       } catch (err: unknown) {
         setIsLoading(false);
         const message = err instanceof Error ? err.message : 'Error al iniciar sesión';
@@ -435,16 +332,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     },
     [isSupabaseConfigured, loadUserData]
   );
-
-  // Iniciar sesión rápida en modo demo
-  const loginAsDemo = useCallback((role: UserRole) => {
-    const demo = DEMO_USERS[role];
-    setUser(demo);
-    if (demo.empresa) setEmpresa(demo.empresa);
-    setDemoCookie(role);
-    localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(demo));
-    window.dispatchEvent(new Event('portal_funes_auth_changed'));
-  }, []);
 
   // Cerrar sesión
   const logout = useCallback(async () => {
@@ -457,10 +344,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     } catch {
       // Ignorar error al cerrar sesión
     } finally {
-      clearDemoCookie();
-      localStorage.removeItem(STORAGE_KEY_USER);
+      if (typeof document !== 'undefined') {
+        document.cookie = 'portal_funes_demo_role=; path=/; max-age=0; SameSite=Lax';
+        localStorage.removeItem('portal_funes_current_user');
+        localStorage.removeItem(STORAGE_KEY_APPLICATIONS);
+        localStorage.removeItem('portal_funes_application_details');
+      }
       setUser(null);
       setEmpresa(null);
+      setAppliedJobIds([]);
       window.dispatchEvent(new Event('portal_funes_auth_changed'));
       setIsLoading(false);
       router.push('/login');
@@ -468,7 +360,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, [isSupabaseConfigured, router]);
 
-  // Registro de postulante
+  // Registro de postulante contra Supabase Auth
   const register = useCallback(
     async (
       data: RegisterPostulanteData
@@ -477,116 +369,65 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       try {
         const cleanDni = data.dni ? data.dni.replace(/\D/g, '') : null;
         const trimmedLocalidad = data.localidad?.trim() || null;
-        const isResidenteFunes = trimmedLocalidad
-          ? trimmedLocalidad.toLowerCase() === 'funes'
-          : false;
 
-        if (isSupabaseConfigured && data.password) {
-          const supabase = createClient();
-          const { data: signUpData, error } = await supabase.auth.signUp({
-            email: data.email.trim(),
-            password: data.password,
-            options: {
-              data: {
-                rol: 'postulante',
-                nombre: data.nombre.trim(),
-                apellido: data.apellido?.trim() || null,
-                dni: cleanDni,
-                telefono: data.telefono?.trim() || null,
-                direccion: data.direccion?.trim() || null,
-                localidad: trimmedLocalidad,
-                acepta_terminos: data.acepta_terminos ?? true,
-              },
-            },
-          });
-
-          if (error) {
-            setIsLoading(false);
-            let errorMsg = error.message;
-            const lower = error.message.toLowerCase();
-            if (lower.includes('user already registered') || lower.includes('already registered')) {
-              errorMsg = 'Ya existe una cuenta registrada con este correo electrónico.';
-            } else if (lower.includes('password should be at least')) {
-              errorMsg = 'La contraseña debe tener al menos 6 caracteres.';
-            } else if (
-              lower.includes('dni ingresado ya se encuentra registrado') ||
-              lower.includes('dni') ||
-              error.message.includes('perfil_dni_key')
-            ) {
-              errorMsg = 'El DNI ingresado ya se encuentra registrado en el sistema.';
-            }
-            return { success: false, error: errorMsg };
-          }
-
-          // Si el registro inició sesión automáticamente
-          if (signUpData.session && signUpData.user) {
-            await loadUserData(signUpData.user.id, data.email);
-            setIsLoading(false);
-            return { success: true, requiresEmailConfirmation: false };
-          }
-
-          // Si requiere validación de correo
-          setIsLoading(false);
-          return { success: true, requiresEmailConfirmation: true };
-        }
-
-        // Modo demo / sin conexión a Supabase
-        // 1. Validar DNI duplicado entre usuarios demo
-        if (cleanDni) {
-          const dniExistsInDemo = Object.values(DEMO_USERS).some(
-            (u) => u.dni && u.dni.replace(/\D/g, '') === cleanDni
-          );
-          if (dniExistsInDemo) {
-            setIsLoading(false);
-            return {
-              success: false,
-              error: 'El DNI ingresado ya se encuentra registrado en el sistema.',
-            };
-          }
-        }
-
-        // 2. Validar email duplicado entre usuarios demo
-        const emailExistsInDemo = Object.values(DEMO_USERS).some(
-          (u) => u.email && u.email.toLowerCase() === data.email.trim().toLowerCase()
-        );
-        if (emailExistsInDemo) {
+        if (!isSupabaseConfigured) {
           setIsLoading(false);
           return {
             success: false,
-            error: 'Ya existe una cuenta registrada con este correo electrónico.',
+            error: 'El servicio de autenticación no está configurado correctamente.',
           };
         }
 
-        const newProfile: AuthUser = {
-          id: `user-postulante-${Date.now()}`,
-          rol: 'postulante',
-          role: 'postulante',
-          email: data.email.trim(),
-          nombre: data.nombre.trim(),
-          apellido: data.apellido?.trim() || null,
-          dni: cleanDni,
-          telefono: data.telefono?.trim() || null,
-          fecha_nacimiento: null,
-          direccion: data.direccion?.trim() || null,
-          localidad: trimmedLocalidad,
-          es_residente_funes: isResidenteFunes,
-          nivel_educativo: 'Secundario Completo',
-          situacion_laboral_actual: 'Búsqueda activa',
-          habilidades: [],
-          experiencia_resumen: null,
-          cv_url: null,
-          disponibilidad_horaria: 'Full-time',
-          movilidad_propia: false,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        };
+        if (!data.password) {
+          setIsLoading(false);
+          return { success: false, error: 'Debés ingresar una contraseña para tu cuenta.' };
+        }
 
-        setUser(newProfile);
-        setDemoCookie('postulante');
-        localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(newProfile));
-        window.dispatchEvent(new Event('portal_funes_auth_changed'));
+        const supabase = createClient();
+        const { data: signUpData, error } = await supabase.auth.signUp({
+          email: data.email.trim(),
+          password: data.password,
+          options: {
+            data: {
+              rol: 'postulante',
+              nombre: data.nombre.trim(),
+              apellido: data.apellido?.trim() || null,
+              dni: cleanDni,
+              telefono: data.telefono?.trim() || null,
+              direccion: data.direccion?.trim() || null,
+              localidad: trimmedLocalidad,
+              acepta_terminos: data.acepta_terminos ?? true,
+            },
+          },
+        });
+
+        if (error) {
+          setIsLoading(false);
+          let errorMsg = error.message;
+          const lower = error.message.toLowerCase();
+          if (lower.includes('user already registered') || lower.includes('already registered')) {
+            errorMsg = 'Ya existe una cuenta registrada con este correo electrónico.';
+          } else if (lower.includes('password should be at least')) {
+            errorMsg = 'La contraseña debe tener al menos 6 caracteres.';
+          } else if (
+            lower.includes('dni ingresado ya se encuentra registrado') ||
+            lower.includes('dni') ||
+            error.message.includes('perfil_dni_key') ||
+            error.message.includes('idx_perfil_dni_numerico_unico')
+          ) {
+            errorMsg = 'El DNI ingresado ya se encuentra registrado en el sistema.';
+          }
+          return { success: false, error: errorMsg };
+        }
+
+        if (signUpData.session && signUpData.user) {
+          await loadUserData(signUpData.user.id, data.email);
+          setIsLoading(false);
+          return { success: true, requiresEmailConfirmation: false };
+        }
+
         setIsLoading(false);
-        return { success: true, requiresEmailConfirmation: false };
+        return { success: true, requiresEmailConfirmation: true };
       } catch (err: unknown) {
         setIsLoading(false);
         const message = err instanceof Error ? err.message : 'Error al registrar el perfil';
@@ -596,119 +437,73 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     [isSupabaseConfigured, loadUserData]
   );
 
-  // Registro de empresa
+  // Registro de empresa contra Supabase Auth
   const registerEmpresa = useCallback(
     async (
       data: RegisterEmpresaData
     ): Promise<{ success: boolean; error?: string; requiresEmailConfirmation?: boolean }> => {
       setIsLoading(true);
       try {
-        if (isSupabaseConfigured && data.password) {
-          const supabase = createClient();
-          const { data: signUpData, error } = await supabase.auth.signUp({
-            email: data.email.trim(),
-            password: data.password,
-            options: {
-              data: {
-                rol: 'empresa',
-                nombre: data.persona_contacto.trim(),
-                razon_social: data.razon_social.trim(),
-                nombre_fantasia: data.nombre_fantasia?.trim() || data.razon_social.trim(),
-                cuit: data.cuit.trim(),
-                direccion: data.direccion.trim(),
-                localidad: data.localidad?.trim() || 'Funes',
-                telefono: data.telefono.trim(),
-                telefono_contacto: data.telefono.trim(),
-                email_contacto: data.email.trim(),
-                persona_contacto: data.persona_contacto.trim(),
-                rubro: data.rubro || null,
-                descripcion: data.descripcion?.trim() || null,
-                sitio_web: data.sitio_web?.trim() || null,
-                acepta_terminos: data.acepta_terminos ?? true,
-              },
-            },
-          });
-
-          if (error) {
-            setIsLoading(false);
-            let errorMsg = error.message;
-            if (error.message.includes('User already registered')) {
-              errorMsg = 'Ya existe una cuenta registrada con este correo electrónico.';
-            } else if (error.message.includes('Password should be at least')) {
-              errorMsg = 'La contraseña debe tener al menos 6 caracteres.';
-            } else if (error.message.includes('CUIT ingresado ya se encuentra registrado') || error.message.includes('cuit')) {
-              errorMsg = 'El CUIT ingresado ya se encuentra registrado en el sistema.';
-            }
-            return { success: false, error: errorMsg };
-          }
-
-          // El trigger handle_new_user() crea atómicamente el perfil y la empresa en el servidor
-          if (signUpData.session && signUpData.user) {
-            await loadUserData(signUpData.user.id, data.email);
-            setIsLoading(false);
-            return { success: true, requiresEmailConfirmation: false };
-          }
-
+        if (!isSupabaseConfigured) {
           setIsLoading(false);
-          return { success: true, requiresEmailConfirmation: true };
+          return {
+            success: false,
+            error: 'El servicio de autenticación no está configurado correctamente.',
+          };
         }
 
-        // Modo demo / sin conexión a Supabase
-        const demoEmpresaData: Empresa = {
-          id: `empresa-${Date.now()}`,
-          user_id: `user-empresa-${Date.now()}`,
-          razon_social: data.razon_social,
-          nombre_fantasia: data.nombre_fantasia || data.razon_social,
-          cuit: data.cuit,
-          direccion: data.direccion,
-          localidad: data.localidad || 'Funes',
-          telefono: data.telefono,
-          email_contacto: data.email,
-          persona_contacto: data.persona_contacto,
-          rubro: data.rubro || null,
-          descripcion: data.descripcion || null,
-          sitio_web: data.sitio_web || null,
-          verificada: false,
-          estado: 'pendiente',
-          motivo_rechazo: null,
-          revisado_por: null,
-          fecha_revision: null,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        };
+        if (!data.password) {
+          setIsLoading(false);
+          return { success: false, error: 'Debés ingresar una contraseña para tu cuenta.' };
+        }
 
-        const newProfile: AuthUser = {
-          id: demoEmpresaData.user_id,
-          rol: 'empresa',
-          role: 'empresa',
-          email: data.email,
-          nombre: data.persona_contacto,
-          apellido: null,
-          dni: null,
-          telefono: data.telefono,
-          fecha_nacimiento: null,
-          direccion: data.direccion,
-          localidad: data.localidad || 'Funes',
-          es_residente_funes: true,
-          nivel_educativo: null,
-          situacion_laboral_actual: null,
-          habilidades: null,
-          experiencia_resumen: null,
-          cv_url: null,
-          disponibilidad_horaria: null,
-          movilidad_propia: false,
-          empresa: demoEmpresaData,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        };
+        const supabase = createClient();
+        const { data: signUpData, error } = await supabase.auth.signUp({
+          email: data.email.trim(),
+          password: data.password,
+          options: {
+            data: {
+              rol: 'empresa',
+              nombre: data.persona_contacto.trim(),
+              razon_social: data.razon_social.trim(),
+              nombre_fantasia: data.nombre_fantasia?.trim() || data.razon_social.trim(),
+              cuit: data.cuit.trim(),
+              direccion: data.direccion.trim(),
+              localidad: data.localidad?.trim() || 'Funes',
+              telefono: data.telefono.trim(),
+              telefono_contacto: data.telefono.trim(),
+              email_contacto: data.email.trim(),
+              persona_contacto: data.persona_contacto.trim(),
+              rubro: data.rubro || null,
+              descripcion: data.descripcion?.trim() || null,
+              sitio_web: data.sitio_web?.trim() || null,
+              acepta_terminos: data.acepta_terminos ?? true,
+            },
+          },
+        });
 
-        setUser(newProfile);
-        setEmpresa(demoEmpresaData);
-        setDemoCookie('empresa');
-        localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(newProfile));
-        window.dispatchEvent(new Event('portal_funes_auth_changed'));
+        if (error) {
+          setIsLoading(false);
+          let errorMsg = error.message;
+          const lower = error.message.toLowerCase();
+          if (lower.includes('user already registered') || lower.includes('already registered')) {
+            errorMsg = 'Ya existe una cuenta registrada con este correo electrónico.';
+          } else if (lower.includes('password should be at least')) {
+            errorMsg = 'La contraseña debe tener al menos 6 caracteres.';
+          } else if (lower.includes('cuit ingresado ya se encuentra registrado') || lower.includes('cuit')) {
+            errorMsg = 'El CUIT ingresado ya se encuentra registrado en el sistema.';
+          }
+          return { success: false, error: errorMsg };
+        }
+
+        if (signUpData.session && signUpData.user) {
+          await loadUserData(signUpData.user.id, data.email);
+          setIsLoading(false);
+          return { success: true, requiresEmailConfirmation: false };
+        }
+
         setIsLoading(false);
-        return { success: true, requiresEmailConfirmation: false };
+        return { success: true, requiresEmailConfirmation: true };
       } catch (err: unknown) {
         setIsLoading(false);
         const message = err instanceof Error ? err.message : 'Error al registrar la empresa';
@@ -733,7 +528,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     [appliedJobIds]
   );
 
-  // Registro local de postulación realizada
+  // Registro de postulación
   const recordApplication = useCallback(
     (jobId: string, applicationId: string) => {
       const updated = Array.from(new Set([...appliedJobIds, jobId]));
@@ -768,7 +563,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       role: (user?.rol || user?.role) ?? null,
       appliedJobIds,
       login,
-      loginAsDemo,
       logout,
       register,
       registerEmpresa,
@@ -782,7 +576,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       isLoading,
       appliedJobIds,
       login,
-      loginAsDemo,
       logout,
       register,
       registerEmpresa,

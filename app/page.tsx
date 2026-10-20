@@ -24,6 +24,8 @@ import { Badge } from '@/components/ui/Badge';
 import { JobCard } from '@/components/jobs/JobCard';
 import { getJobs } from '@/lib/jobs';
 
+export const dynamic = 'force-dynamic';
+
 export default async function Home() {
   const { jobs: featuredJobs } = await getJobs({ destacadasOnly: true });
   const topJobs = featuredJobs.slice(0, 3);

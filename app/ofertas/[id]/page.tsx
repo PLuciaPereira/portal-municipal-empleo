@@ -1,16 +1,13 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { getJobById, getAllJobIds, getSimilarJobs } from '@/lib/jobs';
+import { getJobById, getSimilarJobs } from '@/lib/jobs';
 import { JobDetailView } from '@/components/jobs/JobDetailView';
+
+export const dynamic = 'force-dynamic';
 
 interface PageProps {
   params: Promise<{ id: string }>;
-}
-
-export async function generateStaticParams() {
-  const ids = await getAllJobIds();
-  return ids.map((id) => ({ id }));
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -37,7 +34,8 @@ export default async function JobDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  const similarJobs = await getSimilarJobs(job.id, job.rubro_id, 3);
+  const effectiveRubroId = job.rubro_id ?? job.rubro?.id ?? null;
+  const similarJobs = await getSimilarJobs(job.id, effectiveRubroId, 3);
 
   return <JobDetailView job={job} similarJobs={similarJobs} />;
 }

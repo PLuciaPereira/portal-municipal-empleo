@@ -33,20 +33,22 @@ export const JobDetailView: React.FC<JobDetailViewProps> = ({
   job,
   similarJobs,
 }) => {
-  const { isAuthenticated, user, hasAppliedTo } = useAuth();
+  const { isAuthenticated, user, role, hasAppliedTo } = useAuth();
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
 
+  const isNonPostulanteUser = isAuthenticated && role !== null && role !== 'postulante';
+
   // Comprobar si el usuario actual ya se postuló a esta oferta
   const alreadyApplied = useMemo(() => {
-    return isAuthenticated && hasAppliedTo(job.id);
-  }, [isAuthenticated, hasAppliedTo, job.id]);
+    return isAuthenticated && role === 'postulante' && hasAppliedTo(job.id);
+  }, [isAuthenticated, role, hasAppliedTo, job.id]);
 
   const handleApplyClick = () => {
     if (!isAuthenticated) {
       setIsAuthModalOpen(true);
-    } else {
+    } else if (role === 'postulante') {
       setIsApplyModalOpen(true);
     }
   };
@@ -123,11 +125,17 @@ export const JobDetailView: React.FC<JobDetailViewProps> = ({
         <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
           <div className="space-y-3 max-w-3xl">
             <div className="flex flex-wrap items-center gap-2">
-              {job.rubro && (
+              {job.rubros && job.rubros.length > 0 ? (
+                job.rubros.map((r) => (
+                  <Badge key={r.id} variant="blue" size="md">
+                    {r.nombre}
+                  </Badge>
+                ))
+              ) : job.rubro ? (
                 <Badge variant="blue" size="md">
                   {job.rubro.nombre}
                 </Badge>
-              )}
+              ) : null}
               <Badge variant="zinc" size="md">
                 {job.tipo_jornada}
               </Badge>
@@ -140,6 +148,10 @@ export const JobDetailView: React.FC<JobDetailViewProps> = ({
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                 Convocatoria Abierta
+              </span>
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-900 border border-amber-200">
+                <MapPinIcon className="w-3.5 h-3.5 text-amber-700" />
+                Prioridad para residentes de Funes
               </span>
             </div>
 
@@ -179,6 +191,10 @@ export const JobDetailView: React.FC<JobDetailViewProps> = ({
               <span className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-100 text-emerald-900 font-semibold text-sm border border-emerald-300">
                 <CheckCircleIcon className="w-5 h-5 text-emerald-700" />
                 Postulado
+              </span>
+            ) : isNonPostulanteUser ? (
+              <span className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-zinc-100 text-zinc-700 font-medium text-xs border border-zinc-200">
+                Vista de {role === 'admin' ? 'Administrador' : 'Empresa'}
               </span>
             ) : (
               <Button
@@ -312,9 +328,11 @@ export const JobDetailView: React.FC<JobDetailViewProps> = ({
                 ¿Querés postularte a este puesto?
               </h3>
               <p className="text-xs text-zinc-500 leading-relaxed">
-                {isAuthenticated
-                  ? 'Estás conectado/a con tu perfil de postulante. Confirmá tu postulación en un clic.'
-                  : 'Requiere inicio de sesión. Si todavía no tenés cuenta, podrás registrarte gratuitamente.'}
+                {isNonPostulanteUser
+                  ? 'Estás navegando con una cuenta institucional o empresarial. Las postulaciones están habilitadas únicamente para cuentas de postulantes.'
+                  : isAuthenticated
+                    ? 'Estás conectado/a con tu perfil de postulante. Confirmá tu postulación en un clic.'
+                    : 'Requiere inicio de sesión. Si todavía no tenés cuenta, podrás registrarte gratuitamente.'}
               </p>
             </div>
 
@@ -326,6 +344,15 @@ export const JobDetailView: React.FC<JobDetailViewProps> = ({
                 </span>
                 <p className="text-xs text-emerald-800">
                   No se admiten postulaciones reiteradas a la misma búsqueda.
+                </p>
+              </div>
+            ) : isNonPostulanteUser ? (
+              <div className="p-3.5 bg-zinc-50 rounded-xl border border-zinc-200 text-center space-y-1">
+                <span className="text-xs font-bold text-zinc-800 block">
+                  Modo vista ({role === 'admin' ? 'Oficina de Empleo' : 'Empresa'})
+                </span>
+                <p className="text-[11px] text-zinc-500">
+                  Para postularte como vecino/a debés ingresar con una cuenta de postulante.
                 </p>
               </div>
             ) : (
@@ -444,6 +471,7 @@ export const JobDetailView: React.FC<JobDetailViewProps> = ({
 
       {/* Modal de Postulación Efectiva */}
       <JobApplyModal
+        key={job.id}
         job={job}
         isOpen={isApplyModalOpen}
         onClose={() => setIsApplyModalOpen(false)}

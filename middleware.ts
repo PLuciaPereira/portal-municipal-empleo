@@ -45,38 +45,35 @@ export async function middleware(request: NextRequest) {
 
       if (authUser) {
         user = authUser;
-        userRole =
-          (authUser.user_metadata?.rol as string) ||
-          (authUser.user_metadata?.role as string) ||
-          null;
 
-        // Consultar rol verificado en perfil de base de datos
+        // Consultar rol verificado y vigencia en perfil de base de datos
         try {
           const { data: perfilData } = await supabase
             .from('perfil')
-            .select('rol')
+            .select('rol, activo, deleted_at')
             .eq('id', authUser.id)
-            .single();
+            .is('deleted_at', null)
+            .eq('activo', true)
+            .maybeSingle();
 
           if (perfilData?.rol) {
             userRole = perfilData.rol;
+          } else {
+            // Perfil inexistente, inactivo o con baja lógica
+            userRole = null;
           }
         } catch {
-          // Si la consulta falla (red/permiso), se mantiene el rol de metadata
+          userRole = null;
         }
       }
     } catch {
-      // Ignorar errores de conexión para garantizar resiliencia en desarrollo
+      // Ignorar errores de conexión y mantener userRole = null
     }
   }
 
-  // 2. Soporte de modo de prueba (Demo) mediante cookie si no hay sesión real
-  if (!user) {
-    const demoCookie = request.cookies.get('portal_funes_demo_role');
-    if (demoCookie?.value) {
-      userRole = demoCookie.value;
-      user = { id: `demo-${userRole}` };
-    }
+  // 2. Limpieza de cookie de prueba histórica si aún persiste en el cliente
+  if (request.cookies.has('portal_funes_demo_role')) {
+    response.cookies.delete('portal_funes_demo_role');
   }
 
   const { pathname } = request.nextUrl;
@@ -115,8 +112,8 @@ export async function middleware(request: NextRequest) {
   const isProtectedRoute = isPostulanteRoute || isEmpresaRoute || isAdminRoute;
 
   if (isProtectedRoute) {
-    // Si no está autenticado, redirigir a /login preservando la URL de destino
-    if (!user) {
+    // Si no está autenticado o carece de un perfil activo autorizado, redirigir a /login
+    if (!user || !userRole) {
       const loginUrl = new URL('/login', request.url);
       loginUrl.searchParams.set('redirect', pathname);
       return NextResponse.redirect(loginUrl);
