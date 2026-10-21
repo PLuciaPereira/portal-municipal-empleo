@@ -1,28 +1,100 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { PageContainer } from '@/components/ui/PageContainer';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/Button';
 import {
   BuildingIcon,
   ShieldCheckIcon,
   ClockIcon,
+  BriefcaseIcon,
+  UsersIcon,
+  PlusIcon,
 } from '@/components/ui/Icons';
+import { getMisOfertasEmpresa, getCandidatosPresentados } from '@/lib/empresa';
+import { Oferta, Rubro, VistaCandidatoEmpresa } from '@/types/database';
+import { CompanyJobsTable } from '@/components/empresa/CompanyJobsTable';
+import { CandidatesTable } from '@/components/empresa/CandidatesTable';
+import { CompanyJobModal } from '@/components/empresa/CompanyJobModal';
 
 export default function EmpresaDashboardPage() {
   const { user, empresa } = useAuth();
 
+  const [activeTab, setActiveTab] = useState<'ofertas' | 'candidatos'>('ofertas');
+  const [ofertas, setOfertas] = useState<
+    (Oferta & {
+      rubro: Rubro | null;
+      ofertas_rubros: { rubro_id: number; rubro: Rubro | null }[];
+    })[]
+  >([]);
+  const [candidatos, setCandidatos] = useState<VistaCandidatoEmpresa[]>([]);
   const estado = empresa?.estado || 'pendiente';
   const isAprobada = estado === 'aprobada';
+
+  const [filterOfertaId, setFilterOfertaId] = useState<string | null>(null);
+  const [loadingOfertas, setLoadingOfertas] = useState(() => isAprobada);
+  const [loadingCandidatos, setLoadingCandidatos] = useState(() => isAprobada);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  const loadOfertas = useCallback(async () => {
+    if (!isAprobada) return;
+    setLoadingOfertas(true);
+    const res = await getMisOfertasEmpresa();
+    if (res.data) setOfertas(res.data);
+    setLoadingOfertas(false);
+  }, [isAprobada]);
+
+  const loadCandidatos = useCallback(async (ofertaId?: string) => {
+    if (!isAprobada) return;
+    setLoadingCandidatos(true);
+    const res = await getCandidatosPresentados(ofertaId);
+    if (res.data) setCandidatos(res.data);
+    setLoadingCandidatos(false);
+  }, [isAprobada]);
+
+  useEffect(() => {
+    if (!isAprobada) return;
+    let isMounted = true;
+    const init = async () => {
+      const [resOfertas, resCandidatos] = await Promise.all([
+        getMisOfertasEmpresa(),
+        getCandidatosPresentados(),
+      ]);
+      if (!isMounted) return;
+      if (resOfertas.data) setOfertas(resOfertas.data);
+      if (resCandidatos.data) setCandidatos(resCandidatos.data);
+      setLoadingOfertas(false);
+      setLoadingCandidatos(false);
+    };
+    void init();
+    return () => {
+      isMounted = false;
+    };
+  }, [isAprobada]);
+  const handleSelectOfertaCandidates = (ofertaId: string) => {
+    setFilterOfertaId(ofertaId);
+    setActiveTab('candidatos');
+    loadCandidatos(ofertaId);
+  };
+
+  const handleClearCandidatesFilter = () => {
+    setFilterOfertaId(null);
+    loadCandidatos();
+  };
+
+  const activeCandidatesCount = candidatos.filter(
+    (c) => c.estado_postulacion === 'presentado_a_empresa'
+  ).length;
 
   return (
     <PageContainer>
       <PageHeader
         title={empresa?.nombre_fantasia || empresa?.razon_social || 'Panel de Empresa'}
-        description="Gestión institucional, publicación de ofertas laborales y revisión de candidatos derivados por el Municipio."
+        description="Gestión de ofertas laborales y evaluación de postulantes presentados por la Oficina de Empleo de Funes."
         badge={
           isAprobada ? (
             <Badge variant="emerald">Empresa Habilitada</Badge>
@@ -32,7 +104,7 @@ export default function EmpresaDashboardPage() {
         }
       />
 
-      {/* Alerta de Estado Pendiente */}
+      {/* Alerta de Verificación Pendiente */}
       {!isAprobada && (
         <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-2xl flex items-start gap-3">
           <ClockIcon className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
@@ -47,8 +119,8 @@ export default function EmpresaDashboardPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Datos Comerciales */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* Tarjeta lateral: Datos Comerciales de la Empresa */}
         <div className="space-y-6 lg:col-span-1">
           <Card className="border-zinc-200 shadow-sm">
             <CardContent className="p-6 space-y-4">
@@ -92,66 +164,126 @@ export default function EmpresaDashboardPage() {
               <div className="p-3 bg-zinc-50 rounded-xl border border-zinc-200 text-xs text-zinc-600 flex items-start gap-2">
                 <ShieldCheckIcon className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
                 <span>
-                  La intermediación municipal garantiza la confidencialidad de los procesos y la prioridad de inserción laboral local.
+                  Los candidatos derivados son seleccionados por el equipo municipal para garantizar idoneidad técnica e inserción local.
                 </span>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Panel de Ofertas y Candidatos (Fase 6) */}
-        <div className="space-y-6 lg:col-span-2">
-          <Card className="border-zinc-200 shadow-sm">
-            <CardContent className="p-6 space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-base font-bold text-zinc-900">
-                    Búsquedas Laborales de la Empresa
-                  </h3>
-                  <p className="text-xs text-zinc-500">
-                    Publicación de vacantes laborales sujetas a revisión de la Oficina de Empleo.
-                  </p>
-                </div>
-                <Badge variant="blue">Próximamente: Fase 6</Badge>
-              </div>
-
-              <div className="p-6 text-center bg-zinc-50 rounded-xl border border-dashed border-zinc-200 space-y-2">
-                <p className="text-sm font-semibold text-zinc-700">
-                  Módulo de Gestión de Ofertas en desarrollo
-                </p>
-                <p className="text-xs text-zinc-500 max-w-md mx-auto">
-                  En la Fase 6 podrás crear ofertas de empleo, enviarlas para revisión municipal y hacer seguimiento de los estados de publicación.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-zinc-200 shadow-sm">
-            <CardContent className="p-6 space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-base font-bold text-zinc-900">
-                    Candidatos Presentados por el Municipio
-                  </h3>
-                  <p className="text-xs text-zinc-500">
-                    Perfiles laborales evaluados y derivados por la Oficina de Empleo.
-                  </p>
-                </div>
-                <Badge variant="blue">Próximamente: Fase 6</Badge>
-              </div>
-
-              <div className="p-4 bg-sky-50 rounded-xl border border-sky-200 text-xs text-sky-950 space-y-1">
-                <span className="font-bold block text-sky-900">
-                  Privacidad y Seguridad de Candidatos
+        {/* Panel Principal: Pestañas de Ofertas y Candidatos */}
+        <div className="space-y-6 lg:col-span-3">
+          {/* Navegación por pestañas */}
+          <div className="flex items-center justify-between border-b border-zinc-200 pb-3">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setActiveTab('ofertas')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+                  activeTab === 'ofertas'
+                    ? 'bg-brand-50 text-brand-700 border border-brand-200'
+                    : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
+                }`}
+              >
+                <BriefcaseIcon className="w-4 h-4" />
+                <span>Mis Ofertas</span>
+                <span className="ml-1 text-xs px-2 py-0.5 rounded-full bg-zinc-200 text-zinc-700">
+                  {ofertas.length}
                 </span>
-                <p>
-                  Por normativa de privacidad de la Municipalidad de Funes, el portal solo te presentará candidatos seleccionados formalmente por la Oficina de Empleo, protegiendo sus datos de contacto privados.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('candidatos')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+                  activeTab === 'candidatos'
+                    ? 'bg-brand-50 text-brand-700 border border-brand-200'
+                    : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
+                }`}
+              >
+                <UsersIcon className="w-4 h-4" />
+                <span>Candidatos Presentados</span>
+                {activeCandidatesCount > 0 && (
+                  <span className="ml-1 text-xs px-2 py-0.5 rounded-full bg-brand-600 text-white font-bold">
+                    {activeCandidatesCount}
+                  </span>
+                )}
+              </button>
+            </div>
+
+            {isAprobada && activeTab === 'ofertas' && (
+              <Button
+                size="sm"
+                variant="primary"
+                onClick={() => setIsCreateModalOpen(true)}
+              >
+                <PlusIcon className="w-4 h-4 mr-1" />
+                Nueva Oferta
+              </Button>
+            )}
+          </div>
+
+          {/* Contenido Pestaña Ofertas */}
+          {activeTab === 'ofertas' && (
+            <Card className="border-zinc-200 shadow-sm">
+              <CardContent className="p-6">
+                <CompanyJobsTable
+                  ofertas={ofertas}
+                  loading={loadingOfertas}
+                  onRefresh={loadOfertas}
+                  onViewCandidates={handleSelectOfertaCandidates}
+                />
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Contenido Pestaña Candidatos */}
+          {activeTab === 'candidatos' && (
+            <Card className="border-zinc-200 shadow-sm">
+              <CardContent className="p-6 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <h3 className="text-base font-bold text-zinc-900">
+                      Candidatos Derivados por la Oficina de Empleo
+                    </h3>
+                    <p className="text-xs text-zinc-500">
+                      Evaluá los perfiles y CVs presentados. Podés confirmar la contratación o registrar un rechazo con motivo para el Municipio.
+                    </p>
+                  </div>
+
+                  {filterOfertaId && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-zinc-500">Filtrado por oferta</span>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={handleClearCandidatesFilter}
+                      >
+                        Ver todos
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
+                <CandidatesTable
+                  candidatos={candidatos}
+                  loading={loadingCandidatos}
+                  onRefresh={() => loadCandidatos(filterOfertaId || undefined)}
+                />
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
+
+      {/* Modal para Crear Nueva Oferta */}
+      {isCreateModalOpen && (
+        <CompanyJobModal
+          isOpen={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+          onSuccess={() => {
+            loadOfertas();
+          }}
+        />
+      )}
     </PageContainer>
   );
 }

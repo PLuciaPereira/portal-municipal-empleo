@@ -29,10 +29,59 @@ import {
   HeartPulse,
   Laptop,
   ArrowRight,
+  AlertCircle,
+  FileText,
+  Pencil,
+  Trash2,
+  Send,
+  Users,
+  Plus,
+  XCircle,
+  GraduationCap,
   LucideProps,
 } from 'lucide-react';
 
 export type IconProps = LucideProps;
+
+export const XIcon: React.FC<IconProps> = ({ className = 'w-6 h-6', ...props }) => (
+  <X className={className} {...props} />
+);
+
+export const AlertCircleIcon: React.FC<IconProps> = ({ className = 'w-5 h-5', ...props }) => (
+  <AlertCircle className={className} {...props} />
+);
+
+export const FileTextIcon: React.FC<IconProps> = ({ className = 'w-5 h-5', ...props }) => (
+  <FileText className={className} {...props} />
+);
+
+export const PencilIcon: React.FC<IconProps> = ({ className = 'w-5 h-5', ...props }) => (
+  <Pencil className={className} {...props} />
+);
+
+export const TrashIcon: React.FC<IconProps> = ({ className = 'w-5 h-5', ...props }) => (
+  <Trash2 className={className} {...props} />
+);
+
+export const SendIcon: React.FC<IconProps> = ({ className = 'w-5 h-5', ...props }) => (
+  <Send className={className} {...props} />
+);
+
+export const UsersIcon: React.FC<IconProps> = ({ className = 'w-5 h-5', ...props }) => (
+  <Users className={className} {...props} />
+);
+
+export const PlusIcon: React.FC<IconProps> = ({ className = 'w-5 h-5', ...props }) => (
+  <Plus className={className} {...props} />
+);
+
+export const XCircleIcon: React.FC<IconProps> = ({ className = 'w-5 h-5', ...props }) => (
+  <XCircle className={className} {...props} />
+);
+
+export const GraduationCapIcon: React.FC<IconProps> = ({ className = 'w-5 h-5', ...props }) => (
+  <GraduationCap className={className} {...props} />
+);
 
 export const BriefcaseIcon: React.FC<IconProps> = ({ className = 'w-5 h-5', ...props }) => (
   <Briefcase className={className} {...props} />
