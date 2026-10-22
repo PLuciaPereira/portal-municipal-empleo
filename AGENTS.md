@@ -85,3 +85,4 @@ Después de realizar cambios, explicar brevemente:
 No realizar operaciones de Git para registrar, publicar, revertir o respaldar los cambios. Si corresponde, indicar al usuario qué pasos puede realizar manualmente.
 
 <!-- agy --dangerously-skip-permissions -->
+<!-- agy --model gemini-3.8-flash-low --dangerously-skip-permissions -->

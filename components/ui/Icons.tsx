@@ -36,6 +36,8 @@ import {
   Send,
   Users,
   Plus,
+  Save,
+  AlertTriangle,
   XCircle,
   GraduationCap,
   LucideProps,
@@ -197,4 +199,12 @@ export const LaptopIcon: React.FC<IconProps> = ({ className = 'w-5 h-5', ...prop
 
 export const ArrowRightIcon: React.FC<IconProps> = ({ className = 'w-5 h-5', ...props }) => (
   <ArrowRight className={className} {...props} />
+);
+
+export const SaveIcon: React.FC<IconProps> = ({ className = 'w-5 h-5', ...props }) => (
+  <Save className={className} {...props} />
+);
+
+export const AlertTriangleIcon: React.FC<IconProps> = ({ className = 'w-5 h-5', ...props }) => (
+  <AlertTriangle className={className} {...props} />
 );
