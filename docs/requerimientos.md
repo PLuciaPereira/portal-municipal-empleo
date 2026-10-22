@@ -1,674 +1,767 @@
-# Portal de Empleo de Funes
-## 1. Descripción general
-El proyecto consiste en desarrollar una plataforma web de empleo destinada principalmente a la población de la ciudad de Funes. Cualquier persona, independientemente de su localidad de residencia, podrá registrarse y postularse a las ofertas laborales.
-La plataforma busca digitalizar y centralizar parte del trabajo que actualmente realiza la Oficina de Empleo de la Municipalidad de Funes, principalmente en relación con:
-- Registro y gestión de postulantes.
-- Recepción y organización de información laboral.
-- Publicación y gestión de ofertas de empleo.
-- Búsqueda y filtrado de postulantes.
-- Postulación a ofertas laborales.
-- Intermediación entre postulantes y empresas.
-- Seguimiento de los procesos de selección.
-- Seguimiento posterior a la incorporación laboral.
-- Derivación a cursos y capacitaciones.
-- Obtención de estadísticas.
-La plataforma debe estar orientada principalmente a personas residentes de Funes que buscan empleo y a empresas que necesitan cubrir puestos laborales.
-Sin embargo, el sistema no debe impedir que personas que residan fuera de Funes se registren o se postulen a las ofertas.
-La residencia en Funes será utilizada como criterio de prioridad dentro del proceso de selección.
----
-# 2. Objetivo general
-Digitalizar y centralizar la gestión de postulantes y ofertas laborales de la Oficina de Empleo de Funes.
-El sistema debe permitir reemplazar buena parte del trabajo manual realizado actualmente mediante CV recibidos por diferentes medios y planillas de Excel.
-El objetivo es lograr un proceso más organizado y eficiente para:
-1. Registrar postulantes.
-2. Organizar su información.
-3. Publicar ofertas laborales.
-4. Recibir postulaciones.
-5. Buscar y filtrar postulantes.
-6. Realizar una preselección desde la Oficina de Empleo.
-7. Presentar candidatos adecuados a las empresas.
-8. Registrar el resultado del proceso.
-9. Realizar seguimiento de los postulantes.
-10. Derivar postulantes a cursos cuando sea necesario.
-11. Obtener estadísticas del funcionamiento del sistema.
----
-# 3. Contexto actual
-Actualmente, la Oficina de Empleo recibe CV mediante diferentes canales:
-- WhatsApp.
-- Correo electrónico.
-- Atención presencial.
-- CV en papel.
-Una vez recibidos, el personal revisa la información y posteriormente carga los datos en planillas de Excel.
-Este procedimiento genera dificultades porque la información proviene de diferentes medios y no existe un sistema único y uniforme para organizarla.
-Actualmente se intenta clasificar los postulantes según diferentes rubros o categorías, pero la información no está organizada de manera uniforme.
-Esto dificulta encontrar rápidamente personas que cumplan con los requisitos de una determinada oferta laboral.
----
-# 4. Detección de demandas laborales
-La Oficina de Empleo busca conocer las necesidades de personal de las empresas de Funes.
-Una de las principales formas de detectar estas necesidades es mediante visitas de la Municipalidad a las empresas.
-Durante estas visitas se consulta a las empresas qué puestos necesitan cubrir.
-La plataforma deberá permitir que las empresas puedan cargar directamente sus propias ofertas laborales, evitando depender exclusivamente de WhatsApp, correo electrónico u otros medios para comunicar sus necesidades.
----
-# 5. Empresas
-Las empresas podrán registrarse en la plataforma para utilizar el sistema.
-El registro de una empresa no implica su aprobación automática.
-Una vez registrada, la empresa permanecerá en estado pendiente hasta que la Oficina de Empleo / Municipalidad revise la información.
-La Municipalidad podrá:
-- Aprobar la empresa.
-- Rechazar la empresa.
-En caso de rechazo, deberá registrarse el motivo.
-El motivo puede corresponder, por ejemplo, a:
-- Información incorrecta.
-- Datos incompletos.
-- Datos que no coinciden con la información proporcionada.
-- Información inconsistente con la oferta.
-- Cualquier otra situación que la Oficina de Empleo considere necesaria.
-La empresa deberá poder conocer el motivo del rechazo y tendrá la posibilidad de volver a registrarse posteriormente.
-Una empresa rechazada no debe quedar bloqueada permanentemente del sistema.
-Una vez aprobada, la empresa podrá acceder a las funcionalidades correspondientes a su rol.
----
-# 6. Ofertas laborales
-Las ofertas laborales serán públicas dentro de la plataforma.
-Cualquier persona podrá consultar las ofertas publicadas sin necesidad de registrarse o iniciar sesión.
-Para postularse a una oferta será obligatorio:
-1. Tener una cuenta registrada.
-2. Haber iniciado sesión.
-3. Contar con un perfil laboral.
-4. Seleccionar el CV que desea utilizar para esa postulación.
-Un usuario no podrá postularse más de una vez a la misma oferta mientras exista una postulación activa para dicha oferta.
-Cada oferta deberá contener información suficiente para que el postulante pueda conocer las características del puesto.
-Entre la información posible se encuentra:
-- Puesto.
-- Descripción.
-- Requisitos.
-- Experiencia requerida.
-- Rubro.
-- Jornada laboral.
-- Ubicación.
-- Tipo de contratación.
-- Otros datos relevantes.
-## Prioridad para residentes de Funes
-Las ofertas deberán informar claramente que:
-> Los residentes de Funes tendrán prioridad dentro del proceso de selección.
-Esta prioridad no significa que las personas que residan fuera de Funes no puedan postularse.
-El criterio será:
-1. Se priorizarán postulantes residentes de Funes que cumplan con los requisitos del puesto.
-2. Si no existen postulantes residentes de Funes que resulten adecuados, podrán ser considerados postulantes de localidades o zonas aledañas.
-3. La residencia no reemplaza el cumplimiento de los requisitos laborales del puesto.
-La información sobre esta prioridad deberá estar visible en las ofertas publicadas.
----
-# 7. Estados de las ofertas laborales
-Las ofertas laborales deberán contar con estados que permitan controlar su ciclo de vida.
-Como mínimo se contemplan:
-- Borrador.
-- Pendiente.
-- Publicada.
-- Dada de baja.
-- Finalizada.
-## Borrador
-La empresa puede crear una oferta y trabajar sobre ella sin enviarla todavía a revisión.
-Mientras se encuentre en borrador, la empresa podrá:
-- Editarla.
-- Darla de baja lógicamente.
-## Pendiente
-Cuando la empresa envía una oferta para revisión, pasa a estado Pendiente.
-En este estado:
-- La Oficina de Empleo debe revisar la oferta.
-- La empresa no puede editarla.
-- La empresa puede eliminar la oferta si ya no desea continuar con ella.
-La Oficina de Empleo podrá aprobar o rechazar la oferta.
-## Publicada
-Una vez aprobada, la oferta pasa a estado Publicada y queda visible públicamente en el portal.
-## Dada de baja
-Una oferta publicada puede ser dada de baja.
-La baja puede ser realizada por:
-- La empresa que publicó la oferta.
-- La Oficina de Empleo / Municipalidad.
-La Municipalidad podrá dar de baja una oferta, por ejemplo, cuando ya no se estén recibiendo postulaciones o cuando considere que corresponde finalizar su publicación.
-## Finalizada
-Una oferta puede finalizar cuando el proceso de selección concluye y se registra el resultado correspondiente.
----
-# 8. Postulantes
-Los postulantes son personas que buscan empleo.
-El sistema permitirá registrarse a cualquier persona, independientemente de su lugar de residencia.
-Sin embargo, la plataforma está orientada principalmente a residentes de Funes y la residencia será considerada como criterio de prioridad durante el proceso de selección.
-El sistema deberá permitir que una persona pueda registrarse y crear su perfil laboral.
-La información del postulante podrá incluir:
-- Datos personales.
-- Datos de contacto.
-- Localidad de residencia.
-- Formación.
-- Experiencia laboral.
-- Rubro o área de interés.
-- Habilidades o competencias.
-- CV.
-- Otros datos relevantes para la búsqueda laboral.
-Un mismo postulante puede estar interesado en diferentes puestos y puede postularse a múltiples ofertas.
-El sistema debe conservar un historial de sus postulaciones.
----
-# 9. Gestión de múltiples CV
-Un postulante podrá cargar más de un CV dentro de su perfil.
-Se establece un límite máximo de **5 CV activos por postulante**.
-Por ejemplo, un mismo postulante podría tener:
-- CV Administrativo.
-- CV IT.
-- CV Comercial.
-- CV Atención al cliente.
-- CV General.
-Cada CV podrá tener un nombre identificatorio para facilitar su selección.
-Los CV podrán ser gestionados desde el perfil del postulante.
-El postulante podrá:
-- Cargar nuevos CV.
-- Conservar hasta 5 CV activos.
-- Actualizar sus CV.
-- Archivar CV que ya no desee utilizar.
-- Consultar sus CV disponibles.
-- Seleccionar qué CV utilizar en una determinada postulación.
-El sistema deberá registrar como mínimo:
-- Fecha de creación del CV.
-- Fecha de última actualización.
-- Estado del CV.
-- Archivo correspondiente.
-## Actualización de CV
-Los CV no tendrán un vencimiento automático.
-Sin embargo, el sistema podrá informar al postulante cuando un CV lleve un período prolongado sin ser actualizado, para sugerir su revisión.
-Cuando un postulante actualice un CV que ya haya sido utilizado en una postulación anterior, la actualización no deberá modificar el CV utilizado históricamente en dicha postulación.
-La nueva versión deberá conservarse como una versión disponible para futuras postulaciones.
-## Archivado y borrado lógico
-Cuando un postulante deje de utilizar un CV, el sistema deberá permitir archivarlo mediante borrado lógico, en lugar de eliminarlo físicamente de la base de datos.
-Un CV archivado:
-- No estará disponible para nuevas postulaciones.
-- No aparecerá entre los CV activos del postulante.
-- Permanecerá almacenado para conservar la trazabilidad.
-- Podrá permanecer asociado a postulaciones realizadas anteriormente.
-Los CV que hayan sido utilizados en postulaciones anteriores no deberán eliminarse físicamente, ya que forman parte del historial de dichas postulaciones.
-Cada postulación deberá conservar una referencia al CV que el postulante utilizó al momento de realizarla, independientemente de que posteriormente ese CV sea archivado o reemplazado.
----
-# 10. Organización y búsqueda de postulantes
-Uno de los principales objetivos del sistema es facilitar la búsqueda de personas adecuadas para una oferta laboral.
-La Oficina de Empleo deberá poder buscar y filtrar postulantes según diferentes criterios, por ejemplo:
-- Localidad de residencia.
-- Rubro.
-- Experiencia.
-- Formación.
-- Habilidades.
-- Categoría.
-- Otros requisitos relacionados con las ofertas laborales.
-La residencia en Funes deberá poder utilizarse como criterio de búsqueda y priorización.
-La información debe estar organizada de manera uniforme para evitar tener que revisar manualmente diferentes planillas o registros.
-El sistema debe permitir consultar rápidamente la información de un postulante.
----
-# 11. Proceso de selección
-La Oficina de Empleo tendrá un rol de intermediación entre las empresas y los postulantes.
+Portal de Empleo de Funes
+1. Descripción general
+El proyecto consiste en desarrollar una plataforma web de empleo
+destinada principalmente a la población de la ciudad de Funes y a las
+empresas que necesitan cubrir puestos laborales. Cualquier persona,
+independientemente de su localidad de residencia, podrá registrarse y
+postularse a las ofertas publicadas.
+
+La plataforma digitalizará y centralizará las tareas de la Oficina de
+Empleo de la Municipalidad de Funes relacionadas con:
+- Registrar y gestionar postulantes y sus perfiles laborales.
+- Organizar información laboral y clasificar perfiles por rubros y
+  criterios relevantes.
+- Recibir, revisar, aprobar, publicar y administrar ofertas laborales.
+- Recibir y gestionar postulaciones.
+- Buscar y filtrar postulantes según los requisitos de cada puesto.
+- Realizar la preselección municipal y derivar formalmente candidatos
+  a empresas previamente aprobadas.
+- Registrar las respuestas de las empresas, los rechazos y las
+  contrataciones.
+- Gestionar cursos, capacitaciones y derivaciones.
+- Mantener historiales y obtener estadísticas del funcionamiento del
+  portal.
+La residencia en Funes será un criterio de prioridad en la selección,
+pero no una condición para registrarse o postularse.
+2. Objetivo general
+Digitalizar y centralizar la gestión de postulantes, empresas, ofertas y
+procesos de selección de la Oficina de Empleo de Funes, reduciendo la
+dependencia de CV recibidos por distintos canales y de planillas de
+Excel.
+
+El sistema deberá permitir registrar postulantes y organizar sus datos;
+publicar ofertas; recibir postulaciones; buscar y filtrar perfiles;
+revisar, preseleccionar y derivar candidatos; registrar respuestas y
+resultados; conservar el historial de las postulaciones; gestionar
+cursos y derivaciones; y generar estadísticas.
+
+El portal debe mejorar la organización, la trazabilidad y la eficiencia
+de la intermediación laboral, sin reemplazar las decisiones que
+corresponden a la Oficina de Empleo o a las empresas.
+3. Contexto actual
+Actualmente, la Oficina de Empleo recibe CV por distintos medios, entre
+ellos WhatsApp, correo electrónico, atención presencial y documentos en
+papel. Luego, el personal revisa la información y carga datos en
+planillas de Excel.
+
+Este procedimiento dificulta centralizar y mantener actualizada la
+información, aplicar criterios uniformes de clasificación y encontrar
+rápidamente postulantes que cumplan con los requisitos de una oferta.
+
+La plataforma busca concentrar estos datos en un sistema organizado, con
+búsquedas, filtros, relaciones entre postulantes y ofertas, y
+conservación del historial pertinente.
+4. Detección de demandas laborales
+La Oficina de Empleo busca conocer las necesidades de personal de las
+empresas de Funes. Una de las formas de detectar esas necesidades es
+mediante visitas de la Municipalidad a las empresas, durante las cuales
+se consulta qué puestos necesitan cubrir.
+
+Además, las empresas aprobadas podrán cargar directamente sus ofertas en
+el portal, evitando depender exclusivamente de WhatsApp, correo
+electrónico u otros medios para comunicar sus necesidades.
+5. Empresas
+Las empresas podrán registrarse para utilizar la plataforma, pero el
+registro no implicará aprobación automática. La cuenta permanecerá
+pendiente hasta que la Oficina de Empleo revise la información.
+
+La Oficina de Empleo podrá aprobar o rechazar el registro. Todo rechazo
+deberá tener un motivo registrado y comunicado a la empresa mediante un
+aviso visible. Los motivos podrán incluir información incorrecta,
+incompleta, inconsistente o cualquier otra causa pertinente para la
+evaluación.
+
+Una empresa rechazada podrá conocer el motivo y volver a registrarse
+posteriormente; el rechazo no deberá bloquearla permanentemente.
+
+Solo una empresa aprobada podrá utilizar las funcionalidades habilitadas
+para su rol, crear y enviar ofertas a revisión y recibir derivaciones
+formales de candidatos. La aprobación de la empresa es una condición
+necesaria, pero no suficiente, para acceder a los datos completos de un
+postulante: también debe existir una derivación formal de ese postulante
+a esa empresa.
+6. Ofertas laborales
+Las ofertas publicadas serán públicas y podrán consultarse sin
+registrarse ni iniciar sesión.
+
+Para postularse será obligatorio: 1. Tener una cuenta registrada. 2.
+Haber iniciado sesión. 3. Contar con un perfil laboral. 4. Seleccionar
+el CV que se utilizará en esa postulación.
+
+No se permitirá mantener más de una postulación activa de la misma
+persona a una misma oferta. Las postulaciones anteriores deberán
+conservarse como historial.
+
+Cada oferta deberá contener información suficiente sobre el puesto,
+incluyendo según corresponda: puesto, descripción, requisitos,
+experiencia requerida, rubro, jornada laboral, ubicación, tipo de
+contratación y otros datos relevantes.
+Prioridad para residentes de Funes
+Las ofertas deberán informar que las personas residentes de Funes
+tendrán prioridad en el proceso de selección cuando cumplan con los
+requisitos del puesto. La prioridad no impedirá que personas de otras
+localidades se registren o postulen.
+
+El criterio será: 1. Priorizar a postulantes residentes de Funes que
+cumplan con los requisitos laborales. 2. Si no hay candidatos adecuados
+de Funes, considerar postulantes de localidades o zonas aledañas. 3. No
+utilizar la residencia como sustituto del cumplimiento de los requisitos
+del puesto.
+
+Esta prioridad deberá estar visible en las ofertas publicadas.
+7. Estados de las ofertas laborales
+Las ofertas tendrán estados que permitan controlar su ciclo de vida:
+- Borrador: oferta creada y todavía no enviada a revisión.
+- Pendiente: oferta enviada por la empresa para revisión
+  municipal.
+- Publicada: oferta aprobada y visible públicamente.
+- Dada de baja: oferta cuya publicación o tramitación se
+  interrumpió según las reglas de su estado.
+- Finalizada: proceso de selección concluido y resultado
+  registrado.
+Borrador
+La empresa podrá editar el borrador o darlo de baja lógicamente. Un
+borrador dado de baja antes de llegar a la Oficina de Empleo no
+aparecerá en el historial administrativo ni en los listados operativos.
+El registro técnico podrá conservarse mediante baja lógica, sin borrado
+físico.
+Pendiente
+La Oficina de Empleo deberá revisar la oferta. La empresa no podrá
+editarla mientras esté pendiente, pero podrá solicitar su baja si ya no
+desea continuar. La Oficina de Empleo podrá aprobarla o rechazarla. El
+rechazo deberá registrar y comunicar el motivo.
+Publicada
+Una vez aprobada, la oferta será visible públicamente. Una oferta
+publicada no podrá editarse. Si la empresa necesita introducir
+cambios, deberá tramitar una nueva oferta o un procedimiento nuevo de
+revisión, sin modificar directamente la oferta publicada ni alterar su
+historial.
+Dada de baja
+Una oferta publicada podrá ser dada de baja por la empresa que la
+publicó o por la Oficina de Empleo/Municipalidad. La baja podrá
+corresponder, por ejemplo, a una necesidad cubierta, al cierre de la
+recepción de postulaciones o a la decisión de finalizar la publicación.
+La baja no eliminará las postulaciones ni sus resultados.
+Finalizada
+La oferta podrá finalizar cuando concluya el proceso de selección y se
+registre el resultado correspondiente. La baja y la finalización son
+situaciones distintas: la baja interrumpe la publicación o tramitación,
+mientras que la finalización indica que el proceso de selección
+concluyó.
+8. Postulantes
+Podrá registrarse cualquier persona, independientemente de su localidad
+de residencia. La plataforma estará orientada principalmente a
+residentes de Funes, cuya residencia será un criterio de prioridad
+cuando cumplan con los requisitos de la oferta.
+
+Cada postulante podrá crear y administrar su perfil laboral. La
+información podrá incluir datos personales y de contacto, localidad de
+residencia, formación, experiencia laboral, rubros o áreas de interés,
+habilidades, CV y otros datos relevantes para la búsqueda de empleo.
+
+Una persona podrá interesarse en distintos puestos y postularse a
+múltiples ofertas. El sistema deberá conservar el historial de sus
+postulaciones y permitirle consultar sus estados y resultados según
+corresponda.
+9. Gestión de múltiples CV
+Cada postulante podrá cargar y gestionar varios CV, con un máximo de 5
+CV activos. Podrá asignarles nombres identificatorios, por ejemplo:
+Administrativo, IT, Comercial, Atención al cliente o General.
+
+El postulante podrá: - Cargar nuevos CV. - Actualizar sus CV. -
+Consultar los CV disponibles. - Archivar CV que ya no quiera utilizar. -
+Seleccionar el CV correspondiente a cada postulación.
+
+El sistema registrará como mínimo la fecha de creación, la fecha de
+última actualización, el estado y el archivo correspondiente.
+Actualización y conservación histórica
+Los CV no tendrán vencimiento automático. El sistema podrá advertir al
+postulante cuando un CV lleve mucho tiempo sin actualizarse, para
+sugerir su revisión.
+
+Si se actualiza un CV utilizado en una postulación anterior, la versión
+histórica utilizada en esa postulación deberá mantenerse sin cambios. La
+nueva versión podrá utilizarse en postulaciones futuras. Cada
+postulación conservará una referencia o copia histórica del CV utilizado
+en el momento de postularse.
+Archivado y baja lógica
+Los CV que el postulante deje de utilizar podrán archivarse mediante
+baja lógica. Un CV archivado no estará disponible para nuevas
+postulaciones ni aparecerá entre los CV activos, pero permanecerá
+almacenado para conservar la trazabilidad y podrá seguir asociado a
+postulaciones anteriores.
+
+Ni el archivado ni la actualización de un CV podrán eliminar o modificar
+las postulaciones históricas en las que se utilizó. No se realizará
+borrado físico de CV vinculados a procesos históricos.
+10. Organización y búsqueda de postulantes
+La Oficina de Empleo deberá poder buscar y filtrar postulantes según
+localidad de residencia, rubro, experiencia, formación, habilidades,
+categoría, requisitos de la oferta y otros criterios laborales
+pertinentes.
+
+La residencia en Funes deberá poder utilizarse como criterio de búsqueda
+y priorización. La información deberá organizarse de forma uniforme para
+facilitar consultas rápidas y evitar la revisión manual de múltiples
+planillas o registros.
+
+La búsqueda de postulantes no habilitará por sí misma el acceso de las
+empresas a la base completa. El acceso empresarial se regirá por las
+condiciones de aprobación y derivación formal establecidas en los puntos
+12 y 13.
+11. Proceso de selección
 El proceso general será:
-**Empresa**
-↓
-Carga una oferta laboral
-↓
-La oferta queda pendiente de revisión
-↓
-La Oficina de Empleo revisa la oferta
-↓
-La oferta es publicada
-↓
-Los postulantes pueden postularse
-↓
-La Oficina de Empleo analiza las postulaciones
-↓
-Se priorizan los residentes de Funes que cumplan con los requisitos
-↓
-La Oficina realiza la preselección
-↓
-Se realiza una entrevista o control previo cuando corresponda
-↓
-Se presentan candidatos adecuados a la empresa
-↓
-La empresa analiza los candidatos
-↓
-La empresa acepta o rechaza candidatos
-↓
-La empresa informa el resultado
-↓
-Se registra la contratación cuando corresponde
-↓
-La oferta se finaliza
-↓
-Se realiza seguimiento
-La Oficina de Empleo busca realizar un filtro previo para evitar enviar una gran cantidad de CV que no sean adecuados para el puesto.
----
-# 12. Intermediación entre empresas y postulantes
-La Oficina de Empleo debe conservar el rol de intermediación.
-Las empresas NO deben tener acceso libre a toda la base de postulantes.
-La empresa podrá:
-- Publicar ofertas laborales una vez aprobadas.
-- Recibir los candidatos que hayan sido seleccionados por la Oficina de Empleo.
-- Aceptar o rechazar los candidatos presentados.
-- Informar el resultado del proceso.
-- Registrar qué candidato fue contratado.
-La Oficina de Empleo será responsable de analizar los perfiles y realizar la preselección correspondiente antes de presentar candidatos a una empresa.
----
-# 13. Información visible para las empresas
-Cuando la Oficina de Empleo presenta un postulante a una empresa, la empresa podrá visualizar únicamente la información necesaria para evaluar su perfil laboral.
-La empresa podrá acceder a:
-- Nombre.
-- Localidad.
-- Rubro.
-- Descripción del perfil.
-- CV correspondiente a la postulación.
-La empresa NO podrá visualizar:
-- DNI.
-- Domicilio.
-- Teléfono.
-- Correo electrónico.
-- Otros datos personales o de contacto que no sean necesarios para la evaluación inicial.
-La información de contacto y los datos personales completos permanecerán bajo control de la Oficina de Empleo.
----
-# 14. Postulaciones
-Un postulante puede postularse a diferentes ofertas laborales.
-El sistema debe registrar cada postulación.
-Cada postulación deberá tener un estado que permita conocer en qué etapa del proceso se encuentra.
-Como base se contemplan los siguientes estados:
-- Postulado.
-- En revisión.
-- Preseleccionado.
-- Entrevista.
-- Presentado a empresa.
-- Rechazado por empresa.
-- Seleccionado.
-- Contratado.
-- Retirado por postulante.
-Los estados definitivos podrán ajustarse durante el desarrollo del proyecto.
-Un postulante que no sea seleccionado no debe eliminarse del sistema.
-Debe permanecer registrado para poder ser considerado en futuras oportunidades laborales.
----
-# 15. Historial de postulaciones
-Los postulantes podrán consultar desde su perfil el historial de ofertas a las que se hayan postulado.
-El historial deberá permitir conocer, como mínimo:
-- Oferta laboral.
+1. Una empresa crea una oferta y la envía a revisión.
+2. La oferta queda pendiente y la Oficina de Empleo la revisa.
+3. Si se aprueba, se publica; si se rechaza, se registra y comunica el
+   motivo.
+4. Los postulantes consultan la oferta y pueden postularse
+   seleccionando un CV.
+5. La Oficina de Empleo analiza las postulaciones y los requisitos del
+   puesto.
+6. Se prioriza a los residentes de Funes que cumplan con los
+   requisitos; si no hay candidatos locales adecuados, podrán
+   considerarse personas de localidades cercanas.
+7. La Oficina registra la preselección de los candidatos adecuados.
+8. La Oficina decide si corresponde realizar una entrevista o control
+   previo. Esta instancia no es obligatoria en todos los casos.
+9. La Oficina deriva formalmente a la empresa los candidatos
+   seleccionados para su evaluación.
+10. La empresa evalúa a los candidatos derivados y registra para cada
+    postulación si el resultado es Contratado o Rechazado. Todo
+    rechazo empresarial requiere un motivo.
+11. El sistema conserva el resultado, el motivo cuando corresponda y el
+    historial de las decisiones.
+12. La oferta se finaliza cuando el proceso concluye y se registra el
+    resultado correspondiente.
+La Oficina de Empleo deberá realizar un filtro previo para evitar
+derivar perfiles que no se ajusten a los requisitos del puesto. La
+preselección, la entrevista y la derivación deberán quedar registradas
+como etapas diferenciadas.
+12. Intermediación entre empresas y postulantes
+La Oficina de Empleo conservará el rol de intermediación. Las empresas
+no tendrán acceso libre a toda la base de postulantes.
+
+Las empresas aprobadas podrán crear ofertas, recibir candidatos
+derivados formalmente por la Oficina de Empleo, evaluar esos candidatos,
+registrar la decisión final por postulación y comunicar los resultados.
+La Oficina será responsable de analizar perfiles, aplicar los criterios
+de selección y registrar la preselección y la derivación.
+
+La aprobación de una empresa no le concede acceso general a los
+perfiles. Cada acceso empresarial a los datos completos deberá estar
+respaldado por una derivación formal específica del postulante a esa
+empresa y dentro del proceso correspondiente.
+13. Información visible para las empresas
+Una empresa podrá visualizar todos los datos del perfil del
+postulante, incluidos nombre, DNI, domicilio, teléfono, correo
+electrónico, localidad, información laboral, formación, experiencia,
+habilidades y el CV utilizado, únicamente cuando se cumplan
+simultáneamente estas condiciones:
+1. La empresa fue aprobada por la Oficina de Empleo.
+2. La Oficina de Empleo realizó y registró una derivación formal de ese
+   postulante a esa empresa.
+La empresa no podrá acceder libremente a la base general de postulantes,
+ni consultar perfiles que no le hayan sido derivados formalmente. Los
+permisos deberán verificarse en el servidor y en las políticas de acceso
+a los datos y archivos, no solo ocultando información en la interfaz.
+
+El acceso empresarial a los datos del postulante finalizará cuando la
+postulación correspondiente pase a cualquiera de estos estados
+finales: - Contratado. - Rechazado. - Retirado por
+postulante.
+
+Al alcanzarse uno de esos estados, la empresa dejará de poder consultar
+el perfil y los archivos asociados a esa derivación. La Oficina de
+Empleo conservará los registros históricos necesarios para la gestión y
+trazabilidad. La finalización del acceso no implicará borrar físicamente
+el perfil, el CV histórico ni la postulación.
+14. Postulaciones y estados
+Cada postulación deberá registrar la persona, la oferta, la fecha, el CV
+utilizado, el estado, las etapas del proceso y el resultado cuando
+corresponda. Una persona podrá postularse a distintas ofertas, pero no
+mantener más de una postulación activa a la misma oferta.
+
+Los estados deberán distinguir las etapas relevantes del proceso:
+- Postulado: la postulación fue registrada.
+- En revisión: la Oficina de Empleo está evaluando la postulación.
+- Preseleccionado: la Oficina considera que el perfil se ajusta a
+  los requisitos y lo selecciona para continuar.
+- Entrevista: se registró una entrevista o instancia de evaluación
+  previa, cuando corresponda.
+- Derivado a empresa: la Oficina realizó la derivación formal a
+  una empresa determinada.
+- Contratado: la empresa informó que contrató al postulante.
+- Rechazado: la empresa comunicó que no continuará con ese
+  postulante y registró el motivo.
+- Retirado por postulante: la persona se retiró de la postulación.
+Las etapas de preselección, entrevista y derivación deberán quedar
+registradas de manera diferenciada. No será obligatorio que toda
+postulación pase por una entrevista. Los estados finales de resultado
+empresarial serán Contratado o Rechazado; el retiro por el postulante
+será un cierre iniciado por la persona.
+
+Un postulante no seleccionado permanecerá registrado para futuras
+oportunidades. El rechazo en una oferta no implicará la baja del perfil
+general.
+15. Historial de postulaciones
+El postulante podrá consultar en su perfil el historial de las ofertas a
+las que se postuló. El historial deberá incluir, como mínimo:
+- Oferta laboral y empresa correspondiente.
 - Fecha de postulación.
-- Empresa correspondiente.
-- Estado actual de la postulación.
-- CV utilizado.
-- Resultado cuando corresponda.
-El postulante podrá solicitar darse de baja de una postulación cuando considere necesario.
-Al darse de baja, la postulación no debe eliminarse físicamente del sistema.
-Debe conservarse el registro histórico y pasar al estado correspondiente, por ejemplo Retirado por postulante.
----
-# 16. Situaciones de rechazo o no selección
-El sistema debe diferenciar diferentes situaciones que pueden producirse durante el proceso.
-## 16.1. Postulante que cumple con el perfil pero no continúa en el proceso
-Puede ocurrir que un postulante sea adecuado para el puesto pero no ingrese al proceso de selección, por ejemplo:
-- La empresa ya alcanzó la cantidad de personas que necesitaba.
-- Se cubrieron los puestos disponibles.
-- Se seleccionaron otros candidatos.
-- La empresa decidió continuar con una cantidad limitada de postulantes.
-En estos casos, el postulante continúa registrado en el sistema y puede ser considerado para futuras ofertas.
-## 16.2. Postulante que no resulta adecuado para el puesto
-También puede ocurrir que el perfil del postulante no sea adecuado para una determinada oferta o para diferentes tipos de puestos.
-En estos casos, la Oficina de Empleo podrá registrar la situación y, cuando corresponda, derivar al postulante a un curso o capacitación.
-La derivación deberá quedar registrada en el sistema.
-El postulante no debe ser eliminado de la base.
----
-# 17. Cursos y capacitaciones
-La plataforma deberá contar con una tabla de cursos y capacitaciones almacenada en la base de datos.
-La Oficina de Empleo podrá utilizar estos cursos para orientar o derivar postulantes que necesiten mejorar determinadas competencias.
-El sistema deberá permitir:
-- Registrar cursos.
-- Consultar cursos disponibles.
-- Asociar un postulante a un curso.
-- Registrar la derivación realizada.
-- Mantener un historial de las capacitaciones asignadas.
-La derivación podrá realizarse, por ejemplo, cuando un postulante no resulte adecuado para determinados puestos debido a falta de conocimientos o competencias específicas.
----
-# 18. Gestión de candidatos por parte de la empresa
-Una vez que la Oficina de Empleo presenta candidatos a una empresa, la empresa podrá evaluar cada candidato.
-La empresa podrá:
-- Aceptar un candidato.
-- Rechazar un candidato.
-Si la empresa rechaza un candidato, deberá informar el motivo del rechazo a la Oficina de Empleo.
-El motivo deberá quedar registrado junto con la postulación.
-Cuando la empresa seleccione a una persona para ocupar el puesto, deberá registrar quién fue contratado.
-Una vez completado el proceso de selección y contratación, la oferta podrá ser cerrada/finalizada.
----
-# 19. Gestión de ofertas por parte de las empresas
-Las empresas aprobadas podrán crear ofertas laborales.
-Deberán contar como mínimo con las siguientes posibilidades:
-- Crear oferta.
-- Guardar como borrador.
-- Editar una oferta en borrador.
-- Enviar oferta a revisión.
-- Dar de baja lógicamente una oferta en borrador.
-- Consultar el estado de una oferta.
-- Dar de baja una oferta publicada cuando corresponda.
-- Consultar postulaciones y candidatos que hayan sido presentados por la Oficina de Empleo.
-- Registrar aceptación o rechazo de candidatos.
-- Registrar la contratación.
-- Finalizar la oferta.
-Una oferta en estado Pendiente no podrá ser editada por la empresa.
----
-# 20. Aprobación de ofertas por la Oficina de Empleo
-Las ofertas creadas por las empresas no serán publicadas automáticamente.
-Una vez que la empresa envíe una oferta para revisión:
-1. La oferta pasa a estado Pendiente.
-2. La Oficina de Empleo revisa la información.
-3. La Oficina puede aprobar o rechazar la oferta.
-4. Si se aprueba, la oferta pasa a Publicada.
-5. Si se rechaza, deberá registrarse el motivo correspondiente.
-Mientras una oferta se encuentre en estado Pendiente:
-- La empresa no podrá modificarla.
-- La empresa podrá eliminarla si decide no continuar con ella.
-- La Oficina de Empleo podrá revisar su contenido.
----
-# 21. Baja de ofertas
-Una oferta publicada podrá ser dada de baja cuando corresponda.
-La baja podrá ser realizada por:
-- La empresa.
-- La Oficina de Empleo / Municipalidad.
-La Oficina de Empleo podrá dar de baja una oferta, por ejemplo, cuando:
-- Ya no se reciben postulaciones.
-- La necesidad laboral fue cubierta.
-- La empresa solicitó finalizar el proceso.
-- Se considera que la publicación ya no corresponde.
-La baja de una oferta no debe eliminar el historial relacionado con ella.
-Las postulaciones y resultados asociados deberán permanecer registrados para conservar la trazabilidad del proceso.
----
-# 22. Usuarios del sistema
-Se contemplan principalmente tres tipos de usuarios:
-## Postulante
-Persona que busca empleo.
-Puede:
-- Registrarse.
-- Iniciar sesión.
-- Completar su perfil.
-- Cargar y gestionar múltiples CV.
-- Seleccionar un CV para cada postulación.
-- Consultar ofertas laborales.
-- Postularse.
-- Consultar el estado de sus postulaciones.
-- Consultar su historial.
-- Darse de baja de una postulación.
-- Consultar cursos o capacitaciones asignadas cuando corresponda.
-## Empresa
-Empresa que busca personal.
-Puede:
-- Registrarse.
-- Completar su información.
-- Quedar pendiente de aprobación.
-- Consultar el estado de su registro.
-- Cargar ofertas laborales.
-- Guardar ofertas como borrador.
-- Enviar ofertas a revisión.
-- Eliminar ofertas en borrador o pendientes según corresponda.
-- Dar de baja ofertas publicadas.
-- Visualizar los candidatos presentados por la Oficina de Empleo.
-- Aceptar o rechazar candidatos.
-- Informar motivos de rechazo.
-- Registrar contrataciones.
-- Finalizar ofertas.
-La empresa NO tendrá acceso libre a la base completa de postulantes.
-## Oficina de Empleo / Administrador
-La Oficina de Empleo administra y supervisa el sistema.
-Puede:
-- Gestionar postulantes.
-- Consultar perfiles.
-- Buscar y filtrar postulantes.
-- Gestionar ofertas.
-- Aprobar o rechazar empresas.
-- Registrar motivos de rechazo de empresas.
-- Aprobar o rechazar ofertas.
-- Registrar motivos de rechazo de ofertas.
-- Revisar postulaciones.
-- Realizar preselecciones.
-- Registrar entrevistas.
-- Presentar candidatos a empresas.
-- Registrar estados de las postulaciones.
-- Registrar respuestas de las empresas.
-- Registrar contrataciones.
-- Realizar seguimiento.
-- Gestionar cursos.
-- Derivar postulantes a cursos.
-- Consultar estadísticas.
-- Dar de baja ofertas cuando corresponda.
----
-# 23. Administradores y permisos
-El sistema podrá contar con múltiples administradores de la Oficina de Empleo. Todos los administradores tendrán las mismas funcionalidades administrativas; no existirá un rol de superadministrador ni un administrador con permisos superiores por el momento.
-Los administradores podrán:
-- Dar de alta a otros administradores.
-- Dar de baja o eliminar lógicamente a otros administradores.
-- Gestionar las cuentas de administración según los permisos comunes del rol.
-Ningún administrador podrá eliminarse ni darse de baja a sí mismo. Esta restricción deberá validarse tanto en la interfaz como en la lógica del servidor/base de datos, para evitar que se eluda desde una solicitud directa.
----
-# 24. Borrado lógico y conservación de información
-En todo el proyecto queda prohibido el borrado físico de información de negocio. Los registros deberán conservarse mediante borrado lógico, baja, archivado o cambio de estado, según corresponda.
-Esta regla aplica, entre otros, a usuarios, empresas, ofertas, postulaciones, CV, cursos, derivaciones, seguimientos e historiales. La implementación deberá preservar las relaciones y la trazabilidad histórica, sin eliminar físicamente los registros ni sus datos relacionados.
-Los elementos dados de baja o archivados deberán dejar de aparecer en los listados operativos cuando corresponda, pero permanecerán almacenados para conservar el historial. Cualquier excepción técnica deberá consultarse antes de implementarse.
-# 25. Avisos, rechazos y estados de carga
-Toda acción que implique rechazar una empresa, una oferta o un postulante/candidato deberá comunicar claramente el resultado mediante un aviso visible en la pantalla correspondiente.
-Los avisos deberán:
-- Informar que la acción se completó y cuál fue el resultado.
-- Mostrar el motivo del rechazo cuando corresponda y cuando haya sido registrado.
-- Ser visibles para el usuario o rol al que corresponda la información, sin exponer datos privados a otros roles.
-- Mantenerse disponibles en la pantalla o sección de estado correspondiente para que la persona afectada pueda comprender qué ocurrió.
-- Diferenciar, cuando corresponda, los errores de validación, los errores del sistema y las confirmaciones de éxito.
-Siempre que una acción implique carga, envío de formularios, consulta de datos, cambio de estado, aprobación, rechazo, guardado o cualquier operación que pueda tardar, la interfaz deberá mostrar un indicador de carga (loader, spinner, skeleton o mensaje de espera).
-Durante la espera, la interfaz no deberá quedar en blanco ni parecer congelada. Cuando sea posible, se deshabilitarán temporalmente los controles que podrían provocar envíos duplicados. Al finalizar la operación, se deberá informar el resultado o el error y permitir continuar con el uso normal de la pantalla.
-Estas pautas deberán aplicarse de manera consistente en las pantallas de postulantes, empresas y administración, así como en las operaciones relacionadas con ofertas y postulaciones.
-Las acciones que puedan modificar información o realizar una baja lógica deberán utilizar una ventana/modal de confirmación. En este proyecto no se permite el borrado físico de registros.
-Antes de realizar acciones como:
-- Editar información sensible.
-- Dar de baja lógicamente registros.
-- Dar de baja ofertas.
-- Rechazar empresas.
-- Rechazar ofertas.
-- Rechazar candidatos.
-- Darse de baja de una postulación.
-- Archivar CV mediante borrado lógico.
-- Dar de baja ofertas mediante borrado lógico.
-- Dar de baja administradores mediante borrado lógico.
-El sistema deberá mostrar un mensaje de advertencia solicitando confirmación.
-Por ejemplo:
-> ¿Está seguro de que desea realizar esta acción?
-Cuando corresponda, el sistema deberá solicitar además el motivo de la acción antes de confirmar.
----
-# 26. Seguimiento
-La Oficina de Empleo realiza seguimiento de los postulantes durante el proceso de selección.
-El seguimiento puede continuar después de que una persona consigue trabajo.
-El objetivo es conocer cómo se desarrolla su incorporación a la empresa y cómo evoluciona su situación laboral.
-También pueden detectarse necesidades de capacitación.
-Si se identifica que una persona necesita mejorar determinadas competencias, la Oficina de Empleo puede orientarla hacia cursos o capacitaciones disponibles.
----
-# 27. Problemáticas que busca resolver el sistema
-El sistema busca resolver principalmente:
-- Recepción de CV mediante múltiples canales.
-- Carga manual de información.
-- Uso de múltiples planillas de Excel.
-- Falta de categorización uniforme.
-- Dificultad para encontrar rápidamente postulantes.
-- Tiempo elevado dedicado a revisar CV.
-- Dificultad para realizar seguimiento.
-- Falta de un historial centralizado de postulaciones.
-- Dificultad para relacionar postulantes con ofertas laborales.
-- Comunicación poco centralizada entre empresas y Oficina de Empleo.
-- Falta de control sobre el acceso de las empresas a los datos personales de los postulantes.
-- Dificultad para registrar cursos y capacitaciones.
-- Falta de trazabilidad de los procesos de selección.
-- Pérdida de información histórica de los CV utilizados en postulaciones.
----
-# 28. Estadísticas
-El sistema deberá permitir obtener estadísticas relacionadas con el funcionamiento de la Oficina de Empleo.
-Algunos datos que podrían visualizarse son:
-- Cantidad de postulantes registrados.
-- Cantidad de postulantes residentes de Funes.
-- Cantidad de postulantes de otras localidades.
-- Cantidad de ofertas laborales.
-- Cantidad de postulaciones.
-- Cantidad de postulantes preseleccionados.
-- Cantidad de entrevistas.
-- Cantidad de candidatos presentados a empresas.
-- Cantidad de candidatos rechazados por empresas.
-- Cantidad de personas seleccionadas.
-- Cantidad de personas contratadas.
-- Cantidad de postulantes derivados a cursos.
-- Cantidad de ofertas por rubro.
-- Cantidad de contrataciones por rubro.
-- Otros indicadores relacionados con la inserción laboral.
-Las estadísticas definitivas se definirán durante el desarrollo del proyecto.
----
-# 29. Alcance geográfico
-La plataforma está destinada principalmente a la ciudad de Funes.
-El público objetivo principal son:
-- Personas residentes de Funes que buscan empleo.
-- Empresas que desarrollan actividades en Funes o buscan trabajadores para puestos relacionados con la ciudad.
-- Oficina de Empleo de la Municipalidad de Funes.
-Sin embargo, el sistema no debe restringir el registro ni la postulación exclusivamente a residentes de Funes.
-Cualquier persona podrá registrarse y postularse a una oferta.
-La residencia en Funes funcionará como un criterio de prioridad en el proceso de selección, permitiendo que la Oficina de Empleo priorice candidatos locales cuando estos cumplan con los requisitos del puesto.
-Cuando no existan candidatos residentes de Funes adecuados, podrán ser considerados postulantes de localidades o zonas aledañas.
----
-# 30. Principios generales del sistema
-El sistema debe:
-- Centralizar la información.
-- Evitar duplicación innecesaria de datos.
-- Facilitar la búsqueda.
-- Facilitar el filtrado.
-- Mantener un historial de postulaciones.
-- Mantener organizada la información de los postulantes.
-- Facilitar la gestión de ofertas laborales.
-- Mantener la intermediación de la Oficina de Empleo.
-- Evitar que las empresas tengan acceso directo a toda la base de postulantes.
-- Proteger los datos personales de los postulantes.
-- Facilitar el seguimiento.
-- Permitir gestionar múltiples CV por postulante.
-- Permitir registrar cursos y capacitaciones.
-- Mantener trazabilidad de las decisiones tomadas durante los procesos.
-- Ser sencillo de utilizar.
-- Estar orientado a usuarios con diferentes niveles de conocimientos tecnológicos.
-- Requerir confirmación antes de ejecutar acciones sensibles.
-- Conservar información histórica necesaria para mantener la trazabilidad del sistema.
----
-# 31. Flujo general del sistema
-## Postulante
-Registro
-→ Completa perfil
-→ Carga uno o varios CV
-→ Consulta ofertas públicas
-→ Selecciona una oferta
-→ Selecciona el CV que desea utilizar
-→ Se postula
-→ Consulta estado de la postulación
-→ Puede darse de baja
-→ Participa del proceso
-→ Puede ser preseleccionado
-→ Puede ser presentado a una empresa
-→ Puede ser seleccionado
-→ Se registra la contratación
-→ Seguimiento posterior
-→ Puede ser derivado a cursos cuando corresponda
----
-## Empresa
-Registro
-→ Queda pendiente de aprobación
-→ Oficina de Empleo revisa
-→ Empresa aprobada / rechazada
-→ Si es aprobada, completa su perfil
-→ Crea oferta
-→ Guarda como borrador
-→ Envía a revisión
-→ Oferta queda pendiente
-→ Oficina de Empleo revisa
-→ Oferta aprobada / rechazada
-→ Si es aprobada, se publica
-→ Recibe candidatos preseleccionados por la Oficina de Empleo
-→ Visualiza únicamente los datos permitidos
-→ Acepta o rechaza candidatos
-→ Si rechaza, informa el motivo
-→ Registra candidato contratado
-→ Finaliza la oferta
----
-## Oficina de Empleo
-Administra postulantes
-→ Organiza información
-→ Gestiona empresas
-→ Aprueba/rechaza empresas
-→ Gestiona ofertas
-→ Revisa y aprueba/rechaza ofertas
-→ Analiza postulaciones
-→ Prioriza candidatos según criterios de la oferta, incluyendo residencia en Funes
-→ Filtra candidatos
-→ Entrevista/preselecciona
-→ Presenta candidatos a empresas
-→ Registra respuestas de las empresas
-→ Registra resultados
-→ Registra contrataciones
-→ Realiza seguimiento
-→ Deriva postulantes a cursos cuando corresponde
-→ Gestiona cursos
-→ Genera estadísticas
----
-# 32. Reglas funcionales principales
-1. Las ofertas laborales publicadas son públicas.
-2. No es necesario iniciar sesión para consultar ofertas.
-3. Es obligatorio estar registrado e iniciar sesión para postularse.
-4. Una persona puede postularse aunque no resida en Funes.
-5. Los residentes de Funes tienen prioridad en el proceso de selección cuando cumplen con los requisitos del puesto.
-6. Si no existen candidatos adecuados de Funes, podrán considerarse candidatos de localidades cercanas.
+- Estado actual y etapas registradas.
+- CV utilizado en esa postulación.
+- Resultado final y motivo de rechazo cuando corresponda.
+El postulante podrá retirarse de una postulación. La acción deberá
+confirmarse y la postulación pasará al estado Retirado por postulante,
+sin eliminarse físicamente.
+
+El sistema conservará la relación entre postulación, oferta, empresa,
+postulante, CV utilizado, derivación y decisiones registradas,
+respetando los permisos de cada rol.
+16. Situaciones de rechazo o no selección
+16.1. Postulante que cumple el perfil pero no continúa
+Puede ocurrir que una persona cumpla con los requisitos, pero no
+continúe porque la empresa cubrió los puestos, alcanzó la cantidad de
+candidatos que necesitaba o decidió avanzar con otras personas. La
+Oficina deberá conservar el resultado correspondiente sin eliminar el
+perfil del postulante. Cuando no exista una decisión final empresarial
+para ese candidato, deberá registrarse la situación de manera que no se
+confunda con un rechazo empresarial.
+16.2. Postulante que no resulta adecuado para la oferta
+Si el perfil no se ajusta a una oferta o requiere fortalecer
+competencias, la Oficina de Empleo podrá registrar el resultado de su
+evaluación y, cuando corresponda, derivar a la persona a un curso o
+capacitación. La derivación deberá quedar registrada. El postulante no
+será eliminado de la base.
+16.3. Rechazo por parte de la empresa
+Cuando una empresa rechace a un candidato derivado, deberá registrar un
+motivo asociado a la postulación concreta, al perfil del postulante y a
+la oferta correspondiente. El resultado y el motivo deberán conservarse
+en el historial y comunicarse a los roles correspondientes sin exponer
+información a usuarios no autorizados.
+
+Cada rechazo deberá permitir identificar qué empresa tomó la decisión, a
+qué postulante afectó, en qué oferta y postulación ocurrió, cuándo se
+registró y cuál fue el motivo. La cantidad de rechazos podrá consultarse
+en el historial de postulaciones del postulante y en las estadísticas
+autorizadas.
+17. Cursos y capacitaciones
+La plataforma deberá permitir gestionar cursos y capacitaciones
+almacenados en la base de datos. La Oficina de Empleo podrá registrar
+cursos, consultar los disponibles, asociar postulantes a cursos,
+registrar derivaciones y conservar el historial de las capacitaciones
+asignadas.
+
+Las derivaciones podrán realizarse cuando la Oficina determine que una
+persona necesita mejorar competencias o conocimientos relevantes para
+acceder a determinadas oportunidades laborales. El sistema conservará el
+registro del curso y de la derivación. Esto no constituye un módulo de
+seguimiento posterior a la contratación.
+18. Gestión de candidatos por parte de la empresa
+La empresa solo podrá gestionar candidatos que la Oficina de Empleo le
+haya derivado formalmente y mientras el acceso correspondiente
+permanezca habilitado.
+
+Para cada candidato derivado, la empresa podrá registrar únicamente uno
+de los dos resultados finales: - Contratado. - Rechazado, con
+motivo obligatorio.
+
+El motivo de rechazo se asociará a la postulación, al postulante y a la
+oferta correspondiente. La empresa deberá comunicar el resultado a la
+Oficina de Empleo y al postulante mediante los avisos y permisos
+establecidos.
+
+Cuando informe una contratación, el sistema registrará quién fue
+contratado y asociará el resultado al proceso correspondiente. Una vez
+registrado el resultado final, finalizará el acceso empresarial a los
+datos personales de esa derivación. La oferta podrá marcarse como
+Finalizada cuando el proceso de selección haya concluido y el resultado
+esté registrado.
+
+No existirá un estado final de "aceptado" separado de la contratación ni
+un estado de contratación pendiente de confirmación: el resultado final
+informado por la empresa será Contratado o Rechazado.
+19. Gestión de ofertas por parte de las empresas
+Las empresas aprobadas podrán: - Crear ofertas laborales. - Guardar y
+editar ofertas en estado Borrador. - Enviar ofertas a revisión. -
+Consultar el estado de sus ofertas. - Dar de baja lógicamente ofertas en
+Borrador. - Solicitar la baja de una oferta en estado Pendiente si no
+desean continuar. - Dar de baja ofertas publicadas cuando corresponda,
+sin editarlas. - Consultar los candidatos derivados formalmente por la
+Oficina de Empleo. - Registrar para cada candidato derivado el resultado
+Contratado o Rechazado con motivo. - Registrar contrataciones y
+finalizar ofertas cuando corresponda.
+
+Una oferta Pendiente no podrá editarse por la empresa. Una oferta
+Publicada tampoco podrá editarse. Cualquier cambio necesario en una
+oferta publicada deberá tramitarse mediante una nueva oferta o un nuevo
+procedimiento sujeto a revisión municipal. La baja de una oferta no
+eliminará las postulaciones ni los resultados históricos asociados.
+20. Aprobación de ofertas por la Oficina de Empleo
+Las ofertas creadas por las empresas no se publicarán automáticamente.
+Cuando una empresa envíe una oferta a revisión:
+1. La oferta pasará a Pendiente.
+2. La Oficina de Empleo revisará su información.
+3. La Oficina podrá aprobarla o rechazarla.
+4. Si se aprueba, pasará a Publicada.
+5. Si se rechaza, deberá registrarse y comunicarse el motivo.
+Mientras la oferta esté Pendiente, la empresa no podrá modificarla,
+aunque podrá darla de baja si decide no continuar. La Oficina podrá
+revisar su contenido y resolver la aprobación o el rechazo.
+
+Una oferta publicada no podrá editarse. La aprobación municipal es
+necesaria antes de hacer pública una oferta. Los rechazos y sus motivos
+deberán conservarse según las reglas de historial y baja lógica
+aplicables.
+21. Baja de ofertas
+Las ofertas publicadas podrán darse de baja por la empresa que las
+publicó o por la Oficina de Empleo/Municipalidad. La Oficina podrá
+hacerlo cuando ya no se reciban postulaciones, la necesidad laboral haya
+sido cubierta, la empresa solicite finalizar el proceso o la publicación
+ya no corresponda.
+
+La baja de una oferta no eliminará físicamente el registro, las
+postulaciones, los CV históricos asociados ni los resultados. Los
+elementos dados de baja dejarán de aparecer en los listados operativos
+que correspondan, pero se conservarán los datos históricos necesarios.
+
+La baja de una oferta publicada no equivale necesariamente a que el
+proceso de selección haya concluido. Cuando el proceso efectivamente
+termine y sus resultados estén registrados, la oferta podrá pasar a
+Finalizada. Los borradores dados de baja antes de ser enviados a
+revisión no deberán aparecer en el historial administrativo, aunque su
+registro técnico se conserve mediante baja lógica.
+22. Usuarios del sistema
+Postulante
+Podrá registrarse, iniciar sesión, completar su perfil, cargar y
+gestionar hasta cinco CV activos, elegir el CV para cada postulación,
+consultar ofertas públicas, postularse, consultar estados e historial,
+retirarse de una postulación y consultar los cursos o capacitaciones que
+le hayan sido asignados.
+Empresa
+Podrá registrarse, completar su información, consultar el estado de
+aprobación, crear y gestionar ofertas conforme a sus estados, enviar
+ofertas a revisión, dar de baja ofertas según las reglas establecidas,
+consultar únicamente candidatos derivados formalmente mientras el acceso
+esté habilitado, registrar contrataciones o rechazos con motivo y
+finalizar ofertas cuando corresponda.
+
+La empresa no tendrá acceso libre a la base de postulantes. Para
+consultar datos personales completos deberá estar aprobada y contar con
+una derivación formal vigente para el postulante específico.
+Oficina de Empleo / Administrador
+Podrá gestionar perfiles y postulantes; buscar y filtrar información;
+gestionar empresas; aprobar o rechazar empresas y registrar motivos;
+gestionar ofertas y aprobarlas o rechazarlas; revisar postulaciones;
+registrar preselecciones, entrevistas cuando correspondan y derivaciones
+formales; registrar respuestas empresariales, rechazos y contrataciones;
+consultar historiales; gestionar cursos y derivaciones; consultar
+estadísticas; y dar de baja ofertas cuando corresponda.
+
+Las tareas de seguimiento posterior a la contratación forman parte del
+control interno de la Oficina de Empleo y no son una funcionalidad
+requerida del portal.
+23. Administradores y permisos
+El sistema podrá tener múltiples administradores de la Oficina de
+Empleo. Todos tendrán las mismas funcionalidades administrativas. Por el
+momento no existirá un superadministrador ni un administrador con
+permisos superiores.
+
+Los administradores podrán dar de alta a otros administradores y dar de
+baja lógicamente a otros administradores. Ningún administrador podrá
+darse de baja ni eliminarse a sí mismo.
+
+La restricción de auto-baja deberá validarse tanto en la interfaz como
+en la lógica del servidor y la base de datos, para evitar que se eluda
+mediante solicitudes directas. La baja de un administrador no implicará
+borrado físico de sus registros históricos necesarios.
+24. Borrado lógico y conservación de información
+Está prohibido el borrado físico de información de negocio. Los
+registros deberán conservarse mediante baja lógica, archivado o cambio
+de estado, según corresponda. Esta regla aplica a usuarios, empresas,
+ofertas, postulaciones, CV, cursos, derivaciones e historiales,
+preservando las relaciones y la trazabilidad.
+
+Los elementos dados de baja o archivados dejarán de aparecer en los
+listados operativos cuando corresponda, pero permanecerán almacenados
+técnicamente. Hay una excepción de visibilidad administrativa para los
+borradores dados de baja antes de ser enviados a revisión: no deberán
+aparecer en el historial administrativo ni en los listados operativos,
+aunque se conserve técnicamente su registro mediante baja lógica. Al no
+haber sido enviados a la Oficina, no se requiere que figuren como una
+gestión administrativa.
+
+La baja lógica no equivale a mantener visible un registro en todas las
+pantallas. La visibilidad dependerá del estado, el rol y el propósito
+del listado, sin destruir la información necesaria para mantener
+integridad técnica e histórica. Cualquier excepción técnica a la
+conservación de información deberá consultarse antes de implementarse.
+25. Avisos, rechazos y estados de carga
+Toda acción que implique rechazar una empresa, una oferta o un candidato
+deberá comunicar claramente el resultado mediante un aviso visible en la
+pantalla correspondiente.
+
+Los avisos deberán: - Informar que la acción se completó y cuál fue el
+resultado. - Mostrar el motivo del rechazo cuando corresponda y haya
+sido registrado. - Ser visibles para los usuarios o roles que deban
+conocer la información, sin exponer datos privados a otros roles. -
+Permanecer disponibles en la sección de estado correspondiente cuando
+sea necesario para comprender qué ocurrió. - Diferenciar errores de
+validación, errores del sistema y confirmaciones de éxito.
+
+Las operaciones que puedan tardar ---como consultas, cargas, envíos,
+guardados, cambios de estado, aprobaciones o rechazos--- deberán mostrar
+un indicador de carga, espera o progreso. La interfaz no deberá quedar
+en blanco ni parecer congelada. Cuando sea posible, se deshabilitarán
+temporalmente los controles que podrían provocar envíos duplicados. Al
+finalizar, se informará el resultado o error y se permitirá continuar.
+
+Las acciones sensibles deberán mostrar una ventana o modal de
+confirmación. Esto incluye, según corresponda, editar información
+sensible, dar de baja registros u ofertas, rechazar empresas u ofertas,
+rechazar candidatos, retirarse de una postulación, archivar un CV y dar
+de baja lógicamente a un administrador. Cuando la acción requiera
+justificación, el sistema deberá solicitar y almacenar el motivo antes
+de confirmar. No se permite el borrado físico de registros.
+26. Seguimiento
+El seguimiento de los postulantes durante el proceso y después de su
+incorporación laboral es un control interno de la Oficina de Empleo,
+no un requerimiento funcional del portal. Por lo tanto, no deberá
+implementarse como módulo, flujo obligatorio ni funcionalidad específica
+del sistema.
+
+Esta exclusión no elimina las funcionalidades expresamente requeridas de
+registrar estados y resultados de postulaciones, preselecciones,
+entrevistas realizadas, derivaciones, rechazos, contrataciones, cursos e
+historiales. Esos datos se conservarán conforme a los puntos
+correspondientes, sin agregar un módulo de seguimiento posterior a la
+contratación.
+27. Problemáticas que busca resolver el sistema
+El portal busca resolver: - La recepción de CV mediante múltiples
+canales. - La carga manual y dispersa de información. - El uso de
+múltiples planillas de Excel. - La falta de categorización uniforme. -
+La dificultad para encontrar rápidamente postulantes adecuados. - El
+tiempo elevado dedicado a revisar CV sin filtros uniformes. - La falta
+de un historial centralizado de postulaciones. - La dificultad para
+relacionar postulantes con ofertas laborales. - La comunicación poco
+centralizada entre empresas y Oficina de Empleo. - La falta de control
+sobre el acceso empresarial a datos personales. - La dificultad para
+registrar cursos y capacitaciones. - La falta de trazabilidad de las
+etapas y decisiones de selección. - El riesgo de perder la versión del
+CV utilizada en una postulación histórica.
+
+El seguimiento posterior a la contratación no se considera una
+problemática funcional que deba resolver el portal, dado que corresponde
+a un control interno de la Oficina.
+28. Estadísticas
+El sistema deberá permitir obtener estadísticas del funcionamiento de la
+Oficina de Empleo, entre ellas: - Cantidad total de postulantes
+registrados. - Cantidad de postulantes residentes de Funes y de otras
+localidades. - Cantidad de ofertas laborales. - Cantidad de
+postulaciones. - Cantidad de postulantes preseleccionados. - Cantidad de
+entrevistas registradas. - Cantidad de candidatos derivados o
+presentados a empresas. - Cantidad de candidatos rechazados por
+empresas. - Cantidad de personas contratadas. - Cantidad de postulantes
+derivados a cursos. - Cantidad de ofertas por rubro. - Cantidad de
+contrataciones por rubro. - Otros indicadores relacionados con la
+inserción laboral que se definan durante el desarrollo.
+
+Las estadísticas deberán basarse en datos registrados y respetar los
+permisos de acceso. No se incorporarán estadísticas de seguimiento
+posterior a la contratación como requerimiento del portal.
+29. Alcance geográfico
+La plataforma está destinada principalmente a Funes. Su público objetivo
+incluye personas residentes de Funes que buscan empleo, empresas que
+desarrollan actividades en Funes o buscan trabajadores para puestos
+relacionados con la ciudad y la Oficina de Empleo municipal.
+
+El sistema no restringirá el registro ni la postulación exclusivamente a
+residentes de Funes. Cualquier persona podrá registrarse y postularse.
+La residencia en Funes funcionará como criterio de prioridad cuando la
+persona cumpla con los requisitos del puesto.
+
+Si no existen candidatos residentes de Funes adecuados, podrán
+considerarse postulantes de localidades o zonas aledañas. Las empresas
+de zonas cercanas también podrán registrarse, sujetas a la aprobación de
+la Oficina de Empleo.
+30. Principios generales del sistema
+El sistema deberá: - Centralizar la información y evitar duplicaciones
+innecesarias. - Facilitar la búsqueda y el filtrado de postulantes. -
+Mantener organizada la información laboral y el historial de
+postulaciones. - Facilitar la gestión de ofertas y postulaciones. -
+Mantener la intermediación de la Oficina de Empleo. - Impedir el acceso
+empresarial general a la base de postulantes y habilitar el acceso
+completo solo para empresas aprobadas con derivación formal vigente. -
+Proteger los datos personales y aplicar permisos también en el servidor
+y en los archivos. - Permitir gestionar múltiples CV por postulante y
+conservar sus versiones históricas utilizadas. - Permitir registrar
+cursos y derivaciones. - Mantener trazabilidad de las decisiones,
+rechazos, contrataciones y estados. - Ser sencillo de utilizar para
+personas con distintos niveles de conocimientos tecnológicos. - Mostrar
+confirmaciones antes de acciones sensibles y avisos claros después de
+las operaciones. - Mostrar indicadores de carga durante las operaciones
+que lo requieran. - Conservar la información histórica necesaria sin
+borrado físico de registros de negocio. - No incorporar el seguimiento
+posterior a la contratación como funcionalidad del portal.
+31. Flujo general del sistema
+Postulante
+Registro → completa el perfil → carga uno o varios CV → consulta ofertas
+públicas → selecciona una oferta y un CV → se postula → consulta el
+estado → puede retirarse de la postulación → la Oficina revisa y puede
+preseleccionarlo → puede realizarse una entrevista o control si la
+Oficina lo considera necesario → puede ser derivado formalmente a una
+empresa → la empresa registra Contratado o Rechazado con motivo → se
+conserva el historial → puede ser derivado a cursos cuando corresponda.
+Empresa
+Registro → queda pendiente de aprobación → la Oficina de Empleo revisa →
+empresa aprobada o rechazada con motivo → si se aprueba, puede completar
+su perfil y crear ofertas → guarda una oferta como borrador → la envía a
+revisión → queda pendiente → la Oficina aprueba o rechaza → si se
+aprueba, se publica → la Oficina deriva candidatos formalmente → la
+empresa puede ver todos los datos del perfil y el CV de cada candidato
+derivado mientras el acceso esté habilitado → registra Contratado o
+Rechazado con motivo → el acceso a los datos finaliza con el resultado
+final o retiro del postulante → la oferta se finaliza cuando el proceso
+concluye.
+Oficina de Empleo
+Gestiona postulantes y organiza la información → busca y filtra perfiles
+→ gestiona empresas y sus aprobaciones → gestiona ofertas y revisa su
+contenido → aprueba o rechaza ofertas → analiza postulaciones → prioriza
+candidatos según los requisitos y la residencia en Funes → registra la
+preselección → decide si realiza entrevistas o controles → deriva
+formalmente candidatos a empresas → registra las respuestas, rechazos y
+contrataciones → consulta historiales → gestiona cursos y derivaciones →
+consulta estadísticas.
+
+El seguimiento posterior a la contratación se realiza como control
+interno de la Oficina y queda fuera del flujo funcional del portal.
+32. Reglas funcionales principales
+1. Las ofertas publicadas son públicas.
+2. No es necesario iniciar sesión para consultar ofertas publicadas.
+3. Para postularse es obligatorio registrarse, iniciar sesión,
+   completar el perfil laboral y seleccionar un CV.
+4. Una persona puede registrarse y postularse aunque no resida en
+   Funes.
+5. Los residentes de Funes tienen prioridad cuando cumplen con los
+   requisitos del puesto.
+6. Si no existen candidatos adecuados de Funes, podrán considerarse
+   postulantes de localidades cercanas.
 7. Un postulante puede tener múltiples CV.
-8. Un postulante podrá tener como máximo 5 CV activos.
+8. Un postulante podrá tener como máximo cinco CV activos.
 9. Los CV no tendrán vencimiento automático.
-10. Los CV podrán ser archivados mediante borrado lógico.
-11. Un CV utilizado en una postulación histórica no deberá eliminarse físicamente.
-12. Cada postulación deberá conservar la referencia al CV utilizado al momento de postularse.
-13. Actualizar o reemplazar un CV no deberá modificar el CV utilizado en postulaciones anteriores.
-14. El postulante debe poder seleccionar qué CV utiliza para cada postulación.
-15. Un postulante no debe poder realizar múltiples postulaciones activas a la misma oferta.
-16. Un postulante puede darse de baja de una postulación.
-17. Las postulaciones y ofertas históricas no deben eliminarse físicamente cuando finalizan.
-18. Las empresas deben ser aprobadas por la Oficina de Empleo antes de utilizar plenamente el sistema.
-19. Una empresa rechazada debe recibir el motivo del rechazo y poder volver a registrarse.
-20. Las ofertas creadas por empresas deben ser aprobadas antes de publicarse.
-21. Una oferta pendiente no puede ser editada por la empresa.
-22. Una oferta pendiente puede ser eliminada por la empresa.
-23. Una oferta publicada puede ser dada de baja por la empresa o por la Oficina de Empleo.
-24. La empresa solo puede acceder a los candidatos que le presenta la Oficina de Empleo.
-25. La empresa no puede acceder libremente a la base de postulantes.
-26. La empresa no puede visualizar los datos personales de contacto restringidos de los postulantes.
-27. La empresa puede aceptar o rechazar candidatos presentados.
-28. El rechazo de un candidato por parte de la empresa debe registrar un motivo.
-29. La empresa debe registrar quién fue contratado.
-30. Los postulantes no seleccionados permanecen registrados para futuras oportunidades.
-31. Un postulante puede ser derivado a cursos cuando la Oficina de Empleo determine que necesita capacitación.
-32. Los cursos deben almacenarse y gestionarse desde la base de datos.
-33. Puede haber múltiples administradores con los mismos permisos administrativos.
-34. No existe un superadministrador ni un administrador completo por el momento.
-35. Un administrador puede dar de alta a otros administradores.
-36. Un administrador puede dar de baja lógicamente a otro administrador.
-37. Ningún administrador puede eliminarse ni darse de baja a sí mismo.
-38. Las acciones de rechazo de empresas, ofertas y postulantes deben mostrar avisos visibles en las pantallas correspondientes.
-39. Las operaciones que impliquen carga o espera deben mostrar un indicador de progreso y nunca dejar la pantalla en blanco.
-40. Las acciones sensibles deben solicitar confirmación mediante un modal.
-41. Cuando una acción requiere justificar un rechazo o baja, el sistema debe solicitar y almacenar el motivo.
-42. Los CV archivados mediante borrado lógico no deben estar disponibles para nuevas postulaciones.
-43. Los CV utilizados en postulaciones anteriores deben conservarse para mantener la trazabilidad histórica.
-44. El sistema debe conservar la relación entre cada postulación y el CV utilizado en ella.
-45. Las actualizaciones posteriores de un CV no deben alterar el contenido histórico utilizado en postulaciones anteriores.
-46. La eliminación o archivado de un CV no debe eliminar ni modificar una postulación histórica.
-47. La baja de una oferta no debe eliminar las postulaciones ni los resultados asociados a dicha oferta.
-48. Los rechazos de empresas, ofertas y candidatos deben conservar su motivo cuando corresponda.
-49. El sistema debe conservar suficiente información histórica para poder conocer las principales etapas y decisiones de cada proceso de selección.
----
-# 33. Consideraciones para la implementación
-Este documento representa los requerimientos funcionales conocidos actualmente del Portal de Empleo de Funes.
-Antes de implementar nuevas funcionalidades, el agente deberá:
-- Revisar el proyecto completo.
-- Revisar la estructura actual de la aplicación.
-- Revisar la base de datos existente.
-- Revisar las tablas y relaciones existentes.
-- Revisar las migraciones SQL existentes.
-- Revisar los documentos de requerimientos y especificaciones disponibles.
-- Detectar posibles contradicciones entre el código actual y estos requerimientos.
-- Evitar duplicar funcionalidades existentes.
-- Evitar modificar funcionalidades que ya funcionen correctamente sin una razón justificada.
-- Informar cualquier contradicción o decisión pendiente antes de realizar cambios estructurales importantes.
-Las decisiones de implementación deberán respetar estos requerimientos funcionales.
-Cuando un requerimiento todavía no defina un detalle técnico concreto, el agente deberá proponer una solución coherente con la arquitectura existente antes de implementarla.
-Las reglas relacionadas con permisos, privacidad, estados, historial, borrado lógico y trazabilidad deberán considerarse especialmente importantes, ya que afectan directamente al modelo de datos y a la seguridad del sistema.
+10. Los CV podrán archivarse mediante baja lógica.
+11. Un CV utilizado en una postulación histórica no deberá eliminarse
+    físicamente.
+12. Cada postulación deberá conservar la referencia o versión del CV
+    utilizado en el momento de postularse.
+13. Actualizar o reemplazar un CV no deberá modificar el contenido
+    histórico utilizado en postulaciones anteriores.
+14. El postulante deberá poder seleccionar qué CV utiliza para cada
+    postulación.
+15. Un postulante no podrá mantener múltiples postulaciones activas a la
+    misma oferta.
+16. Un postulante podrá retirarse de una postulación; el retiro se
+    registrará como estado y no eliminará físicamente el registro.
+17. Las postulaciones y ofertas históricas no deberán eliminarse
+    físicamente al finalizar.
+18. Las empresas deberán ser aprobadas por la Oficina de Empleo antes de
+    utilizar las funcionalidades que requieren aprobación.
+19. Una empresa rechazada deberá recibir el motivo y podrá volver a
+    registrarse.
+20. Las ofertas creadas por empresas deberán ser aprobadas antes de
+    publicarse.
+21. Una oferta Pendiente no podrá ser editada por la empresa.
+22. Una oferta Pendiente podrá ser dada de baja por la empresa si decide
+    no continuar.
+23. Una oferta Publicada no podrá editarse y podrá ser dada de baja por
+    la empresa o por la Oficina de Empleo.
+24. La empresa solo podrá acceder a candidatos derivados formalmente a
+    ella por la Oficina de Empleo.
+25. La empresa no podrá acceder libremente a la base general de
+    postulantes.
+26. La empresa aprobada y con una derivación formal vigente podrá
+    consultar todos los datos del perfil del postulante, incluidos DNI,
+    domicilio, teléfono, correo electrónico y CV.
+27. El acceso empresarial a los datos finalizará cuando la postulación
+    pase a Contratado, Rechazado o Retirado por postulante.
+28. La empresa podrá registrar Contratado o Rechazado para cada
+    candidato derivado; el rechazo requerirá un motivo.
+29. El motivo de rechazo empresarial deberá asociarse a la postulación
+    concreta, al postulante y a la oferta.
+30. La empresa deberá registrar quién fue contratado y comunicar el
+    resultado a la Oficina de Empleo y al postulante conforme a los
+    permisos.
+31. Los postulantes no seleccionados permanecerán registrados para
+    futuras oportunidades.
+32. Un postulante podrá ser derivado a cursos cuando la Oficina de
+    Empleo determine que necesita capacitación.
+33. Los cursos deberán almacenarse y gestionarse desde la base de datos,
+    con registro de sus derivaciones.
+34. Podrá haber múltiples administradores con los mismos permisos
+    administrativos.
+35. No existirá superadministrador ni administrador completo con
+    privilegios superiores por el momento.
+36. Un administrador podrá dar de alta a otros administradores.
+37. Un administrador podrá dar de baja lógicamente a otro administrador,
+    pero no podrá darse de baja a sí mismo.
+38. Los rechazos de empresas, ofertas y candidatos deberán mostrar
+    avisos visibles en las pantallas correspondientes, con el motivo
+    cuando corresponda.
+39. Las operaciones que impliquen carga o espera deberán mostrar un
+    indicador de progreso y no dejar la pantalla en blanco o
+    aparentemente congelada.
+40. Las acciones sensibles deberán solicitar confirmación mediante un
+    modal.
+41. Cuando una acción requiera justificar un rechazo o una baja, el
+    sistema deberá solicitar y conservar el motivo.
+42. Los CV archivados mediante baja lógica no estarán disponibles para
+    nuevas postulaciones.
+43. Los CV utilizados en postulaciones anteriores deberán conservarse
+    para mantener la trazabilidad histórica.
+44. El sistema deberá conservar la relación entre cada postulación y el
+    CV utilizado en ella.
+45. Las actualizaciones posteriores de un CV no deberán alterar la
+    versión histórica utilizada en postulaciones anteriores.
+46. El archivado de un CV no deberá eliminar ni modificar una
+    postulación histórica.
+47. La baja de una oferta no deberá eliminar las postulaciones ni los
+    resultados asociados.
+48. Los rechazos de empresas, ofertas y candidatos deberán conservar su
+    motivo cuando corresponda; los rechazos empresariales estarán
+    asociados a la postulación concreta y podrán contabilizarse en el
+    historial del postulante.
+49. El sistema deberá conservar la información necesaria para conocer
+    las principales etapas y decisiones de cada proceso de selección,
+    sin incorporar un módulo de seguimiento posterior a la contratación.
+33. Consideraciones para la implementación
+Este documento representa los requerimientos funcionales conocidos del
+Portal de Empleo de Funes.
+
+Antes de implementar nuevas funcionalidades, el agente o desarrollador
+deberá: - Revisar el proyecto y la estructura actual de la aplicación. -
+Revisar la base de datos, las tablas, las relaciones, las vistas, las
+funciones y las políticas de seguridad. - Revisar las migraciones SQL
+existentes y comprobar cuáles fueron aplicadas. - Revisar los documentos
+de requerimientos y especificaciones disponibles. - Detectar
+contradicciones entre el código, la base de datos y este documento. -
+Evitar duplicar funcionalidades existentes. - Evitar modificar
+funcionalidades que ya funcionen correctamente sin una razón
+justificada. - Informar cualquier contradicción o decisión pendiente
+antes de realizar cambios estructurales importantes. - Proponer una
+solución coherente con la arquitectura existente cuando un requerimiento
+no defina un detalle técnico, antes de implementarlo.
+
+Las decisiones de implementación deberán respetar estos requerimientos.
+Los permisos, la privacidad, los estados, las derivaciones, el
+historial, la baja lógica y la trazabilidad son aspectos especialmente
+importantes porque afectan al modelo de datos y a la seguridad del
+sistema.
+
+No se deberán modificar migraciones ya aplicadas: cualquier cambio de
+esquema necesario deberá prepararse en una nueva migración, con
+numeración consecutiva disponible. Los cambios significativos deberán
+explicarse y evaluarse antes de ejecutarse. La implementación no deberá
+agregar módulos de seguimiento posterior a la contratación, ni permitir
+la edición de ofertas publicadas, ni conceder acceso empresarial a datos
+completos sin aprobación y derivación formal vigente.

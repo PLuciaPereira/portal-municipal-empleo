@@ -1,0 +1,421 @@
+import {
+  Database,
+  Empresa,
+  JobStatus,
+  Oferta,
+  Rubro,
+  VistaCandidatoEmpresa,
+} from '@/types/database';
+import { createClient } from '@/lib/supabase/client';
+
+export interface CreateOfertaInput {
+  titulo: string;
+  descripcion: string;
+  requisitos: string;
+  experiencia_requerida?: string | null;
+  tipo_jornada: string;
+  tipo_contrato?: string | null;
+  ubicacion?: string;
+  rango_salarial?: string | null;
+  vacantes: number;
+  fecha_limite?: string | null;
+  rubro_id?: number | null;
+  rubroIds?: number[];
+}
+
+export interface UpdateOfertaInput extends Partial<CreateOfertaInput> {
+  id: string;
+}
+
+export interface EmpresaDashboardData {
+  empresa: Empresa | null;
+  ofertas: (Oferta & {
+    rubro: Rubro | null;
+    ofertas_rubros: { rubro_id: number; rubro: Rubro | null }[];
+    candidatos_count?: number;
+  })[];
+  candidatos: VistaCandidatoEmpresa[];
+}
+
+/**
+ * Obtiene el perfil de empresa asociado al usuario autenticado.
+ */
+export async function getMiEmpresa(): Promise<{
+  data: Empresa | null;
+  error?: string;
+}> {
+  const supabase = createClient();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    return { data: null, error: 'Usuario no autenticado.' };
+  }
+
+  const { data, error } = await supabase
+    .from('empresas')
+    .select('*')
+    .eq('user_id', user.id)
+    .maybeSingle();
+
+  if (error) {
+    return { data: null, error: error.message };
+  }
+
+  return { data: data as Empresa | null };
+}
+
+/**
+ * Lista todas las ofertas creadas por la empresa autenticada.
+ */
+export async function getMisOfertasEmpresa(): Promise<{
+  data: (Oferta & {
+    rubro: Rubro | null;
+    ofertas_rubros: { rubro_id: number; rubro: Rubro | null }[];
+  })[];
+  error?: string;
+}> {
+  const supabase = createClient();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    return { data: [], error: 'Usuario no autenticado.' };
+  }
+
+  const { data: empresa } = await supabase
+    .from('empresas')
+    .select('id')
+    .eq('user_id', user.id)
+    .maybeSingle();
+
+  if (!empresa) {
+    return { data: [], error: 'Empresa no encontrada.' };
+  }
+
+  const { data, error } = await supabase
+    .from('ofertas')
+    .select(
+      `
+      *,
+      rubro:rubros!jobs_rubro_id_fkey(*),
+      ofertas_rubros!ofertas_rubros_oferta_id_fkey(
+        rubro_id,
+        rubro:rubros!ofertas_rubros_rubro_id_fkey(*)
+      )
+    `
+    )
+    .eq('empresa_id', empresa.id)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    return { data: [], error: error.message };
+  }
+
+  return {
+    data: (data || []) as unknown as (Oferta & {
+      rubro: Rubro | null;
+      ofertas_rubros: { rubro_id: number; rubro: Rubro | null }[];
+    })[],
+  };
+}
+
+/**
+ * Crea una oferta laboral en estado inicial 'borrador' asociada a la empresa del usuario.
+ */
+export async function crearOfertaBorrador(input: CreateOfertaInput): Promise<{
+  data: Oferta | null;
+  error?: string;
+}> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { data: null, error: 'Usuario no autenticado.' };
+  }
+
+  const { data: empresa } = await supabase
+    .from('empresas')
+    .select('id, estado')
+    .eq('user_id', user.id)
+    .maybeSingle();
+
+  if (!empresa || (empresa as { id: string; estado: string }).estado !== 'aprobada') {
+    return {
+      data: null,
+      error: 'La empresa debe estar aprobada por la Oficina de Empleo para crear ofertas.',
+    };
+  }
+
+  if (!input.titulo?.trim()) return { data: null, error: 'El título es obligatorio.' };
+  if (!input.descripcion?.trim()) return { data: null, error: 'La descripción es obligatoria.' };
+  if (!input.requisitos?.trim()) return { data: null, error: 'Los requisitos son obligatorios.' };
+  if (!input.tipo_jornada?.trim()) return { data: null, error: 'El tipo de jornada es obligatorio.' };
+  if ((input.vacantes ?? 1) < 1) return { data: null, error: 'La cantidad de vacantes debe ser al menos 1.' };
+
+  const primaryRubroId = input.rubro_id || (input.rubroIds && input.rubroIds.length > 0 ? input.rubroIds[0] : null);
+
+  const { data: nuevaOferta, error: insertError } = await supabase
+    .from('ofertas')
+    .insert({
+      empresa_id: empresa.id,
+      titulo: input.titulo.trim(),
+      descripcion: input.descripcion.trim(),
+      requisitos: input.requisitos.trim(),
+      experiencia_requerida: input.experiencia_requerida?.trim() || null,
+      tipo_jornada: input.tipo_jornada.trim(),
+      tipo_contrato: input.tipo_contrato?.trim() || null,
+      ubicacion: input.ubicacion?.trim() || 'Funes, Santa Fe',
+      rango_salarial: input.rango_salarial?.trim() || null,
+      vacantes: input.vacantes,
+      fecha_limite: input.fecha_limite || null,
+      rubro_id: primaryRubroId,
+      estado: 'borrador' as JobStatus,
+    })
+    .select()
+    .single();
+
+  if (insertError) {
+    return { data: null, error: insertError.message };
+  }
+
+  // Vincular rubros secundarios si existen
+  if (input.rubroIds && input.rubroIds.length > 0 && nuevaOferta) {
+    const relaciones = input.rubroIds.map((rid) => ({
+      oferta_id: nuevaOferta.id,
+      rubro_id: rid,
+    }));
+    await supabase.from('ofertas_rubros').insert(relaciones);
+  }
+
+  return { data: nuevaOferta as Oferta };
+}
+
+/**
+ * Actualiza los datos de una oferta en borrador.
+ */
+export async function actualizarOfertaBorrador(input: UpdateOfertaInput): Promise<{
+  data: Oferta | null;
+  error?: string;
+}> {
+  const supabase = createClient();
+
+  const { data: ofertaActual, error: fetchError } = await supabase
+    .from('ofertas')
+    .select('id, estado')
+    .eq('id', input.id)
+    .single();
+
+  if (fetchError || !ofertaActual) {
+    return { data: null, error: 'Oferta no encontrada.' };
+  }
+
+  if (ofertaActual.estado !== 'borrador') {
+    return {
+      data: null,
+      error: 'Solo se pueden editar ofertas en estado Borrador.',
+    };
+  }
+
+  const updatePayload: Database['public']['Tables']['ofertas']['Update'] = {
+    updated_at: new Date().toISOString(),
+  };
+
+  if (input.titulo !== undefined) updatePayload.titulo = input.titulo.trim();
+  if (input.descripcion !== undefined) updatePayload.descripcion = input.descripcion.trim();
+  if (input.requisitos !== undefined) updatePayload.requisitos = input.requisitos.trim();
+  if (input.experiencia_requerida !== undefined)
+    updatePayload.experiencia_requerida = input.experiencia_requerida?.trim() || null;
+  if (input.tipo_jornada !== undefined) updatePayload.tipo_jornada = input.tipo_jornada.trim();
+  if (input.tipo_contrato !== undefined) updatePayload.tipo_contrato = input.tipo_contrato?.trim() || null;
+  if (input.ubicacion !== undefined) updatePayload.ubicacion = input.ubicacion.trim();
+  if (input.rango_salarial !== undefined) updatePayload.rango_salarial = input.rango_salarial?.trim() || null;
+  if (input.vacantes !== undefined) updatePayload.vacantes = input.vacantes;
+  if (input.fecha_limite !== undefined) updatePayload.fecha_limite = input.fecha_limite || null;
+  if (input.rubro_id !== undefined) updatePayload.rubro_id = input.rubro_id;
+
+  const { data: updatedOferta, error: updateError } = await supabase
+    .from('ofertas')
+    .update(updatePayload)
+    .eq('id', input.id)
+    .select()
+    .single();
+
+  if (updateError) {
+    return { data: null, error: updateError.message };
+  }
+
+  if (input.rubroIds) {
+    await supabase.from('ofertas_rubros').delete().eq('oferta_id', input.id);
+    if (input.rubroIds.length > 0) {
+      const relaciones = input.rubroIds.map((rid) => ({
+        oferta_id: input.id,
+        rubro_id: rid,
+      }));
+      await supabase.from('ofertas_rubros').insert(relaciones);
+    }
+  }
+
+  return { data: updatedOferta as Oferta };
+}
+
+/**
+ * Envía una oferta en borrador para revisión de la Oficina de Empleo.
+ */
+export async function enviarOfertaARevision(ofertaId: string): Promise<{
+  success: boolean;
+  error?: string;
+}> {
+  const supabase = createClient();
+
+  const { data: oferta, error: fetchError } = await supabase
+    .from('ofertas')
+    .select('id, estado')
+    .eq('id', ofertaId)
+    .single();
+
+  if (fetchError || !oferta) {
+    return { success: false, error: 'Oferta no encontrada.' };
+  }
+
+  if (oferta.estado !== 'borrador' && oferta.estado !== 'rechazada') {
+    return {
+      success: false,
+      error: 'Solo se pueden enviar a revisión ofertas en borrador o que requieran corrección.',
+    };
+  }
+
+  const { error } = await supabase
+    .from('ofertas')
+    .update({
+      estado: 'pendiente_revision' as JobStatus,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', ofertaId);
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
+
+  return { success: true };
+}
+
+/**
+ * Registra la baja lógica de una oferta indicando el motivo correspondiente.
+ */
+export async function darDeBajaOfertaEmpresa(
+  ofertaId: string,
+  motivo: string
+): Promise<{ success: boolean; error?: string }> {
+  if (!motivo?.trim()) {
+    return { success: false, error: 'El motivo de baja es obligatorio.' };
+  }
+
+  const supabase = createClient();
+
+  const { error } = await supabase
+    .from('ofertas')
+    .update({
+      deleted_at: new Date().toISOString(),
+      motivo_baja: motivo.trim(),
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', ofertaId);
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
+
+  return { success: true };
+}
+
+/**
+ * Consulta la lista de candidatos derivados por la Oficina de Empleo para las ofertas de la empresa.
+ */
+export async function getCandidatosPresentados(
+  ofertaId?: string
+): Promise<{ data: VistaCandidatoEmpresa[]; error?: string }> {
+  const supabase = createClient();
+
+  // Se consulta a través de la función RPC segura obtener_candidatos_empresa
+  const { data, error } = await supabase.rpc('obtener_candidatos_empresa', {
+    p_oferta_id: ofertaId || null,
+  });
+
+  if (error) {
+    // Si la función falla, fallback directo a la vista con RLS
+    const viewQuery = supabase
+      .from('vista_candidatos_empresa')
+      .select('*')
+      .order('fecha_derivacion', { ascending: false });
+
+    if (ofertaId) {
+      viewQuery.eq('oferta_id', ofertaId);
+    }
+
+    const { data: viewData, error: viewError } = await viewQuery;
+    if (viewError) {
+      return { data: [], error: viewError.message };
+    }
+    return { data: (viewData || []) as VistaCandidatoEmpresa[] };
+  }
+
+  return { data: (data || []) as VistaCandidatoEmpresa[] };
+}
+
+/**
+ * Registra la decisión final de rechazo sobre un candidato derivado.
+ * Requiere motivo obligatorio que queda resguardado para la Oficina de Empleo.
+ */
+export async function rechazarCandidatoEmpresa(
+  postulacionId: string,
+  motivoRechazo: string
+): Promise<{ success: boolean; error?: string }> {
+  if (!motivoRechazo?.trim()) {
+    return {
+      success: false,
+      error: 'El motivo de rechazo es obligatorio para registrar la decisión ante la Oficina de Empleo.',
+    };
+  }
+
+  const supabase = createClient();
+
+  const { error } = await supabase.rpc('responder_candidato_empresa', {
+    p_postulacion_id: postulacionId,
+    p_decision: 'rechazado',
+    p_motivo_rechazo: motivoRechazo.trim(),
+  });
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
+
+  return { success: true };
+}
+
+/**
+ * Registra formalmente la contratación de un candidato derivado.
+ */
+export async function contratarCandidatoEmpresa(
+  postulacionId: string
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = createClient();
+
+  const { error } = await supabase.rpc('responder_candidato_empresa', {
+    p_postulacion_id: postulacionId,
+    p_decision: 'contratado',
+  });
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
+
+  return { success: true };
+}
+

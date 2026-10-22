@@ -139,6 +139,7 @@ export type Oferta = {
   revisado_por: string | null;
   fecha_revision: string | null;
   motivo_rechazo: string | null;
+  motivo_baja: string | null;
   deleted_at: string | null;
   created_at: string;
   updated_at: string;
@@ -230,6 +231,10 @@ export type VistaCandidatoEmpresa = {
   postulante_id: string;
   nombre: string;
   apellido: string | null;
+  dni: string | null;
+  telefono: string | null;
+  email: string | null;
+  direccion: string | null;
   localidad: string;
   nivel_educativo: string | null;
   habilidades: string[] | null;
@@ -373,6 +378,7 @@ export type Database = {
           | 'revisado_por'
           | 'fecha_revision'
           | 'motivo_rechazo'
+          | 'motivo_baja'
           | 'deleted_at'
         > & {
           id?: string;
@@ -382,6 +388,7 @@ export type Database = {
           revisado_por?: string | null;
           fecha_revision?: string | null;
           motivo_rechazo?: string | null;
+          motivo_baja?: string | null;
           deleted_at?: string | null;
           created_at?: string;
           updated_at?: string;
@@ -622,7 +629,7 @@ export type Database = {
       };
       obtener_candidatos_empresa: {
         Args: {
-          p_oferta_id?: string;
+          p_oferta_id?: string | null;
         };
         Returns: VistaCandidatoEmpresa[];
       };
@@ -689,3 +696,5 @@ export type Database = {
     CompositeTypes: Record<string, never>;
   };
 };
+
+
