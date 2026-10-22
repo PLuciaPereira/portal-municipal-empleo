@@ -1,379 +1,50 @@
-import { Job, Company, Rubro } from '@/types/database';
+import { Job, Rubro, Oferta, EmpresaPublica, Empresa } from '@/types/database';
+import { validatePhone } from '@/lib/validators';
 
-export const MOCK_RUBROS: Rubro[] = [
-  {
-    id: 1,
-    nombre: 'Comercio y Atención al Cliente',
-    descripcion: 'Ventas, atención al público, cajeros, repositores y afines',
-    activo: true,
-    created_at: '2026-09-01T10:00:00Z',
-  },
-  {
-    id: 2,
-    nombre: 'Gastronomía y Hotelería',
-    descripcion: 'Cocineros, ayudantes de cocina, mozos, bacheros, recepción',
-    activo: true,
-    created_at: '2026-09-01T10:00:00Z',
-  },
-  {
-    id: 3,
-    nombre: 'Construcción y Mantenimiento',
-    descripcion: 'Albañilería, electricidad, plomería, pintura, mantenimiento en general',
-    activo: true,
-    created_at: '2026-09-01T10:00:00Z',
-  },
-  {
-    id: 4,
-    nombre: 'Administración y Contabilidad',
-    descripcion: 'Secretaría, facturación, recursos humanos, administración general',
-    activo: true,
-    created_at: '2026-09-01T10:00:00Z',
-  },
-  {
-    id: 5,
-    nombre: 'Logística y Distribución',
-    descripcion: 'Choferes, repartidores, operarios de depósito, expedición',
-    activo: true,
-    created_at: '2026-09-01T10:00:00Z',
-  },
-  {
-    id: 6,
-    nombre: 'Salud y Cuidados',
-    descripcion: 'Enfermería, cuidadores de adultos mayores, niñeras, asistentes terapéuticos',
-    activo: true,
-    created_at: '2026-09-01T10:00:00Z',
-  },
-  {
-    id: 7,
-    nombre: 'Tecnología e Informática',
-    descripcion: 'Soporte técnico, desarrollo web, redes, marketing digital',
-    activo: true,
-    created_at: '2026-09-01T10:00:00Z',
-  },
-  {
-    id: 8,
-    nombre: 'Jardinería y Parquizaciones',
-    descripcion: 'Mantenimiento de espacios verdes, pileteros, paisajismo',
-    activo: true,
-    created_at: '2026-09-01T10:00:00Z',
-  },
-];
+/**
+ * Columnas públicas no sensibles de public.empresas autorizadas para exposición en ofertas.
+ * Excluye explícitamente CUIT, teléfono, email_contacto, persona_contacto, dirección,
+ * user_id y campos administrativos de revisión.
+ */
+export const PUBLIC_EMPRESA_FIELDS =
+  'id, nombre_fantasia, razon_social, localidad, rubro, descripcion, sitio_web, verificada, estado';
 
-export const MOCK_COMPANIES: Record<string, Company> = {
-  'comp-1': {
-    id: 'comp-1',
-    user_id: 'user-c1',
-    razon_social: 'Comercial Funes S.R.L.',
-    nombre_fantasia: 'Funes Mall Retail',
-    cuit: '30-71458921-8',
-    direccion: 'Santa Fe 1600',
-    localidad: 'Funes',
-    telefono: '341-493-1000',
-    email_contacto: 'rrhh@funesmall.com.ar',
-    persona_contacto: 'Martín Rodríguez',
-    rubro: 'Comercio',
-    descripcion: 'Cadena de indumentaria y calzado deportivo con local en el centro comercial de Funes.',
-    sitio_web: 'https://funesmall.ejemplo.com',
-    verificada: true,
-    created_at: '2026-08-15T09:00:00Z',
-    updated_at: '2026-09-01T10:00:00Z',
-  },
-  'comp-2': {
-    id: 'comp-2',
-    user_id: 'user-c2',
-    razon_social: 'Sabores de la Ruta S.A.',
-    nombre_fantasia: 'Resto & Bar Garita 14',
-    cuit: '30-71689234-5',
-    direccion: 'Ruta 9 y Garita 14',
-    localidad: 'Funes',
-    telefono: '341-493-2211',
-    email_contacto: 'empleo@saboresfunes.com.ar',
-    persona_contacto: 'Valeria Rossi',
-    rubro: 'Gastronomía',
-    descripcion: 'Restaurante tradicional y cafetería con amplia concurrencia familiar en la ciudad de Funes.',
-    sitio_web: null,
-    verificada: true,
-    created_at: '2026-08-20T11:00:00Z',
-    updated_at: '2026-09-01T10:00:00Z',
-  },
-  'comp-3': {
-    id: 'comp-3',
-    user_id: 'user-c3',
-    razon_social: 'Soluciones Civiles del Litoral',
-    nombre_fantasia: 'Constructora & Servicios Funes',
-    cuit: '33-71239841-9',
-    direccion: 'Av. Arturo Illia 800',
-    localidad: 'Funes',
-    telefono: '341-493-3344',
-    email_contacto: 'obras@constructorafunes.com.ar',
-    persona_contacto: 'Ing. Carlos Menéndez',
-    rubro: 'Construcción',
-    descripcion: 'Empresa constructora especializada en viviendas unifamiliares y mantenimiento en barrios cerrados de Funes.',
-    sitio_web: 'https://constructorafunes.ejemplo.com',
-    verificada: true,
-    created_at: '2026-08-25T14:00:00Z',
-    updated_at: '2026-09-01T10:00:00Z',
-  },
-  'comp-4': {
-    id: 'comp-4',
-    user_id: 'user-c4',
-    razon_social: 'Logística Parque Industrial S.A.',
-    nombre_fantasia: 'Distribuidora Ciudad Industria',
-    cuit: '30-70984123-2',
-    direccion: 'Parque Industrial de Funes, Lote 42',
-    localidad: 'Funes',
-    telefono: '341-493-5566',
-    email_contacto: 'seleccion@logisticafunes.com.ar',
-    persona_contacto: 'Mariana Gómez',
-    rubro: 'Logística',
-    descripcion: 'Centro de acopio y distribución para toda la región del Gran Rosario con base operativa en el Parque Industrial.',
-    sitio_web: 'https://distribuidorafunes.ejemplo.com',
-    verificada: true,
-    created_at: '2026-09-01T08:30:00Z',
-    updated_at: '2026-09-01T10:00:00Z',
-  },
-  'comp-5': {
-    id: 'comp-5',
-    user_id: 'user-c5',
-    razon_social: 'Servicios de Parques y Paisajismo',
-    nombre_fantasia: 'Verde Funes',
-    cuit: '27-28941029-4',
-    direccion: 'Pedro A. Ríos 2100',
-    localidad: 'Funes',
-    telefono: '341-493-7788',
-    email_contacto: 'contacto@verdefunes.com.ar',
-    persona_contacto: 'Esteban Domínguez',
-    rubro: 'Jardinería',
-    descripcion: 'Mantenimiento integral de predios, parques, arbolado y piletas residenciales en Funes.',
-    sitio_web: null,
-    verificada: true,
-    created_at: '2026-09-05T09:00:00Z',
-    updated_at: '2026-09-05T09:00:00Z',
-  },
-  'comp-6': {
-    id: 'comp-6',
-    user_id: 'user-c6',
-    razon_social: 'Salud Integral Domiciliaria',
-    nombre_fantasia: 'Cuidados Funes',
-    cuit: '30-71890212-3',
-    direccion: 'Tomás de la Torre 1200',
-    localidad: 'Funes',
-    telefono: '341-493-8899',
-    email_contacto: 'coordinacion@cuidadosfunes.com.ar',
-    persona_contacto: 'Dra. Gabriela Vega',
-    rubro: 'Salud',
-    descripcion: 'Servicio de cuidados asistenciales y acompañamiento gerontológico en Funes y zona oeste.',
-    sitio_web: null,
-    verificada: true,
-    created_at: '2026-09-10T11:00:00Z',
-    updated_at: '2026-09-10T11:00:00Z',
-  },
-  'comp-7': {
-    id: 'comp-7',
-    user_id: 'user-c7',
-    razon_social: 'Conectividad & Redes Funes S.R.L.',
-    nombre_fantasia: 'TechFunes Soluciones',
-    cuit: '30-71562940-1',
-    direccion: 'Ruta 9 y San José',
-    localidad: 'Funes',
-    telefono: '341-493-9900',
-    email_contacto: 'rrhh@techfunes.com.ar',
-    persona_contacto: 'Santiago Peralta',
-    rubro: 'Tecnología',
-    descripcion: 'Provisión de servicios de fibra óptica, redes corporativas y servicio técnico informático en Funes y Roldán.',
-    sitio_web: 'https://techfunes.ejemplo.com',
-    verificada: true,
-    created_at: '2026-09-12T15:00:00Z',
-    updated_at: '2026-09-12T15:00:00Z',
-  },
+/**
+ * Selección base de ofertas con relaciones explícitas comprobadas en el esquema real:
+ * - jobs_rubro_id_fkey (nombre histórico de la FK ofertas.rubro_id -> rubros.id)
+ * - ofertas_rubros_oferta_id_fkey y ofertas_rubros_rubro_id_fkey (relación N:M)
+ */
+const OFERTA_SELECT_BASE =
+  '*, rubro:rubros!jobs_rubro_id_fkey(*), ofertas_rubros!ofertas_rubros_oferta_id_fkey(rubro_id, rubro:rubros!ofertas_rubros_rubro_id_fkey(*))';
+
+/**
+ * Selección completa incluyendo las columnas públicas de la empresa asociada
+ * mediante la clave foránea real ofertas_empresa_id_fkey.
+ */
+const OFERTA_SELECT_WITH_EMPRESA = `${OFERTA_SELECT_BASE}, empresa:empresas!ofertas_empresa_id_fkey(${PUBLIC_EMPRESA_FIELDS})`;
+
+interface OfertaRubroJoinRow {
+  rubro_id: number;
+  rubro: Rubro | null;
+}
+
+type OfertaQueryRow = Oferta & {
+  empresa?: EmpresaPublica | Empresa | null;
+  company?: EmpresaPublica | Empresa | null;
+  rubro?: Rubro | null;
+  ofertas_rubros?: OfertaRubroJoinRow[] | null;
 };
 
-export const MOCK_JOBS: Job[] = [
-  {
-    id: 'vendedor-salon-funes-mall',
-    company_id: 'comp-1',
-    rubro_id: 1,
-    titulo: 'Vendedor/a de Salón y Atención al Cliente',
-    descripcion:
-      'Importante comercio de indumentaria y calzado ubicado en Funes Mall incorpora vendedor/a de salón. La posición requiere una actitud proactiva, vocación de servicio al cliente, manejo de caja/cobros con medios electrónicos y mantenimiento del orden del salón comercial.',
-    requisitos:
-      '- Secundario completo (excluyente)\n- Experiencia mínima de 1 año en ventas o atención al público en locales comerciales\n- Buen manejo de sistemas de cobranza (tarjetas, billeteras virtuales, posnet)\n- Residencia en la ciudad de Funes o cercanías inmediatas con fácil traslado',
-    experiencia_requerida: '1 año en puestos de ventas o salón',
-    tipo_jornada: 'Jornada Completa',
-    tipo_contrato: 'Tiempo Indeterminado',
-    ubicacion: 'Funes Mall (Centro), Funes',
-    rango_salarial: 'Según convenio de empleados de comercio',
-    vacantes: 2,
-    estado: 'publicada',
-    destacada: true,
-    fecha_limite: '2026-10-31',
-    created_at: '2026-09-20T10:00:00Z',
-    updated_at: '2026-09-20T10:00:00Z',
-    company: MOCK_COMPANIES['comp-1'],
-    rubro: MOCK_RUBROS[0],
-  },
-  {
-    id: 'cocinero-resto-garita-14',
-    company_id: 'comp-2',
-    rubro_id: 2,
-    titulo: 'Cocinero/a con experiencia en Minutas y Despacho',
-    descripcion:
-      'Restó familiar sobre Ruta 9 busca cocinero/a para sumarse al equipo de cocina. Se ocupará de la elaboración de minutas, pastas caseras, carnes a la plancha, control de stock diario y cumplimiento de las normas de higiene y manipulación de alimentos.',
-    requisitos:
-      '- Experiencia comprobable en cocinas gastronómicas o restaurantes\n- Curso de Manipulación Segura de Alimentos (o disponibilidad para realizarlo)\n- Libreta sanitaria vigente\n- Disponibilidad horaria para turnos de noche y fines de semana\n- Residencia preferente en Funes',
-    experiencia_requerida: '2 años en gastronomía comercial',
-    tipo_jornada: 'Turnos Rotativos (Tarde/Noche)',
-    tipo_contrato: 'Permanente',
-    ubicacion: 'Ruta 9 (Zona Garita 14), Funes',
-    rango_salarial: 'Convenio Gastronómicos UTHGRA',
-    vacantes: 1,
-    estado: 'publicada',
-    destacada: true,
-    fecha_limite: '2026-10-25',
-    created_at: '2026-09-22T14:30:00Z',
-    updated_at: '2026-09-22T14:30:00Z',
-    company: MOCK_COMPANIES['comp-2'],
-    rubro: MOCK_RUBROS[1],
-  },
-  {
-    id: 'electricista-mantenimiento-barrios',
-    company_id: 'comp-3',
-    rubro_id: 3,
-    titulo: 'Oficial Electricista y Mantenimiento de Urbanizaciones',
-    descripcion:
-      'Constructora local busca personal para el mantenimiento eléctrico e instalaciones generales en obras residenciales y urbanizaciones privadas de Funes. Tareas de tendido eléctrico, tableros seccionales, iluminación perimetral y reparaciones.',
-    requisitos:
-      '- Título técnico o curso de instalador electricista habilitado\n- Experiencia en obras residenciales y mantenimiento edilicio\n- Movilidad propia (moto o automóvil) excluyente para desplazarse entre predios\n- Herramientas de mano propias (deseable)',
-    experiencia_requerida: '2 a 3 años en obras o servicio técnico',
-    tipo_jornada: 'Jornada Completa (Lunes a Viernes 8 a 17 hs)',
-    tipo_contrato: 'Tiempo Indeterminado',
-    ubicacion: 'Barrios Don Mateo y Cantegril, Funes',
-    rango_salarial: 'A convenir según experiencia técnica',
-    vacantes: 2,
-    estado: 'publicada',
-    destacada: false,
-    fecha_limite: '2026-11-05',
-    created_at: '2026-09-23T09:15:00Z',
-    updated_at: '2026-09-23T09:15:00Z',
-    company: MOCK_COMPANIES['comp-3'],
-    rubro: MOCK_RUBROS[2],
-  },
-  {
-    id: 'auxiliar-administrativo-parque-industrial',
-    company_id: 'comp-4',
-    rubro_id: 4,
-    titulo: 'Auxiliar Administrativo/a y Facturación',
-    descripcion:
-      'Distribuidora con base en el Parque Industrial de Funes requiere auxiliar administrativo/a. Sus principales funciones serán: facturación electrónica, control de remitos de entrega, conciliaciones bancarias básicas, atención telefónica a clientes y carga de comprobantes en sistema de gestión.',
-    requisitos:
-      '- Secundario completo; se valorarán estudios terciarios o universitarios afines (Adm. de Empresas, Contador, etc.)\n- Dominio de Excel (intermedio)\n- Manejo de sistemas de facturación y gestión comercial\n- Capacidad de trabajo en equipo y atención al detalle\n- Residir en Funes o zona de fácil acceso a la Autopista Rosario-Córdoba',
-    experiencia_requerida: '1 a 2 años en administración general',
-    tipo_jornada: 'Media Jornada (Lunes a Viernes 8 a 13 hs)',
-    tipo_contrato: 'Tiempo Indeterminado',
-    ubicacion: 'Parque Industrial de Funes (Autopista)',
-    rango_salarial: 'Acorde a escala salarial de empleados de comercio',
-    vacantes: 1,
-    estado: 'publicada',
-    destacada: true,
-    fecha_limite: '2026-11-10',
-    created_at: '2026-09-24T11:00:00Z',
-    updated_at: '2026-09-24T11:00:00Z',
-    company: MOCK_COMPANIES['comp-4'],
-    rubro: MOCK_RUBROS[3],
-  },
-  {
-    id: 'jardinero-espacios-verdes-quintas',
-    company_id: 'comp-5',
-    rubro_id: 8,
-    titulo: 'Jardinero y Operario de Mantenimiento de Parques',
-    descripcion:
-      'Empresa de servicios paisajísticos incorpora operarios para mantenimiento de parques, jardines y predios recreativos en Funes. Tareas: corte de césped con motoguadaña y tractor cortador, poda de cercos verdes, fertilización y limpieza de piletas.',
-    requisitos:
-      '- Experiencia previa en manejo de maquinaria de jardinería (cortadoras a nafta, motoguadañas, sopladoras)\n- Buena predisposición para tareas al aire libre y esfuerzo físico\n- Responsabilidad, puntualidad y buen trato vecinal\n- Residencia en Funes',
-    experiencia_requerida: '1 año en jardinería o mantenimiento de predios',
-    tipo_jornada: 'Jornada Completa',
-    tipo_contrato: 'Temporada con posibilidad de efectivización',
-    ubicacion: 'Zona Quintas y Barrios Cerrados (Funes Hills / Kentucky), Funes',
-    rango_salarial: 'Convenio Agrario / Servicios',
-    vacantes: 3,
-    estado: 'publicada',
-    destacada: false,
-    fecha_limite: '2026-11-15',
-    created_at: '2026-09-25T16:00:00Z',
-    updated_at: '2026-09-25T16:00:00Z',
-    company: MOCK_COMPANIES['comp-5'],
-    rubro: MOCK_RUBROS[7],
-  },
-  {
-    id: 'chofer-repartidor-funes-roldan',
-    company_id: 'comp-4',
-    rubro_id: 5,
-    titulo: 'Chofer Repartidor Local (Vehículo Utilitario)',
-    descripcion:
-      'Se busca chofer de reparto para distribución de mercadería en comercios y domicilios de Funes y Roldán. Conducción de furgón utilitario de la empresa, control de remitos y cobranzas contra entrega.',
-    requisitos:
-      '- Licencia de conducir nacional vigente clase B1 o superior (excluyente)\n- Experiencia en manejo de utilitarios urbanos\n- Buen conocimiento de calles y barrios de Funes y Roldán\n- Certificado de antecedentes penales actualizado',
-    experiencia_requerida: '2 años de manejo comprobable',
-    tipo_jornada: 'Jornada Completa (Lunes a Viernes)',
-    tipo_contrato: 'Tiempo Indeterminado',
-    ubicacion: 'Garita 9 / Autopista Rosario-Córdoba, Funes',
-    rango_salarial: 'Convenio de Choferes de Carga',
-    vacantes: 1,
-    estado: 'publicada',
-    destacada: false,
-    fecha_limite: '2026-10-30',
-    created_at: '2026-09-26T08:30:00Z',
-    updated_at: '2026-09-26T08:30:00Z',
-    company: MOCK_COMPANIES['comp-4'],
-    rubro: MOCK_RUBROS[4],
-  },
-  {
-    id: 'cuidadora-adultos-mayores-centro',
-    company_id: 'comp-6',
-    rubro_id: 6,
-    titulo: 'Acompañante Terapéutico / Cuidador/a de Adultos Mayores',
-    descripcion:
-      'Se solicita acompañante para asistencia de adulto mayor en domicilio particular en Funes Centro. Tareas de acompañamiento diario, asistencia en la movilidad, control y recordatorio de medicación oral prescrita, paseos y preparación de colaciones simples.',
-    requisitos:
-      '- Curso oficial de Cuidador Domiciliario o Acompañante Terapéutico (excluyente)\n- Referencias laborales comprobables en cuidados anteriores\n- Perfil empático, paciente y con marcada vocación asistencial\n- Disponibilidad horaria de lunes a viernes en turno diurno',
-    experiencia_requerida: '1 a 2 años de experiencia comprobable',
-    tipo_jornada: 'Media Jornada (Mañana o Tarde)',
-    tipo_contrato: 'Eventual / Continuo',
-    ubicacion: 'Zona Centro, Funes',
-    rango_salarial: 'Según escala de cuidadores domiciliarios',
-    vacantes: 2,
-    estado: 'publicada',
-    destacada: false,
-    fecha_limite: '2026-11-20',
-    created_at: '2026-09-27T10:45:00Z',
-    updated_at: '2026-09-27T10:45:00Z',
-    company: MOCK_COMPANIES['comp-6'],
-    rubro: MOCK_RUBROS[5],
-  },
-  {
-    id: 'tecnico-soporte-redes-pc',
-    company_id: 'comp-7',
-    rubro_id: 7,
-    titulo: 'Técnico en Soporte Informático y Conectividad',
-    descripcion:
-      'Empresa prestadora de servicios de conectividad y tecnología en Funes busca técnico para soporte a usuarios particulares y empresas. Realizará diagnóstico y reparación de computadoras, configuración de routers Wi-Fi, cableado estructurado básico y soporte remoto.',
-    requisitos:
-      '- Formación técnica en informática, redes o carreras afines\n- Conocimientos en configuración de redes TCP/IP, switches y puntos de acceso\n- Capacidad para resolver incidencias de hardware y software en sistemas Windows\n- Buena presencia y trato cordial con los clientes locales\n- Licencia de conducir (deseable)',
-    experiencia_requerida: '1 año en tareas técnicas similares',
-    tipo_jornada: 'Jornada Completa',
-    tipo_contrato: 'Tiempo Indeterminado',
-    ubicacion: 'Ruta 9 y Pedro A. Ríos, Funes',
-    rango_salarial: 'A convenir según capacidades técnicas',
-    vacantes: 1,
-    estado: 'publicada',
-    destacada: true,
-    fecha_limite: '2026-11-15',
-    created_at: '2026-09-28T12:00:00Z',
-    updated_at: '2026-09-28T12:00:00Z',
-    company: MOCK_COMPANIES['comp-7'],
-    rubro: MOCK_RUBROS[6],
-  },
-];
+import { createClient } from '@/lib/supabase/client';
+
+/**
+ * Obtiene el cliente Supabase isomorfo (@supabase/ssr createBrowserClient):
+ * - En Server Components y generateStaticParams (build): opera sin depender de next/headers.
+ * - En Client Components (navegador): utiliza automáticamente la sesión autenticada en cookies.
+ */
+function getSupabase() {
+  return createClient();
+}
 
 export interface JobFilterParams {
   query?: string;
@@ -383,127 +54,392 @@ export interface JobFilterParams {
   destacadasOnly?: boolean;
 }
 
-export async function getJobs(filters?: JobFilterParams): Promise<{ jobs: Job[]; total: number }> {
-  // Simulamos llamada asíncrona preparada para conectarse con Supabase
-  let filtered = [...MOCK_JOBS].filter((job) => job.estado === 'publicada');
+/**
+ * Normaliza una fila de oferta de Supabase al tipo Job de la aplicación,
+ * garantizando compatibilidad tipada con company, empresa, rubro y rubros sin usar any.
+ */
+function mapOfertaToJob(row: OfertaQueryRow): Job {
+  const empresaData: EmpresaPublica | Empresa | null = row.empresa ?? row.company ?? null;
+  const primaryRubro: Rubro | null = row.rubro ?? null;
 
-  if (filters) {
-    const { query, rubro, jornada, zona, destacadasOnly } = filters;
-
-    if (query && query.trim() !== '') {
-      const q = query.toLowerCase().trim();
-      filtered = filtered.filter(
-        (job) =>
-          job.titulo.toLowerCase().includes(q) ||
-          job.descripcion.toLowerCase().includes(q) ||
-          job.requisitos.toLowerCase().includes(q) ||
-          (job.company && job.company.nombre_fantasia.toLowerCase().includes(q)) ||
-          (job.rubro && job.rubro.nombre.toLowerCase().includes(q))
-      );
-    }
-
-    if (rubro && rubro !== 'todos') {
-      filtered = filtered.filter((job) => {
-        if (!job.rubro) return false;
-        // Permite filtrar por ID o por nombre del rubro
-        return (
-          job.rubro.id.toString() === rubro ||
-          job.rubro.nombre.toLowerCase() === rubro.toLowerCase() ||
-          job.rubro.nombre.toLowerCase().includes(rubro.toLowerCase())
-        );
-      });
-    }
-
-    if (jornada && jornada !== 'todas') {
-      filtered = filtered.filter((job) =>
-        job.tipo_jornada.toLowerCase().includes(jornada.toLowerCase())
-      );
-    }
-
-    if (zona && zona !== 'todas') {
-      filtered = filtered.filter((job) =>
-        job.ubicacion.toLowerCase().includes(zona.toLowerCase())
-      );
-    }
-
-    if (destacadasOnly) {
-      filtered = filtered.filter((job) => job.destacada);
+  const rubrosMap = new Map<number, Rubro>();
+  if (primaryRubro) {
+    rubrosMap.set(primaryRubro.id, primaryRubro);
+  }
+  if (Array.isArray(row.ofertas_rubros)) {
+    for (const item of row.ofertas_rubros) {
+      if (item?.rubro && typeof item.rubro.id === 'number') {
+        rubrosMap.set(item.rubro.id, item.rubro);
+      }
     }
   }
 
-  // Ordenar: primero destacadas, luego más recientes
-  filtered.sort((a, b) => {
-    if (a.destacada && !b.destacada) return -1;
-    if (!a.destacada && b.destacada) return 1;
-    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-  });
+  const rubrosList = Array.from(rubrosMap.values());
+  const effectiveRubro = primaryRubro ?? (rubrosList.length > 0 ? rubrosList[0] : null);
 
   return {
-    jobs: filtered,
-    total: filtered.length,
+    ...row,
+    company_id: row.empresa_id,
+    company: empresaData,
+    empresa: empresaData,
+    rubro: effectiveRubro,
+    rubros: rubrosList,
   };
 }
 
-export async function getJobById(id: string): Promise<Job | null> {
-  const found = MOCK_JOBS.find((j) => j.id === id);
-  return found || null;
-}
-
-export async function getAllJobIds(): Promise<string[]> {
-  return MOCK_JOBS.map((j) => j.id);
-}
-
-export async function getRubros(): Promise<Rubro[]> {
-  const isSupabaseConfigured =
-    typeof process !== 'undefined' &&
-    !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
-    !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (isSupabaseConfigured) {
-    try {
-      const { createClient } = await import('@/lib/supabase/client');
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from('rubros')
-        .select('*')
-        .eq('activo', true)
-        .order('nombre');
-
-      if (!error && data && data.length > 0) {
-        return data as Rubro[];
-      }
-    } catch {
-      // Fallback a mock en caso de fallo de conexión
-    }
+/**
+ * Resuelve un filtro de rubro (que puede venir como ID numérico o como nombre de rubro)
+ * devolviendo los IDs de rubros correspondientes y los IDs de ofertas vinculadas en ofertas_rubros.
+ */
+async function resolveRubroFilter(
+  supabase: Awaited<ReturnType<typeof getSupabase>>,
+  rubroFilter: string
+): Promise<{ rubroIds: number[]; ofertaIdsFromJoin: string[] } | null> {
+  const trimmed = rubroFilter.trim();
+  if (!trimmed || trimmed.toLowerCase() === 'todos') {
+    return null;
   }
 
-  return MOCK_RUBROS.filter((r) => r.activo);
+  let rubroIds: number[] = [];
+  const parsedId = Number(trimmed);
+
+  if (Number.isInteger(parsedId) && parsedId > 0 && String(parsedId) === trimmed) {
+    rubroIds = [parsedId];
+  } else {
+    const { data: matchedRubros, error: rubroError } = await supabase
+      .from('rubros')
+      .select('id')
+      .eq('activo', true)
+      .ilike('nombre', `%${trimmed}%`);
+
+    if (rubroError) {
+      console.error('Error consultando rubros por nombre en getJobs:', rubroError.message);
+      return { rubroIds: [], ofertaIdsFromJoin: [] };
+    }
+
+    rubroIds = (matchedRubros ?? []).map((r) => r.id);
+  }
+
+  if (rubroIds.length === 0) {
+    return { rubroIds: [], ofertaIdsFromJoin: [] };
+  }
+
+  const { data: linkedRows, error: linkedError } = await supabase
+    .from('ofertas_rubros')
+    .select('oferta_id')
+    .in('rubro_id', rubroIds);
+
+  if (linkedError) {
+    console.error('Error consultando relación ofertas_rubros en getJobs:', linkedError.message);
+    return { rubroIds, ofertaIdsFromJoin: [] };
+  }
+
+  const ofertaIdsFromJoin = Array.from(
+    new Set((linkedRows ?? []).map((r) => r.oferta_id).filter(Boolean))
+  );
+
+  return { rubroIds, ofertaIdsFromJoin };
 }
 
+/**
+ * Obtiene el listado de ofertas laborales publicadas desde Supabase,
+ * aplicando filtros de búsqueda, rubro (por ID o nombre e incluyendo ofertas_rubros),
+ * jornada, zona y destacadas.
+ */
+export async function getJobs(filters?: JobFilterParams): Promise<{ jobs: Job[]; total: number }> {
+  try {
+    const supabase = await getSupabase();
+
+    let resolvedRubro: { rubroIds: number[]; ofertaIdsFromJoin: string[] } | null = null;
+    if (filters?.rubro && filters.rubro.trim() !== '' && filters.rubro.trim().toLowerCase() !== 'todos') {
+      resolvedRubro = await resolveRubroFilter(supabase, filters.rubro);
+      if (resolvedRubro && resolvedRubro.rubroIds.length === 0) {
+        return { jobs: [], total: 0 };
+      }
+    }
+
+    const buildQuery = (selectClause: string) => {
+      let qBuilder = supabase
+        .from('ofertas')
+        .select(selectClause, { count: 'exact' })
+        .eq('estado', 'publicada')
+        .is('deleted_at', null);
+
+      if (filters) {
+        const { query: searchText, jornada, zona, destacadasOnly } = filters;
+
+        if (searchText && searchText.trim() !== '') {
+          const q = searchText.trim();
+          qBuilder = qBuilder.or(
+            `titulo.ilike.%${q}%,descripcion.ilike.%${q}%,requisitos.ilike.%${q}%,ubicacion.ilike.%${q}%`
+          );
+        }
+
+        if (resolvedRubro && resolvedRubro.rubroIds.length > 0) {
+          const rubroIdsCsv = resolvedRubro.rubroIds.join(',');
+          if (resolvedRubro.ofertaIdsFromJoin.length > 0) {
+            const ofertaIdsCsv = resolvedRubro.ofertaIdsFromJoin.join(',');
+            qBuilder = qBuilder.or(`rubro_id.in.(${rubroIdsCsv}),id.in.(${ofertaIdsCsv})`);
+          } else {
+            qBuilder = qBuilder.in('rubro_id', resolvedRubro.rubroIds);
+          }
+        }
+
+        if (jornada && jornada !== 'todas') {
+          qBuilder = qBuilder.ilike('tipo_jornada', `%${jornada}%`);
+        }
+
+        if (zona && zona !== 'todas') {
+          qBuilder = qBuilder.ilike('ubicacion', `%${zona}%`);
+        }
+
+        if (destacadasOnly) {
+          qBuilder = qBuilder.eq('destacada', true);
+        }
+      }
+
+      return qBuilder
+        .order('destacada', { ascending: false })
+        .order('created_at', { ascending: false });
+    };
+
+    let { data, count, error } = await buildQuery(OFERTA_SELECT_WITH_EMPRESA);
+
+    // Si la migración 006 aún no fue ejecutada en Supabase y el rol anon recibe 42501 sobre public.empresas,
+    // registrar diagnóstico explícito y consultar con la proyección base verificada.
+    if (error && error.code === '42501') {
+      console.warn(
+        '[Supabase 42501] Permiso SELECT sobre columnas públicas de public.empresas pendiente de aplicar (Migración 006):',
+        error.message
+      );
+      const retry = await buildQuery(OFERTA_SELECT_BASE);
+      data = retry.data;
+      count = retry.count;
+      error = retry.error;
+    }
+
+    if (error) {
+      console.error('Error consultando ofertas en Supabase:', error.message);
+      return { jobs: [], total: 0 };
+    }
+
+    const rows = (data ?? []) as unknown as OfertaQueryRow[];
+    const jobs: Job[] = rows.map((row) => mapOfertaToJob(row));
+
+    return {
+      jobs,
+      total: count ?? jobs.length,
+    };
+  } catch (err) {
+    console.error('Error inesperado en getJobs:', err);
+    return { jobs: [], total: 0 };
+  }
+}
+
+/**
+ * Obtiene una oferta laboral publicada por su UUID identificador.
+ */
+export async function getJobById(id: string): Promise<Job | null> {
+  try {
+    const supabase = await getSupabase();
+
+    const { data, error } = await supabase
+      .from('ofertas')
+      .select(OFERTA_SELECT_WITH_EMPRESA)
+      .eq('id', id)
+      .eq('estado', 'publicada')
+      .is('deleted_at', null)
+      .maybeSingle();
+
+    if (error && error.code === '42501') {
+      console.warn(
+        '[Supabase 42501] Permiso SELECT sobre columnas públicas de public.empresas pendiente de aplicar (Migración 006):',
+        error.message
+      );
+      const retry = await supabase
+        .from('ofertas')
+        .select(OFERTA_SELECT_BASE)
+        .eq('id', id)
+        .eq('estado', 'publicada')
+        .is('deleted_at', null)
+        .maybeSingle();
+
+      if (retry.error) {
+        console.error('Error obteniendo oferta por id en Supabase:', retry.error.message);
+        return null;
+      }
+      if (!retry.data) {
+        return null;
+      }
+      return mapOfertaToJob(retry.data as unknown as OfertaQueryRow);
+    }
+
+    if (error) {
+      console.error('Error obteniendo oferta por id en Supabase:', error.message);
+      return null;
+    }
+
+    if (!data) {
+      return null;
+    }
+
+    return mapOfertaToJob(data as unknown as OfertaQueryRow);
+  } catch (err) {
+    console.error('Error inesperado obteniendo oferta por id:', err);
+    return null;
+  }
+}
+
+/**
+ * Obtiene todos los IDs de ofertas publicadas para rutas dinámicas.
+ */
+export async function getAllJobIds(): Promise<string[]> {
+  try {
+    const supabase = await getSupabase();
+    const { data, error } = await supabase
+      .from('ofertas')
+      .select('id')
+      .eq('estado', 'publicada')
+      .is('deleted_at', null);
+
+    if (error) {
+      console.error('Error al obtener IDs de ofertas:', error.message);
+      return [];
+    }
+    if (!data) return [];
+    return data.map((item) => item.id);
+  } catch (err) {
+    console.error('Error inesperado en getAllJobIds:', err);
+    return [];
+  }
+}
+
+/**
+ * Obtiene los rubros o categorías laborales activas desde la base de datos.
+ */
+export async function getRubros(): Promise<Rubro[]> {
+  try {
+    const supabase = await getSupabase();
+    const { data, error } = await supabase
+      .from('rubros')
+      .select('*')
+      .eq('activo', true)
+      .order('nombre');
+
+    if (error) {
+      console.error('Error al consultar rubros en Supabase:', error.message);
+      return [];
+    }
+
+    return (data ?? []) as Rubro[];
+  } catch (err) {
+    console.error('Error inesperado al obtener rubros:', err);
+    return [];
+  }
+}
+
+/**
+ * Obtiene ofertas laborales similares o del mismo rubro (considerando rubro_id y ofertas_rubros),
+ * completando con otras ofertas publicadas vigentes de Funes cuando existen menos de `limit` en el mismo rubro.
+ */
 export async function getSimilarJobs(
   currentJobId: string,
   rubroId?: number | null,
   limit: number = 3
 ): Promise<Job[]> {
-  const others = MOCK_JOBS.filter(
-    (j) => j.id !== currentJobId && j.estado === 'publicada'
-  );
+  try {
+    const supabase = await getSupabase();
 
-  if (rubroId) {
-    const sameRubro = others.filter((j) => j.rubro_id === rubroId);
-    if (sameRubro.length >= limit) {
-      return sameRubro.slice(0, limit);
+    let linkedOfertaIds: string[] = [];
+    if (rubroId) {
+      const { data: linkedRows } = await supabase
+        .from('ofertas_rubros')
+        .select('oferta_id')
+        .eq('rubro_id', rubroId);
+      linkedOfertaIds = Array.from(
+        new Set(
+          (linkedRows ?? [])
+            .map((r) => r.oferta_id)
+            .filter((oid) => Boolean(oid) && oid !== currentJobId)
+        )
+      );
     }
-    // Si hay menos del límite, rellenar con otras ofertas recientes
-    const remaining = others.filter((j) => j.rubro_id !== rubroId);
-    return [...sameRubro, ...remaining].slice(0, limit);
-  }
 
-  return others.slice(0, limit);
+    const buildSimilarQuery = (selectClause: string, filterByRubro: boolean) => {
+      let qBuilder = supabase
+        .from('ofertas')
+        .select(selectClause)
+        .neq('id', currentJobId)
+        .eq('estado', 'publicada')
+        .is('deleted_at', null);
+
+      if (filterByRubro && rubroId) {
+        if (linkedOfertaIds.length > 0) {
+          qBuilder = qBuilder.or(
+            `rubro_id.eq.${rubroId},id.in.(${linkedOfertaIds.join(',')})`
+          );
+        } else {
+          qBuilder = qBuilder.eq('rubro_id', rubroId);
+        }
+      }
+
+      return qBuilder
+        .order('destacada', { ascending: false })
+        .order('created_at', { ascending: false })
+        .limit(limit);
+    };
+
+    let { data, error } = await buildSimilarQuery(OFERTA_SELECT_WITH_EMPRESA, Boolean(rubroId));
+
+    if (error && error.code === '42501') {
+      const retry = await buildSimilarQuery(OFERTA_SELECT_BASE, Boolean(rubroId));
+      data = retry.data;
+      error = retry.error;
+    }
+
+    if (error) {
+      console.error('Error al obtener ofertas similares:', error.message);
+      return [];
+    }
+
+    const primaryRows = (data ?? []) as unknown as OfertaQueryRow[];
+    const primaryJobs = primaryRows.map((row) => mapOfertaToJob(row));
+
+    if (!rubroId || primaryJobs.length >= limit) {
+      return primaryJobs.slice(0, limit);
+    }
+
+    // Completar hasta `limit` con otras ofertas publicadas vigentes en Funes
+    let fallbackRes = await buildSimilarQuery(OFERTA_SELECT_WITH_EMPRESA, false);
+    if (fallbackRes.error && fallbackRes.error.code === '42501') {
+      fallbackRes = await buildSimilarQuery(OFERTA_SELECT_BASE, false);
+    }
+
+    if (fallbackRes.error || !fallbackRes.data) {
+      return primaryJobs;
+    }
+
+    const seenIds = new Set(primaryJobs.map((j) => j.id));
+    const fallbackRows = (fallbackRes.data ?? []) as unknown as OfertaQueryRow[];
+    for (const row of fallbackRows) {
+      if (primaryJobs.length >= limit) break;
+      if (!seenIds.has(row.id)) {
+        seenIds.add(row.id);
+        primaryJobs.push(mapOfertaToJob(row));
+      }
+    }
+
+    return primaryJobs;
+  } catch (err) {
+    console.error('Error inesperado en getSimilarJobs:', err);
+    return [];
+  }
 }
 
 export interface ApplicationInput {
   jobId: string;
+  postulanteId?: string;
+  cvId?: string | null;
   nombre: string;
   apellido: string;
   email: string;
@@ -516,18 +452,339 @@ export interface ApplicationInput {
   situacionLaboral?: string;
 }
 
+/**
+ * Registra formalmente una postulación en public.postulaciones en Supabase.
+ * - Verifica identidad, vigencia y rol 'postulante' en public.perfil.
+ * - Verifica que la oferta exista, esté publicada y sin baja lógica.
+ * - Valida y sincroniza datos de contacto/identidad en public.perfil si fueron completados o actualizados.
+ * - Asocia cv_id únicamente si pertenece al postulante autenticado, está activo y sin baja lógica.
+ * - Controla unicidad mediante la restricción unique_postulacion_usuario_oferta.
+ */
 export async function submitJobApplication(
-  _data: ApplicationInput
-): Promise<{ success: boolean; message: string; applicationId: string }> {
-  void _data;
-  // Simulamos persistencia y retorno de número de gestión
-  // Cuando Supabase esté configurado, insertará en 'applications' e 'application_history'
-  const applicationId = `FUNES-${Math.floor(100000 + Math.random() * 900000)}`;
+  data: ApplicationInput
+): Promise<{
+  success: boolean;
+  message: string;
+  applicationId?: string;
+  alreadyApplied?: boolean;
+}> {
+  try {
+    const supabase = await getSupabase();
 
-  return {
-    success: true,
-    message:
-      'Tu postulación ha sido recibida con éxito por la Oficina de Empleo de Funes. Un orientador evaluará tu perfil y te contactará.',
-    applicationId,
-  };
+    // 1. Verificar sesión autenticada
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return {
+        success: false,
+        message: 'Debés iniciar sesión con tu cuenta de postulante para enviar tu postulación.',
+      };
+    }
+
+    if (data.postulanteId && data.postulanteId !== user.id) {
+      return {
+        success: false,
+        message: 'Operación denegada: el identificador de postulante no coincide con tu sesión activa.',
+      };
+    }
+
+    // 2. Verificar existencia, vigencia y rol del perfil en public.perfil
+    const { data: perfil, error: perfilError } = await supabase
+      .from('perfil')
+      .select(
+        'id, rol, activo, deleted_at, nombre, apellido, dni, telefono, localidad, direccion, es_residente_funes'
+      )
+      .eq('id', user.id)
+      .maybeSingle();
+
+    if (perfilError || !perfil) {
+      return {
+        success: false,
+        message: 'No se encontró un perfil válido asociado a tu cuenta.',
+      };
+    }
+
+    if (!perfil.activo || perfil.deleted_at !== null) {
+      return {
+        success: false,
+        message: 'Tu cuenta de perfil se encuentra desactivada.',
+      };
+    }
+
+    if (perfil.rol !== 'postulante') {
+      return {
+        success: false,
+        message: 'Solo los usuarios registrados con perfil de postulante pueden postularse a ofertas laborales.',
+      };
+    }
+
+    // 2b. Verificar que la oferta laboral exista, esté publicada y no tenga baja lógica
+    const { data: ofertaVigencia, error: ofertaError } = await supabase
+      .from('ofertas')
+      .select('id, estado, deleted_at')
+      .eq('id', data.jobId)
+      .eq('estado', 'publicada')
+      .is('deleted_at', null)
+      .maybeSingle();
+
+    if (ofertaError || !ofertaVigencia) {
+      return {
+        success: false,
+        message: 'Esta oferta laboral ya no se encuentra disponible o su convocatoria fue cerrada.',
+      };
+    }
+
+    // 3. Validar datos personales, teléfono y localidad antes de actualizar el perfil o registrar la postulación
+    const cleanNombre = (data.nombre?.trim() || perfil.nombre?.trim() || '').trim();
+    const cleanApellido = (data.apellido?.trim() || perfil.apellido?.trim() || '').trim();
+    if (!cleanNombre || !cleanApellido) {
+      return {
+        success: false,
+        message: 'Por favor completá tu nombre y apellido.',
+      };
+    }
+
+    const rawDni = (data.dni?.trim() || perfil.dni?.trim() || '').trim();
+    const cleanDni = rawDni.replace(/\D/g, '');
+    if (!cleanDni || cleanDni.length < 7 || cleanDni.length > 8) {
+      return {
+        success: false,
+        message: 'Por favor ingresá un número de DNI válido (7 u 8 dígitos sin puntos).',
+      };
+    }
+
+    const cleanTelefono = (data.telefono?.trim() || perfil.telefono?.trim() || '').trim();
+    if (!cleanTelefono || !validatePhone(cleanTelefono)) {
+      return {
+        success: false,
+        message: 'Por favor ingresá un número de teléfono o WhatsApp válido (mínimo 8 dígitos numéricos).',
+      };
+    }
+
+    const cleanLocalidad = (data.localidad?.trim() || perfil.localidad?.trim() || '').trim();
+    if (!cleanLocalidad) {
+      return {
+        success: false,
+        message: 'Por favor ingresá tu localidad de residencia.',
+      };
+    }
+
+    const cleanDireccion = data.direccion?.trim();
+    const calculatedResidenteFunes = cleanLocalidad.toLowerCase() === 'funes';
+
+    // Actualizar datos en public.perfil solo si cambiaron respecto a los valores actuales
+    const needsPerfilUpdate =
+      cleanNombre !== (perfil.nombre ?? '') ||
+      cleanApellido !== (perfil.apellido ?? '') ||
+      cleanDni !== (perfil.dni ?? '') ||
+      cleanTelefono !== (perfil.telefono ?? '') ||
+      cleanLocalidad !== (perfil.localidad ?? '') ||
+      calculatedResidenteFunes !== Boolean(perfil.es_residente_funes) ||
+      (cleanDireccion !== undefined && cleanDireccion !== '' && cleanDireccion !== (perfil.direccion ?? ''));
+
+    if (needsPerfilUpdate) {
+      const updatePayload: {
+        nombre: string;
+        apellido: string;
+        dni: string;
+        telefono: string;
+        localidad: string;
+        es_residente_funes: boolean;
+        direccion?: string;
+      } = {
+        nombre: cleanNombre,
+        apellido: cleanApellido,
+        dni: cleanDni,
+        telefono: cleanTelefono,
+        localidad: cleanLocalidad,
+        es_residente_funes: calculatedResidenteFunes,
+      };
+
+      if (cleanDireccion !== undefined && cleanDireccion !== '') {
+        updatePayload.direccion = cleanDireccion;
+      }
+
+      const { error: updatePerfilError } = await supabase
+        .from('perfil')
+        .update(updatePayload)
+        .eq('id', user.id)
+        .eq('rol', 'postulante');
+
+      if (updatePerfilError) {
+        console.error('Error al actualizar datos de contacto del postulante:', updatePerfilError);
+        const lowerMsg = updatePerfilError.message.toLowerCase();
+        if (
+          lowerMsg.includes('dni') ||
+          updatePerfilError.message.includes('idx_perfil_dni_numerico_unico') ||
+          updatePerfilError.message.includes('perfil_dni_key')
+        ) {
+          return {
+            success: false,
+            message: 'El DNI ingresado ya se encuentra registrado en otra cuenta del sistema.',
+          };
+        }
+        return {
+          success: false,
+          message: `No se pudieron actualizar tus datos de contacto en el perfil: ${updatePerfilError.message}`,
+        };
+      }
+    }
+
+    // 4. Verificar y exigir un CV activo perteneciente al postulante autenticado (Decisión 1 de Fase 5)
+    let verifiedCvId: string | null = null;
+    let verifiedCvSnapshotUrl: string | null = null;
+
+    if (data.cvId) {
+      const { data: selectedCv, error: cvError } = await supabase
+        .from('curriculums')
+        .select('id, postulante_id, archivo_url, activo, deleted_at')
+        .eq('id', data.cvId)
+        .eq('postulante_id', user.id)
+        .eq('activo', true)
+        .is('deleted_at', null)
+        .maybeSingle();
+
+      if (cvError || !selectedCv) {
+        return {
+          success: false,
+          message: 'El currículum seleccionado no es válido, fue archivado o no pertenece a tu cuenta.',
+        };
+      }
+      verifiedCvId = selectedCv.id;
+      verifiedCvSnapshotUrl = selectedCv.archivo_url;
+    } else {
+      // Si no se especificó un cvId explícito, buscar el CV principal (o más reciente) activo del postulante
+      const { data: principalCv, error: principalCvError } = await supabase
+        .from('curriculums')
+        .select('id, archivo_url')
+        .eq('postulante_id', user.id)
+        .eq('activo', true)
+        .is('deleted_at', null)
+        .order('es_principal', { ascending: false })
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (principalCvError) {
+        console.error('Error verificando currículum activo del postulante:', principalCvError.message);
+      } else if (principalCv) {
+        verifiedCvId = principalCv.id;
+        verifiedCvSnapshotUrl = principalCv.archivo_url;
+      }
+    }
+
+    if (!verifiedCvId) {
+      return {
+        success: false,
+        message: 'Debés seleccionar o cargar al menos un Currículum Vitae activo para postularte.',
+      };
+    }
+
+    // 4b. Verificar si ya existe una postulación previa para (oferta_id, postulante_id)
+    const { data: existingApp } = await supabase
+      .from('postulaciones')
+      .select('id, estado')
+      .eq('oferta_id', data.jobId)
+      .eq('postulante_id', user.id)
+      .maybeSingle();
+
+    if (existingApp) {
+      if (existingApp.estado === 'retirado_por_postulante') {
+        // Reactivar la postulación retirada (Decisión 2 - Opción B)
+        const cleanMensaje = data.mensaje?.trim() || null;
+
+        const { error: rpcReactivateError } = await supabase.rpc('reactivar_postulacion', {
+          p_postulacion_id: existingApp.id,
+          p_cv_id: verifiedCvId,
+          p_mensaje: cleanMensaje,
+        });
+
+        if (rpcReactivateError) {
+          console.error('Error al reactivar postulación retirada:', rpcReactivateError);
+          return {
+            success: false,
+            message:
+              rpcReactivateError.code === 'PGRST202'
+                ? 'La reactivación de postulaciones retiradas requiere aplicar la Migración 008 en Supabase.'
+                : `No se pudo reactivar tu postulación: ${rpcReactivateError.message}`,
+          };
+        }
+
+        return {
+          success: true,
+          applicationId: existingApp.id,
+          message:
+            'Tu postulación ha sido reactivada con éxito y enviada nuevamente a la Oficina de Empleo de Funes.',
+        };
+      }
+
+      return {
+        success: false,
+        alreadyApplied: true,
+        applicationId: existingApp.id,
+        message:
+          'Ya te has postulado a esta oferta laboral previamente. Tu perfil se encuentra en evaluación.',
+      };
+    }
+
+    // 5. Insertar en public.postulaciones
+    const { data: postulacion, error } = await supabase
+      .from('postulaciones')
+      .insert({
+        oferta_id: data.jobId,
+        postulante_id: user.id,
+        cv_id: verifiedCvId,
+        cv_url_snapshot: verifiedCvSnapshotUrl,
+        estado: 'postulado',
+        mensaje_postulante: data.mensaje?.trim() || null,
+      })
+      .select('id')
+      .single();
+
+    if (error) {
+      // Manejo de postulación previa duplicada (código PostgreSQL 23505)
+      if (
+        error.code === '23505' ||
+        error.message.includes('unique_postulacion_usuario_oferta') ||
+        error.message.includes('duplicate key')
+      ) {
+        const { data: existingApp } = await supabase
+          .from('postulaciones')
+          .select('id')
+          .eq('oferta_id', data.jobId)
+          .eq('postulante_id', user.id)
+          .maybeSingle();
+
+        return {
+          success: false,
+          alreadyApplied: true,
+          applicationId: existingApp?.id,
+          message:
+            'Ya te has postulado a esta oferta laboral previamente. Tu perfil se encuentra en evaluación.',
+        };
+      }
+
+      console.error('Error al insertar postulación:', error);
+      return {
+        success: false,
+        message: `No se pudo registrar la postulación: ${error.message}`,
+      };
+    }
+
+    return {
+      success: true,
+      message:
+        'Tu postulación ha sido recibida con éxito por la Oficina de Empleo de Funes. Un orientador evaluará tu perfil y te contactará.',
+      applicationId: postulacion.id,
+    };
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Error inesperado al postularse';
+    return {
+      success: false,
+      message,
+    };
+  }
 }

@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Job } from '@/types/database';
+import React, { useState, useEffect, useRef } from 'react';
+import { Curriculum, Job } from '@/types/database';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { Badge } from '@/components/ui/Badge';
 import {
   XMarkIcon,
   CheckCircleIcon,
@@ -13,6 +14,13 @@ import {
   UserIcon,
 } from '@/components/ui/Icons';
 import { submitJobApplication } from '@/lib/jobs';
+import {
+  MAX_ACTIVE_CVS,
+  getActiveCurriculums,
+  uploadCurriculum,
+  validateCurriculumFile,
+} from '@/lib/postulante';
+import { FileText, Upload, Star, Plus } from 'lucide-react';
 
 interface JobApplyModalProps {
   job: Job;
@@ -27,28 +35,136 @@ export const JobApplyModal: React.FC<JobApplyModalProps> = ({
   onClose,
   onApplicationSuccess,
 }) => {
-  const { user, hasAppliedTo, recordApplication } = useAuth();
+  const { user, hasAppliedTo, recordApplication, refreshUser } = useAuth();
 
-  const [formData, setFormData] = useState({
-    nombre: user?.nombre || '',
-    apellido: user?.apellido || '',
-    dni: user?.dni || '',
-    telefono: user?.telefono || '',
-    email: user?.email || '',
-    esResidenteFunes: user?.es_residente_funes ?? true,
-    direccion: user?.direccion || '',
-    localidad: user?.localidad || (user?.es_residente_funes ? 'Funes' : ''),
+  const [formData, setFormData] = useState<{
+    nombre?: string;
+    apellido?: string;
+    dni?: string;
+    telefono?: string;
+    email?: string;
+    direccion?: string;
+    localidad?: string;
+    mensaje: string;
+    aceptaTerminos: boolean;
+  }>({
     mensaje: '',
     aceptaTerminos: true,
   });
+
+  // Estado de CVs del postulante
+  const [curriculums, setCurriculums] = useState<Curriculum[]>([]);
+  const [isLoadingCvs, setIsLoadingCvs] = useState<boolean>(true);
+  const [selectedCvId, setSelectedCvId] = useState<string>('');
+
+  // Subida en línea de CV dentro del modal (Decisión 1)
+  const [showInlineUpload, setShowInlineUpload] = useState<boolean>(false);
+  const [newCvName, setNewCvName] = useState<string>('');
+  const [newCvFile, setNewCvFile] = useState<File | null>(null);
+  const [isUploadingCv, setIsUploadingCv] = useState<boolean>(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [submittedAppId, setSubmittedAppId] = useState<string | null>(null);
 
+  // Cargar los CVs activos del postulante al abrir el modal
+  useEffect(() => {
+    if (!isOpen || !user?.id) return;
+    let isMounted = true;
+
+    const fetchCvs = async () => {
+      setIsLoadingCvs(true);
+      const cvs = await getActiveCurriculums(user.id);
+      if (!isMounted) return;
+      setCurriculums(cvs);
+      const principal = cvs.find((c) => c.es_principal) || cvs[0];
+      setSelectedCvId(principal ? principal.id : '');
+      setShowInlineUpload(cvs.length === 0);
+      if (cvs.length === 0) {
+        setNewCvName('Currículum Principal');
+      }
+      setIsLoadingCvs(false);
+    };
+
+    fetchCvs();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isOpen, user?.id]);
+
   if (!isOpen) return null;
 
+  const currentNombre = formData.nombre ?? user?.nombre ?? '';
+  const currentApellido = formData.apellido ?? user?.apellido ?? '';
+  const currentDni = formData.dni ?? user?.dni ?? '';
+  const currentTelefono = formData.telefono ?? user?.telefono ?? '';
+  const currentEmail = formData.email ?? user?.email ?? '';
+  const currentDireccion = formData.direccion ?? user?.direccion ?? '';
+  const currentLocalidad =
+    formData.localidad ?? user?.localidad ?? (user?.es_residente_funes ? 'Funes' : '');
+
   const alreadyApplied = hasAppliedTo(job.id);
+  const needsIdentityCompletion =
+    !user?.nombre?.trim() || !user?.apellido?.trim() || !user?.dni?.trim();
+
+  const handleInlineFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    if (!file) {
+      setNewCvFile(null);
+      return;
+    }
+
+    const validation = validateCurriculumFile(file);
+    if (!validation.valid) {
+      setErrorMessage(validation.error || 'Archivo de CV inválido.');
+      setNewCvFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
+    setErrorMessage(null);
+    setNewCvFile(file);
+    if (!newCvName.trim()) {
+      const baseName = file.name.replace(/\.[^/.]+$/, '').replace(/[_-]+/g, ' ');
+      setNewCvName(baseName.slice(0, 60));
+    }
+  };
+
+  const handleInlineUploadCv = async () => {
+    setErrorMessage(null);
+    if (!newCvFile) {
+      setErrorMessage('Seleccioná un archivo PDF, Word o imagen para tu currículum.');
+      return;
+    }
+    if (!newCvName.trim()) {
+      setErrorMessage('Ingresá un nombre descriptivo para tu currículum.');
+      return;
+    }
+
+    try {
+      setIsUploadingCv(true);
+      const res = await uploadCurriculum({
+        file: newCvFile,
+        nombreCv: newCvName.trim(),
+        esPrincipal: curriculums.length === 0,
+      });
+
+      if (res.success && res.cv) {
+        const updatedCvs = await getActiveCurriculums(user?.id);
+        setCurriculums(updatedCvs);
+        setSelectedCvId(res.cv.id);
+        setShowInlineUpload(false);
+        setNewCvFile(null);
+        setNewCvName('');
+      } else {
+        setErrorMessage(res.message);
+      }
+    } finally {
+      setIsUploadingCv(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,22 +175,68 @@ export const JobApplyModal: React.FC<JobApplyModalProps> = ({
       return;
     }
 
-    if (!formData.nombre.trim() || !formData.apellido.trim()) {
+    const effectiveNombre = currentNombre.trim();
+    const effectiveApellido = currentApellido.trim();
+    const effectiveDni = currentDni.trim();
+    const effectiveTelefono = currentTelefono.trim();
+    const effectiveEmail = currentEmail.trim();
+    const effectiveLocalidad = currentLocalidad.trim();
+
+    if (!effectiveNombre || !effectiveApellido) {
       setErrorMessage('Por favor completá tu nombre y apellido.');
       return;
     }
-    if (!formData.dni.trim()) {
+    if (!effectiveDni) {
       setErrorMessage('Por favor ingresá tu número de DNI.');
       return;
     }
-    if (!formData.telefono.trim()) {
+    if (!effectiveTelefono) {
       setErrorMessage('Por favor ingresá un número de teléfono o WhatsApp de contacto.');
       return;
     }
-    if (!formData.email.trim() || !formData.email.includes('@')) {
+    if (!effectiveLocalidad) {
+      setErrorMessage('Por favor ingresá tu localidad de residencia.');
+      return;
+    }
+    if (!effectiveEmail || !effectiveEmail.includes('@')) {
       setErrorMessage('Por favor ingresá un correo electrónico válido.');
       return;
     }
+
+    let finalCvId = selectedCvId;
+
+    // Si el usuario tiene el formulario de subida rápida con un archivo cargado y aún no hizo clic en "Subir CV", subirlo en el acto
+    if (!finalCvId && newCvFile) {
+      setIsUploadingCv(true);
+      const uploadRes = await uploadCurriculum({
+        file: newCvFile,
+        nombreCv: newCvName.trim() || 'Currículum Principal',
+        esPrincipal: curriculums.length === 0,
+      });
+      setIsUploadingCv(false);
+
+      if (!uploadRes.success || !uploadRes.cv) {
+        setErrorMessage(
+          uploadRes.message || 'No se pudo cargar tu currículum. Intentá nuevamente.'
+        );
+        return;
+      }
+
+      finalCvId = uploadRes.cv.id;
+      const updatedCvs = await getActiveCurriculums(user?.id);
+      setCurriculums(updatedCvs);
+      setSelectedCvId(finalCvId);
+      setShowInlineUpload(false);
+      setNewCvFile(null);
+    }
+
+    if (!finalCvId) {
+      setErrorMessage(
+        'Debés seleccionar o subir un Currículum Vitae para poder postularte a esta búsqueda.'
+      );
+      return;
+    }
+
     if (!formData.aceptaTerminos) {
       setErrorMessage('Debés aceptar la declaración jurada para continuar.');
       return;
@@ -84,22 +246,29 @@ export const JobApplyModal: React.FC<JobApplyModalProps> = ({
       setIsLoading(true);
       const res = await submitJobApplication({
         jobId: job.id,
-        nombre: formData.nombre,
-        apellido: formData.apellido,
-        dni: formData.dni,
-        telefono: formData.telefono,
-        email: formData.email,
-        esResidenteFunes: formData.esResidenteFunes,
-        direccion: formData.direccion,
-        localidad: formData.localidad,
+        postulanteId: user?.id,
+        cvId: finalCvId,
+        nombre: effectiveNombre,
+        apellido: effectiveApellido,
+        dni: effectiveDni,
+        telefono: effectiveTelefono,
+        email: effectiveEmail,
+        esResidenteFunes: effectiveLocalidad.toLowerCase() === 'funes',
+        direccion: currentDireccion,
+        localidad: effectiveLocalidad,
         mensaje: formData.mensaje,
       });
 
-      if (res.success) {
+      if (res.success && res.applicationId) {
         setSubmittedAppId(res.applicationId);
         recordApplication(job.id, res.applicationId);
+        await refreshUser();
         onApplicationSuccess(res.applicationId);
       } else {
+        if (res.alreadyApplied) {
+          recordApplication(job.id, res.applicationId || job.id);
+          await refreshUser();
+        }
         setErrorMessage(res.message || 'Ocurrió un error al procesar la postulación.');
       }
     } catch {
@@ -136,16 +305,17 @@ export const JobApplyModal: React.FC<JobApplyModalProps> = ({
                 ¡Postulación Registrada!
               </h3>
               <p className="text-sm text-zinc-600 leading-relaxed max-w-sm mx-auto">
-                Tu postulación para el puesto de <strong className="text-zinc-800">{job.titulo}</strong> fue vinculada a tu perfil y recibida por la Oficina de Empleo de Funes.
+                Tu postulación para el puesto de{' '}
+                <strong className="text-zinc-800">{job.titulo}</strong> fue vinculada a tu perfil y recibida por la Oficina de Empleo de Funes.
               </p>
             </div>
 
             <div className="p-4 bg-zinc-50 border border-zinc-200 rounded-xl text-left text-xs text-zinc-700 space-y-2">
               <p className="font-semibold text-zinc-900">Próximos pasos de intermediación:</p>
               <ul className="list-disc list-inside space-y-1 text-zinc-600">
-                <li>El equipo municipal evaluará tu información laboral y antecedentes.</li>
+                <li>El equipo municipal evaluará tu información laboral y el CV adjunto.</li>
                 <li>Si tu perfil se ajusta a los requisitos solicitados por la empresa, te convocaremos para avanzar en la entrevista preliminar.</li>
-                <li>No podés postularte más de una vez a la misma oferta para mantener el orden del registro.</li>
+                <li>Podés consultar el estado en tiempo real desde la sección &ldquo;Mi Perfil&rdquo;.</li>
               </ul>
             </div>
 
@@ -207,10 +377,10 @@ export const JobApplyModal: React.FC<JobApplyModalProps> = ({
               </div>
               <div className="flex-1 truncate">
                 <span className="font-semibold block text-zinc-900">
-                  {user?.nombre} {user?.apellido} (DNI {user?.dni || 'Sin DNI'})
+                  {currentNombre} {currentApellido} (DNI {currentDni || 'Pendiente'})
                 </span>
                 <span className="text-zinc-500 truncate block">
-                  {user?.email} &bull; {user?.telefono || 'Sin teléfono'}
+                  {currentEmail} &bull; {currentTelefono || 'Sin teléfono'}
                 </span>
               </div>
             </div>
@@ -221,22 +391,172 @@ export const JobApplyModal: React.FC<JobApplyModalProps> = ({
               </div>
             )}
 
-            <div className="space-y-3.5 max-h-[50vh] overflow-y-auto pr-1">
+            <div className="space-y-4 max-h-[55vh] overflow-y-auto pr-1">
+              {needsIdentityCompletion && (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <Input
+                    label="Nombre *"
+                    placeholder="Tu nombre"
+                    value={currentNombre}
+                    onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                    required
+                  />
+                  <Input
+                    label="Apellido *"
+                    placeholder="Tu apellido"
+                    value={currentApellido}
+                    onChange={(e) => setFormData({ ...formData, apellido: e.target.value })}
+                    required
+                  />
+                  <Input
+                    label="DNI (sin puntos) *"
+                    placeholder="Ej: 35123456"
+                    value={currentDni}
+                    onChange={(e) => setFormData({ ...formData, dni: e.target.value })}
+                    required
+                  />
+                </div>
+              )}
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Input
                   label="Teléfono / WhatsApp de contacto *"
                   placeholder="Ej: 341 555-0123"
-                  value={formData.telefono}
+                  value={currentTelefono}
                   onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
                   required
                 />
                 <Input
                   label="Localidad de residencia *"
                   placeholder="Ej: Funes, Rosario, Roldán"
-                  value={formData.localidad}
+                  value={currentLocalidad}
                   onChange={(e) => setFormData({ ...formData, localidad: e.target.value })}
                   required
                 />
+              </div>
+
+              {/* Selección de Currículum Vitae o Subida en línea (Decisión 1) */}
+              <div className="p-3.5 bg-zinc-50 border border-zinc-200 rounded-xl space-y-3">
+                <div className="flex items-center justify-between gap-2">
+                  <label className="text-xs font-bold text-zinc-900 flex items-center gap-1.5">
+                    <FileText className="w-4 h-4 text-emerald-700" />
+                    Currículum Vitae para esta postulación *
+                  </label>
+                  {curriculums.length > 0 &&
+                    curriculums.length < MAX_ACTIVE_CVS &&
+                    !showInlineUpload && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowInlineUpload(true);
+                          setNewCvName('');
+                          setNewCvFile(null);
+                        }}
+                        className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 hover:text-emerald-900 cursor-pointer"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        Subir otro CV
+                      </button>
+                    )}
+                </div>
+
+                {isLoadingCvs ? (
+                  <div className="h-10 rounded-lg bg-zinc-200/70 animate-pulse" />
+                ) : (
+                  <>
+                    {curriculums.length > 0 && !showInlineUpload && (
+                      <div className="space-y-2">
+                        {curriculums.map((cv) => {
+                          const isSelected = selectedCvId === cv.id;
+                          return (
+                            <label
+                              key={cv.id}
+                              className={`flex items-center justify-between p-2.5 rounded-xl border text-xs cursor-pointer transition-colors ${
+                                isSelected
+                                  ? 'bg-emerald-50/80 border-emerald-400 text-emerald-950 font-semibold'
+                                  : 'bg-white border-zinc-200 text-zinc-700 hover:bg-zinc-100/70'
+                              }`}
+                            >
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                <input
+                                  type="radio"
+                                  name="selectedCv"
+                                  value={cv.id}
+                                  checked={isSelected}
+                                  onChange={() => setSelectedCvId(cv.id)}
+                                  className="text-emerald-700 focus:ring-emerald-600 accent-emerald-700"
+                                />
+                                <span className="truncate">{cv.nombre_cv}</span>
+                              </div>
+                              {cv.es_principal && (
+                                <Badge variant="emerald" size="sm" className="gap-1 shrink-0">
+                                  <Star className="w-2.5 h-2.5 fill-current" />
+                                  Principal
+                                </Badge>
+                              )}
+                            </label>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {(showInlineUpload || curriculums.length === 0) && (
+                      <div className="p-3 bg-white border border-zinc-200 rounded-xl space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-semibold text-zinc-800 flex items-center gap-1.5">
+                            <Upload className="w-3.5 h-3.5 text-emerald-700" />
+                            {curriculums.length === 0
+                              ? 'Subí tu CV para completar la postulación'
+                              : 'Subir un nuevo CV desde aquí'}
+                          </span>
+                          {curriculums.length > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => setShowInlineUpload(false)}
+                              className="text-[11px] text-zinc-500 hover:text-zinc-800 underline"
+                            >
+                              Usar un CV ya cargado
+                            </button>
+                          )}
+                        </div>
+
+                        <Input
+                          label="Nombre del CV *"
+                          placeholder="Ej: CV Comercial / Ventas"
+                          value={newCvName}
+                          onChange={(e) => setNewCvName(e.target.value)}
+                        />
+
+                        <div className="space-y-1">
+                          <label className="block text-xs font-medium text-zinc-700">
+                            Archivo (PDF, Word o Imagen máx. 10 MB) *
+                          </label>
+                          <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.webp"
+                            onChange={handleInlineFileChange}
+                            className="block w-full text-xs text-zinc-700 file:mr-2.5 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-emerald-100 file:text-emerald-900 hover:file:bg-emerald-200 cursor-pointer border border-zinc-200 rounded-lg bg-zinc-50 p-1"
+                          />
+                        </div>
+
+                        {curriculums.length > 0 && (
+                          <div className="flex justify-end">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              isLoading={isUploadingCv}
+                              onClick={handleInlineUploadCv}
+                            >
+                              Guardar y seleccionar este CV
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
 
               {/* Mensaje o experiencia */}
@@ -245,7 +565,7 @@ export const JobApplyModal: React.FC<JobApplyModalProps> = ({
                   Mensaje opcional para la Oficina de Empleo sobre este puesto:
                 </label>
                 <textarea
-                  rows={3}
+                  rows={2}
                   placeholder="Contanos brevemente por qué te interesa este puesto o qué experiencia afín tenés..."
                   value={formData.mensaje}
                   onChange={(e) => setFormData({ ...formData, mensaje: e.target.value })}
@@ -273,7 +593,7 @@ export const JobApplyModal: React.FC<JobApplyModalProps> = ({
             <div className="flex items-center gap-2 text-[11px] text-zinc-500 pt-1 border-t border-zinc-100">
               <ShieldCheckIcon className="w-4 h-4 text-emerald-700 shrink-0" />
               <span>
-                Intermediación pública y gratuita. Tus datos no se exponen públicamente.
+                Intermediación pública y gratuita. Se guardará una copia inmutable del CV seleccionado.
               </span>
             </div>
 
@@ -284,7 +604,7 @@ export const JobApplyModal: React.FC<JobApplyModalProps> = ({
                 variant="ghost"
                 size="md"
                 onClick={onClose}
-                disabled={isLoading}
+                disabled={isLoading || isUploadingCv}
               >
                 Cancelar
               </Button>
@@ -292,7 +612,7 @@ export const JobApplyModal: React.FC<JobApplyModalProps> = ({
                 type="submit"
                 variant="primary"
                 size="md"
-                isLoading={isLoading}
+                isLoading={isLoading || isUploadingCv}
                 className="min-w-[140px]"
               >
                 Confirmar Postulación

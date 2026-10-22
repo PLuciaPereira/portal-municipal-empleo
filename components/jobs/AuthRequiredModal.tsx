@@ -9,7 +9,6 @@ import Image from 'next/image';
 import {
   XMarkIcon,
   ShieldCheckIcon,
-  CheckCircleIcon,
 } from '@/components/ui/Icons';
 
 interface AuthRequiredModalProps {
@@ -27,7 +26,7 @@ export const AuthRequiredModal: React.FC<AuthRequiredModalProps> = ({
   jobTitle,
   jobId,
 }) => {
-  const { login, loginAsDemo, isLoading } = useAuth();
+  const { login, isLoading } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -43,17 +42,17 @@ export const AuthRequiredModal: React.FC<AuthRequiredModalProps> = ({
       return;
     }
 
+    if (!password) {
+      setError('Por favor ingresá tu contraseña.');
+      return;
+    }
+
     const res = await login(email, password);
     if (res.success) {
       onLoginSuccess();
     } else {
       setError(res.error || 'No se pudo iniciar sesión.');
     }
-  };
-
-  const handleDemoLogin = () => {
-    loginAsDemo('postulante');
-    onLoginSuccess();
   };
 
   return (
@@ -135,18 +134,6 @@ export const AuthRequiredModal: React.FC<AuthRequiredModalProps> = ({
               Iniciar Sesión y Continuar
             </Button>
           </form>
-
-          {/* Acceso con cuenta de prueba para testing rápido */}
-          <div className="pt-2 border-t border-zinc-100 space-y-2">
-            <button
-              type="button"
-              onClick={handleDemoLogin}
-              className="w-full text-center py-2 px-3 rounded-lg border border-dashed border-emerald-400 bg-emerald-50/70 text-xs font-semibold text-emerald-800 hover:bg-emerald-100 transition-colors flex items-center justify-center gap-1.5"
-            >
-              <CheckCircleIcon className="w-4 h-4 text-emerald-700" />
-              <span>Probar como Postulante Demo (Lucía Fernández)</span>
-            </button>
-          </div>
 
           {/* Enlace para registrarse si no tiene cuenta */}
           <div className="text-center pt-2 text-xs text-zinc-600 border-t border-zinc-100">

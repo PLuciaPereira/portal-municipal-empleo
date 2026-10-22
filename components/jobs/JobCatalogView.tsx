@@ -65,18 +65,29 @@ export const JobCatalogView: React.FC<JobCatalogViewProps> = ({
         const matchesDesc = job.descripcion.toLowerCase().includes(q);
         const matchesReq = job.requisitos.toLowerCase().includes(q);
         const matchesComp = job.company?.nombre_fantasia.toLowerCase().includes(q);
-        const matchesRub = job.rubro?.nombre.toLowerCase().includes(q);
+        const matchesRub =
+          job.rubro?.nombre.toLowerCase().includes(q) ||
+          (job.rubros?.some((r) => r.nombre.toLowerCase().includes(q)) ?? false);
 
         if (!matchesTitle && !matchesDesc && !matchesReq && !matchesComp && !matchesRub) {
           return false;
         }
       }
 
-      // 2. Filtro por rubro
+      // 2. Filtro por rubro (admite nombre o ID en rubro principal y ofertas_rubros)
       if (filters.rubro !== 'todos') {
-        const target = filters.rubro.toLowerCase();
+        const target = filters.rubro.toLowerCase().trim();
         const currentRubro = job.rubro?.nombre.toLowerCase() || '';
-        if (!currentRubro.includes(target) && target !== job.rubro?.id.toString()) {
+        const matchesPrimary =
+          currentRubro.includes(target) ||
+          target === job.rubro?.id.toString() ||
+          target === job.rubro_id?.toString();
+        const matchesSecondary =
+          job.rubros?.some(
+            (r) => r.nombre.toLowerCase().includes(target) || r.id.toString() === target
+          ) ?? false;
+
+        if (!matchesPrimary && !matchesSecondary) {
           return false;
         }
       }

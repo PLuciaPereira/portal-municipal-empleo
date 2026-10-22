@@ -29,11 +29,17 @@ export const JobCard: React.FC<JobCardProps> = ({ job }) => {
         {/* Encabezado y Badges */}
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex flex-wrap items-center gap-2">
-            {job.rubro && (
+            {job.rubros && job.rubros.length > 0 ? (
+              job.rubros.map((r) => (
+                <Badge key={r.id} variant="brand" size="sm">
+                  {r.nombre}
+                </Badge>
+              ))
+            ) : job.rubro ? (
               <Badge variant="brand" size="sm">
                 {job.rubro.nombre}
               </Badge>
-            )}
+            ) : null}
             <Badge variant="zinc" size="sm">
               {job.tipo_jornada}
             </Badge>
@@ -60,7 +66,7 @@ export const JobCard: React.FC<JobCardProps> = ({ job }) => {
           <p className="text-xs sm:text-sm text-muted-foreground mt-1 flex items-center gap-1.5 font-medium">
             <BuildingIcon className="w-4 h-4 text-muted-foreground shrink-0" />
             <span>{job.company?.nombre_fantasia || 'Empresa local de Funes'}</span>
-            <span className="text-muted-foreground/75 font-normal">| Oficina de Empleo</span>
+            <span className="text-muted-foreground/75 font-normal">| Prioridad residentes de Funes</span>
           </p>
         </div>
 
