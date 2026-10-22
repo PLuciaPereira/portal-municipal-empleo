@@ -419,3 +419,90 @@ export async function contratarCandidatoEmpresa(
   return { success: true };
 }
 
+
+export interface UpdateEmpresaInput {
+  nombre_fantasia?: string;
+  direccion?: string;
+  localidad?: string;
+  telefono?: string;
+  email_contacto?: string;
+  persona_contacto?: string;
+  rubro?: string | null;
+  descripcion?: string | null;
+  sitio_web?: string | null;
+}
+
+/**
+ * Actualiza los datos comerciales y de contacto de la empresa autenticada.
+ * Protege explícitamente los campos de validación fiscal y municipal:
+ * CUIT, razón social, estado, verificada y metadatos de auditoría.
+ */
+export async function updateEmpresaProfile(
+  input: UpdateEmpresaInput
+): Promise<{ success: boolean; error?: string; data?: Empresa }> {
+  const supabase = createClient();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    return { success: false, error: 'Usuario no autenticado.' };
+  }
+
+  // Verificar que la empresa pertenezca al usuario
+  const { data: currentEmpresa, error: fetchError } = await supabase
+    .from('empresas')
+    .select('id, user_id')
+    .eq('user_id', user.id)
+    .maybeSingle();
+
+  if (fetchError || !currentEmpresa) {
+    return { success: false, error: 'No se encontró la empresa asociada a tu cuenta.' };
+  }
+
+  const updatePayload: Partial<Database['public']['Tables']['empresas']['Update']> = {
+    updated_at: new Date().toISOString(),
+  };
+
+  if (input.nombre_fantasia !== undefined) {
+    updatePayload.nombre_fantasia = input.nombre_fantasia.trim();
+  }
+  if (input.direccion !== undefined) {
+    updatePayload.direccion = input.direccion.trim();
+  }
+  if (input.localidad !== undefined) {
+    updatePayload.localidad = input.localidad.trim();
+  }
+  if (input.telefono !== undefined) {
+    updatePayload.telefono = input.telefono.trim();
+  }
+  if (input.email_contacto !== undefined) {
+    updatePayload.email_contacto = input.email_contacto.trim();
+  }
+  if (input.persona_contacto !== undefined) {
+    updatePayload.persona_contacto = input.persona_contacto.trim();
+  }
+  if (input.rubro !== undefined) {
+    updatePayload.rubro = input.rubro?.trim() || null;
+  }
+  if (input.descripcion !== undefined) {
+    updatePayload.descripcion = input.descripcion?.trim() || null;
+  }
+  if (input.sitio_web !== undefined) {
+    updatePayload.sitio_web = input.sitio_web?.trim() || null;
+  }
+
+  const { data, error } = await supabase
+    .from('empresas')
+    .update(updatePayload)
+    .eq('id', currentEmpresa.id)
+    .select('*')
+    .single();
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
+
+  return { success: true, data: data as Empresa };
+}

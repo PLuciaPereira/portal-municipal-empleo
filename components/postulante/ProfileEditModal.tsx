@@ -218,11 +218,6 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
                   value={localidad}
                   onChange={(e) => setLocalidad(e.target.value)}
                   placeholder="Ej: Funes"
-                  hint={
-                    localidad.trim().toLowerCase() === 'funes'
-                      ? 'Identificado como residente de Funes'
-                      : 'Si vivís en Funes, escribí "Funes"'
-                  }
                   required
                 />
               </div>

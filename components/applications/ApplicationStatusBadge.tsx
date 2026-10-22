@@ -61,9 +61,16 @@ export const APPLICATION_STATUS_CONFIG: Record<ApplicationStatus, ApplicationSta
   },
 };
 
-export function getApplicationStatusConfig(status: ApplicationStatus): ApplicationStatusConfig {
+export function getApplicationStatusConfig(status: ApplicationStatus | string): ApplicationStatusConfig {
+  if (status === 'no_derivado') {
+    return {
+      label: 'No derivado',
+      description: 'La Oficina de Empleo no derivó esta postulación a la empresa.',
+      variant: 'amber',
+    };
+  }
   return (
-    APPLICATION_STATUS_CONFIG[status] || {
+    APPLICATION_STATUS_CONFIG[status as ApplicationStatus] || {
       label: status,
       description: '',
       variant: 'zinc',
@@ -72,7 +79,7 @@ export function getApplicationStatusConfig(status: ApplicationStatus): Applicati
 }
 
 export interface ApplicationStatusBadgeProps {
-  status: ApplicationStatus;
+  status: ApplicationStatus | string;
   size?: BadgeProps['size'];
   className?: string;
 }

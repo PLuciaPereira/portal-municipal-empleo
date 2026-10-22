@@ -126,16 +126,6 @@ export const Navbar: React.FC = () => {
                   </div>
                 </Link>
 
-                {role !== 'empresa' && (
-                  <Button
-                    href={dashboardHref}
-                    variant="outline"
-                    size="sm"
-                    className="text-xs font-semibold"
-                  >
-                    {dashboardLabel}
-                  </Button>
-                )}
 
                 <button
                   type="button"
