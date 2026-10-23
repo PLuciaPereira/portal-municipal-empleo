@@ -22,7 +22,9 @@ export const Navbar: React.FC = () => {
 
   const navLinks = [
     { label: 'Ofertas Laborales', href: '/ofertas' },
+    { label: 'Rubros', href: '/#rubros' },
     { label: 'Cómo Funciona', href: '/#como-funciona' },
+    { label: 'Cursos', href: '/#capacitaciones' },
     { label: 'Oficina de Empleo', href: '/#contacto' },
   ];
 
