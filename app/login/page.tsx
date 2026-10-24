@@ -197,7 +197,7 @@ export default function LoginPage() {
     <div className="portal-fullpage-layout relative w-full flex-1 flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] bg-[#eef5f0] px-4 py-12 sm:px-6 lg:px-8 overflow-hidden">
       {/* Marca de agua decorativa: Logo oficial de Funes de trazo fino */}
       <Image
-        src="/favicon (1).png"
+        src="/favicon-funes.png"
         alt=""
         aria-hidden="true"
         width={480}
@@ -208,7 +208,7 @@ export default function LoginPage() {
       />
 
       <Image
-        src="/favicon (1).png"
+        src="/favicon-funes.png"
         alt=""
         aria-hidden="true"
         width={320}

@@ -209,35 +209,37 @@ La búsqueda de postulantes no habilitará por sí misma el acceso de las
 empresas a la base completa. El acceso empresarial se regirá por las
 condiciones de aprobación y derivación formal establecidas en los puntos
 12 y 13.
+
 11. Proceso de selección
-El proceso general será:
-1. Una empresa crea una oferta y la envía a revisión.
-2. La oferta queda pendiente y la Oficina de Empleo la revisa.
-3. Si se aprueba, se publica; si se rechaza, se registra y comunica el
-   motivo.
-4. Los postulantes consultan la oferta y pueden postularse
-   seleccionando un CV.
-5. La Oficina de Empleo analiza las postulaciones y los requisitos del
-   puesto.
-6. Se prioriza a los residentes de Funes que cumplan con los
-   requisitos; si no hay candidatos locales adecuados, podrán
-   considerarse personas de localidades cercanas.
-7. La Oficina registra la preselección de los candidatos adecuados.
-8. La Oficina decide si corresponde realizar una entrevista o control
-   previo. Esta instancia no es obligatoria en todos los casos.
-9. La Oficina deriva formalmente a la empresa los candidatos
-   seleccionados para su evaluación.
-10. La empresa evalúa a los candidatos derivados y registra para cada
-    postulación si el resultado es Contratado o Rechazado. Todo
-    rechazo empresarial requiere un motivo.
-11. El sistema conserva el resultado, el motivo cuando corresponda y el
-    historial de las decisiones.
-12. La oferta se finaliza cuando el proceso concluye y se registra el
-    resultado correspondiente.
+    El proceso general será:
+    1. Una empresa crea una oferta y la envía a revisión.
+    2. La oferta queda pendiente y la Oficina de Empleo la revisa.
+    3. Si se aprueba, se publica; si se rechaza, se registra y comunica el
+    motivo.
+    4. Los postulantes consultan la oferta y pueden postularse
+    seleccionando un CV.
+    5. La Oficina de Empleo analiza las postulaciones y los requisitos del
+    puesto.
+    6. Se prioriza a los residentes de Funes que cumplan con los
+    requisitos; si no hay candidatos locales adecuados, podrán
+    considerarse personas de localidades cercanas.
+    7. La Oficina registra la preselección de los candidatos adecuados.
+    8. La Oficina decide si corresponde realizar una entrevista o control
+    previo. Esta instancia no es obligatoria en todos los casos.
+    9. La Oficina deriva formalmente a la empresa los candidatos
+    seleccionados para su evaluación.
+    10. La empresa evalúa a los candidatos derivados y registra para cada
+        postulación si el resultado es Contratado o Rechazado. Todo
+        rechazo empresarial requiere un motivo.
+    11. El sistema conserva el resultado, el motivo cuando corresponda y el
+        historial de las decisiones.
+    12. La oferta se finaliza cuando el proceso concluye y se registra el
+        resultado correspondiente.
 La Oficina de Empleo deberá realizar un filtro previo para evitar
 derivar perfiles que no se ajusten a los requisitos del puesto. La
 preselección, la entrevista y la derivación deberán quedar registradas
 como etapas diferenciadas.
+
 12. Intermediación entre empresas y postulantes
 La Oficina de Empleo conservará el rol de intermediación. Las empresas
 no tendrán acceso libre a toda la base de postulantes.
