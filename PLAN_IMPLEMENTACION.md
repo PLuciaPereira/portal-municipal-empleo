@@ -73,8 +73,8 @@ Sin embargo:
   - Registro empresarial con CUIT, razón social, ubicación y contacto (ingreso en estado "Pendiente").
   - Pantalla informativa de estado de cuenta (pendiente de validación o rechazada con motivo explicativo).
   - Publicación y gestión de ofertas: borrador, envío a revisión, solicitud de baja con motivo.
-  - Panel de candidatos presentados por la Oficina de Empleo (sin datos de contacto privados).
-  - Acciones sobre candidatos: aceptar o rechazar (con motivo obligatorio), y registro del candidato contratado para cierre de oferta.
+  - Panel de candidatos presentados por la Oficina de Empleo (con acceso a datos de contacto mientras la derivación esté vigente).
+  - Acciones sobre candidatos: registrar contratación o rechazo (con motivo obligatorio), revocándose el acceso a los datos de contacto al pasar a estado terminal.
 - [ ] **Portal de la Oficina de Empleo / Municipalidad (`/admin`):**
   - Panel general con indicadores clave.
   - Aprobación y rechazo de empresas con motivo.
@@ -82,8 +82,8 @@ Sin embargo:
   - Búsqueda y filtrado de postulantes aplicando prioridad para residentes de Funes.
   - Flujo de intermediación: preselección, registro de entrevistas preliminares y derivación formal a empresas.
   - Gestión de cursos de capacitación y derivación de postulantes que requieran formación.
-  - Gestión de administradores (exclusivo para Administrador Completo).
-  - Métricas y reportes estadísticos de intermediación laboral e inserción local.
+  - Gestión de administradores (entre administradores pares, con bloqueo de auto-baja).
+  - Métricas y reportes estadísticos de intermediación laboral e inserción local (sin módulo de seguimiento post-contratación).
 - [ ] **Componentes de Sistema de Diseño y Accesibilidad:**
   - `PageContainer`, `PageHeader`, `ConfirmDialog` (para acciones sensibles con motivo), `Table`, `Select`/`Combobox`, `EmptyState`.
   - Reemplazo de SVG manuales por `lucide-react`.
@@ -95,7 +95,7 @@ Sin embargo:
 
 | ID | Clasificación | Hallazgo | Impacto y Acción Requerida |
 |---|---|---|---|
-| H-01 | **CRÍTICO** | Exposición de datos personales privados de postulantes en RLS actual | La política `perfil_empresa_select_derivado` de la migración `001` otorga `SELECT` a nivel de fila completa sobre `perfil`. En PostgreSQL RLS no restringe columnas, por lo que una empresa con consultas directas podría leer DNI, teléfono y domicilio. Se requiere crear una vista segura o función RPC con `SECURITY DEFINER` que devuelva únicamente los datos laborales permitidos. |
+| H-01 | **CRÍTICO** | Exposición de datos personales privados de postulantes en RLS inicial | La política `perfil_empresa_select_derivado` de la migración `001` otorgaba `SELECT` a nivel de fila completa sin validar derivación formal vigente. Según los requerimientos oficiales (Secc. 13 y 32.26), la empresa formalmente aprobada con derivación vigente debe poder ver los datos del perfil y contacto (DNI, teléfono, email, dirección, CV) para evaluar y coordinar entrevistas, revocándose este acceso de inmediato (devolviendo NULL) al pasar a estados terminales (`contratado`, `rechazado_por_empresa`, `retirado_por_postulante`). Se implementó en las migraciones `009` y `010`. |
 | H-02 | **CRÍTICO** | Frontend 100% desconectado de Supabase | No existen dependencias `@supabase/supabase-js` ni `@supabase/ssr` en `package.json`. No hay clientes Supabase. Todo corre con `localStorage` y datos simulados. Se debe estructurar la integración base de Supabase antes de implementar paneles. |
 | H-03 | **ALTO** | Ausencia del modelo de datos para múltiples CVs | Los requerimientos exigen hasta 5 CVs activos por postulante con nombres identificatorios, archivado lógico y referencia inmutable al CV usado en cada postulación. La base actual solo tiene `perfil.cv_url TEXT`. Se debe crear la tabla `curriculums` y asociarla a `postulaciones`. |
 | H-04 | **ALTO** | Ausencia del modelo de Cursos y Capacitaciones | El requerimiento exige una tabla de cursos en base de datos y registro de derivaciones con historial. Actualmente solo existen campos de texto libre en `seguimiento`. Se debe crear la tabla `cursos` y `postulante_cursos`. |
@@ -113,7 +113,7 @@ Sin embargo:
 ## 6. Reglas generales de implementación
 
 1. **Trabajo estricto por Fases:** No se comenzará una fase sin antes haber completado y validado los criterios de aceptación de la fase anterior.
-2. **Prioridad a la intermediación y privacidad:** La base completa de postulantes nunca debe ser visible para empresas. Las empresas solo visualizan candidatos presentados por la Oficina de Empleo y sin datos de contacto privados (DNI, teléfono, dirección, correo).
+2. **Prioridad a la intermediación y privacidad condicionada:** La base completa de postulantes nunca es visible para empresas. Las empresas solo visualizan candidatos presentados formalmente por la Oficina de Empleo. Mientras la derivación se encuentre activa (`presentado_a_empresa`), la empresa accede a datos de perfil y contacto para evaluar y coordinar entrevistas (Req. 13 y 32.26). Al definirse un estado final (`contratado`, `rechazado_por_empresa`, `retirado_por_postulante`), el acceso a los datos de contacto y CV finaliza de inmediato.
 3. **Prioridad para residentes de Funes:** En todos los listados de preselección municipal y filtros de ofertas, la residencia en Funes es un criterio de prioridad visible y funcional.
 4. **Historial y Trazabilidad inmutables:** No se realiza borrado físico (`DELETE`) sobre ofertas con postulaciones, postulaciones registradas ni CVs utilizados en procesos históricos. Se utiliza borrado lógico y versionado.
 5. **Confirmación obligatoria para acciones sensibles:** Toda acción que implique eliminar, rechazar, dar de baja o desvincular debe solicitar confirmación mediante un modal (`ConfirmDialog`) y registrar el motivo correspondiente en base de datos.
@@ -503,8 +503,8 @@ Construir el centro operativo de la Oficina de Empleo: revisión y aprobación d
   - `/admin/postulantes`: Búsqueda avanzada y filtrado de la base completa de postulantes con destaque de prioridad Funes.
   - `/admin/ofertas/[id]/postulaciones`: Gestión del embudo de selección por oferta (revisión, preselección, entrevistas, derivación formal a la empresa).
   - `/admin/capacitaciones`: Catálogo de cursos y asignación de postulantes que necesitan capacitación.
-  - `/admin/administradores`: Gestión de administradores operativos (solo accesible para el Administrador Completo).
-- **NO incluye:** Estadísticas profundas y auditoría de métricas (Fase 8).
+  - `/admin/administradores`: Gestión de administradores (altas y bajas lógicas entre administradores pares, con bloqueo de auto-baja).
+- **NO incluye:** Estadísticas profundas (Fase 8). Excluye terminantemente cualquier módulo de seguimiento post-contratación según los requerimientos (Secc. 22, 26, 32.49).
 
 #### Tareas
 1. Crear el layout de administración en `app/admin/layout.tsx` con navegación institucional y verificación de rol `municipalidad` o `admin`.
@@ -532,18 +532,18 @@ Construir el centro operativo de la Oficina de Empleo: revisión y aprobación d
 7. Desarrollar `app/admin/capacitaciones/page.tsx`:
    - Alta y listado de cursos en la tabla `cursos`.
    - Asignación de postulantes a cursos con registro de motivo de derivación.
-8. Desarrollar `app/admin/administradores/page.tsx`:
-   - Verificación estricta: solo visible y operable si el usuario es Administrador Completo (`es_admin_general === true`).
-   - Alta de administradores operativos y baja de cuentas.
-   - Restricción: impedimento de darse de baja a sí mismo y de dejar al sistema sin ningún Administrador Completo.
+8. Desarrollar `app/admin/administradores/page.tsx` (o tab correspondiente):
+   - Cualquier administrador activo puede gestionar el equipo administrativo (Requerimiento 23 y 32.34-32.37).
+   - Alta de nuevos administradores y baja lógica (`deleted_at` / `activo = false`) de cuentas de administradores.
+   - Restricción inviolable: impedimento estricto de auto-baja (tanto en UI como por trigger en base de datos `check_admin_self_deactivation`).
 
 #### Archivos o áreas involucradas
 - `app/admin/*`
 - `components/admin/*` (CompaniesReviewTable, OffersReviewTable, ApplicantsFilter, SelectionFunnel, CoursesManager)
 
 #### Base de datos
-- Tablas: `perfil`, `empresas`, `ofertas`, `postulaciones`, `historial_postulacion`, `cursos`, `postulante_cursos`, `seguimiento`.
-- Políticas RLS completas para rol `admin` y `municipalidad`.
+- Tablas: `perfil`, `empresas`, `ofertas`, `postulaciones`, `historial_postulacion`, `cursos`, `postulante_cursos`.
+- Políticas RLS completas para rol `admin`.
 
 #### Dependencias
 Haber concluido las Fases 1, 2, 3, 4, 5 y 6.
@@ -556,30 +556,30 @@ La Oficina de Empleo cuenta con el control total para intermediar: revisa empres
 - El panel destaca claramente a los postulantes residentes de Funes.
 - Al derivar un candidato, este pasa a estar visible para la empresa correspondiente.
 - El rechazo de empresas u ofertas exige ingresar un motivo.
-- Solo el Administrador Completo puede gestionar otros administradores.
+- Cualquier administrador activo puede gestionar el equipo sin auto-desactivarse.
 
 #### Pruebas
 - Flujo completo de aprobación de empresa y oferta.
 - Postular un usuario de Funes y uno de otra localidad; verificar el orden de prioridad visual.
 - Derivar un postulante a la empresa y verificar que aparezca en el panel de dicha empresa.
-- Probar que un administrador operativo no pueda acceder a `/admin/administradores`.
+- Probar que un administrador no pueda desactivarse a sí mismo.
 
 #### Riesgos y consideraciones
 - Asegurar que las notas confidenciales de la Oficina de Empleo (`notas_oficina_empleo`) nunca se transmitan a los componentes del portal de empresas.
 
 ---
 
-### FASE 8 — Estadísticas, Seguimiento y Trazabilidad Histórica
+### FASE 8 — Estadísticas de Gestión Laboral y Trazabilidad Histórica
 
 #### Objetivo
-Implementar el módulo de estadísticas e indicadores de gestión laboral para la Municipalidad, y blindar la trazabilidad histórica de todas las entidades del sistema.
+Implementar el módulo de estadísticas e indicadores de intermediación laboral para la Municipalidad (basado exclusivamente en los registros de postulantes, ofertas, derivaciones, contrataciones y cursos), y blindar la trazabilidad histórica de todas las entidades del sistema sin incorporar módulos de seguimiento post-contratación.
 
 #### Alcance
-- **Incluye:** Página `/admin/estadisticas`. Consultas y métricas agregadas en tiempo real. Registro de seguimiento posterior a la contratación (`seguimiento`). Verificación de que no existan borrados en cascada que destruyan datos históricos de ofertas, postulaciones o CVs.
-- **NO incluye:** Nuevos flujos transaccionales.
+- **Incluye:** Página `/admin/estadisticas` (o pestaña integrada). Consultas y métricas agregadas en tiempo real conforme al Requerimiento 28. Verificación de que no existan borrados en cascada que destruyan datos históricos de ofertas, postulaciones o CVs.
+- **NO incluye:** Módulo de seguimiento posterior a la contratación (excluido expresamente por los Requerimientos 22, 26, 27, 28 y 32.49, por ser un control interno fuera del portal).
 
 #### Tareas
-1. Desarrollar `app/admin/estadisticas/page.tsx`:
+1. Desarrollar `app/admin/estadisticas/page.tsx` (o tab correspondiente):
    - Cantidad total de postulantes registrados (residentes de Funes vs otras localidades).
    - Cantidad de ofertas laborales creadas, aprobadas y finalizadas.
    - Cantidad total de postulaciones procesadas.
@@ -587,21 +587,17 @@ Implementar el módulo de estadísticas e indicadores de gestión laboral para l
    - Cantidad de contrataciones efectivas registradas en el portal.
    - Cantidad de postulantes derivados a cursos de capacitación.
    - Distribución de ofertas y contrataciones por rubro o sector laboral.
-2. Desarrollar `app/admin/seguimiento/page.tsx`:
-   - Registro de seguimiento post-contratación sobre personas que consiguieron empleo.
-   - Detección y registro de necesidades de capacitación en el puesto.
-3. Auditoría de integridad referencial:
+2. Auditoría de integridad referencial:
    - Verificar que al dar de baja una oferta, las postulaciones e historial queden intactos.
    - Verificar que al archivar un CV, las postulaciones sigan referenciando el registro archivado sin inconsistencias.
 
 #### Archivos o áreas involucradas
 - `app/admin/estadisticas/page.tsx`
-- `app/admin/seguimiento/page.tsx`
 - `lib/stats.ts`
 - `components/admin/StatsCharts.tsx`
 
 #### Base de datos
-- Consultas agregadas sobre `perfil`, `ofertas`, `postulaciones`, `seguimiento`, `cursos`.
+- Consultas agregadas sobre `perfil`, `ofertas`, `postulaciones`, `cursos`.
 
 #### Dependencias
 Haber concluido las Fases 1 a 7.
@@ -802,13 +798,13 @@ El desarrollo sigue un orden estrictamente dependiente de la arquitectura y la l
 ## 9. Checklist general
 
 - [x] **Fase 1** — Infraestructura Base, Supabase Client y Dependencias de UI
-- [ ] **Fase 2** — Extensión del Modelo de Datos (Migración 002) y Tipos
-- [ ] **Fase 3** — Autenticación Real, Sesiones y Middleware de Roles
-- [ ] **Fase 4** — Catálogo Público y Ficha de Ofertas Conectado a Supabase
-- [ ] **Fase 5** — Área de Postulante: Perfil, Múltiples CVs y Postulaciones
-- [ ] **Fase 6** — Área de Empresa: Registro, Gestión de Ofertas y Candidatos
+- [x] **Fase 2** — Extensión del Modelo de Datos (Migración 002) y Tipos
+- [x] **Fase 3** — Autenticación Real, Sesiones y Middleware de Roles
+- [x] **Fase 4** — Catálogo Público y Ficha de Ofertas Conectado a Supabase
+- [x] **Fase 5** — Área de Postulante: Perfil, Múltiples CVs y Postulaciones
+- [x] **Fase 6** — Área de Empresa: Registro, Gestión de Ofertas y Candidatos
 - [ ] **Fase 7** — Área de Oficina de Empleo / Municipalidad: Intermediación y Gestión
-- [ ] **Fase 8** — Estadísticas, Seguimiento y Trazabilidad Histórica
+- [ ] **Fase 8** — Estadísticas de Gestión Laboral y Trazabilidad Histórica
 - [ ] **Fase 9** — Blindaje de UI/UX, Accesibilidad, Responsive y Confirmaciones Sensibles
 - [ ] **Fase 10** — Pruebas Integrales, Optimización y Preparación para Producción
 
@@ -816,9 +812,11 @@ El desarrollo sigue un orden estrictamente dependiente de la arquitectura y la l
 
 ## 10. Estado de avance
 
-- **Fase actual:** Fase 1 (Completada).
-- **Estado:** Finalizada con éxito. Lista para avanzar a Fase 2 a requerimiento del usuario.
-- **Fecha de inicio:** 2026-10-07.
-- **Fecha de finalización:** 2026-10-07.
-- **Observaciones:** Dependencias instaladas (`@supabase/supabase-js`, `@supabase/ssr`, `lucide-react`). Clientes de Supabase para navegador y servidor creados en `lib/supabase/`. Componentes base de UI y Layout creados (`ConfirmDialog`, `EmptyState`, `PageContainer`, `PageHeader`). Botones, badges e iconografía estandarizados con tokens del Design System y Lucide. Compilación TypeScript y linting validados con 0 errores.
+- **Fase actual:** Fase 6 (Completada). Lista para iniciar la Fase 7.
+- **Estado:** Fases 1 a 6 finalizadas y verificadas con `npm run build` (0 errores). Plan alineado estrictamente con el Documento de Requerimientos de Funes.
+- **Fecha de última auditoría:** 2026-10-23.
+- **Observaciones:** 
+  - La Fase 6 implementó el portal integral de empresas: validación institucional, CRUD de ofertas con solicitud de baja y motivo, visualización segura de candidatos formalmente derivados con acceso condicional y revocación inmediata al contratarse o rechazarse vía RPC `responder_candidato_empresa()`.
+  - Se subsanaron las discrepancias del plan de implementación respecto al rol de administradores pares (sin superadmin), la eliminación del módulo de seguimiento post-contratación y la privacidad condicionada a la vigencia de la derivación.
+  - La base de datos y migraciones (000 a 010) se encuentran listas y compatibles para construir el centro operativo municipal de la Fase 7.
 
