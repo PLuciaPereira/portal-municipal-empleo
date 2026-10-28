@@ -8,17 +8,12 @@ import { Input } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/ui/EmptyState';
 import {
-  Users,
   Search,
   Eye,
   MapPin,
   GraduationCap,
-  Briefcase,
   FileText,
   Phone,
-  Mail,
-  Filter,
-  CheckCircle2,
 } from 'lucide-react';
 
 interface ApplicantsTableProps {
@@ -30,7 +25,6 @@ interface ApplicantsTableProps {
 export function ApplicantsTable({
   postulantes,
   loading,
-  onRefresh,
 }: ApplicantsTableProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLocalidad, setSelectedLocalidad] = useState<string>('todas');

@@ -1,16 +1,11 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
-import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import {
-  BuildingIcon,
   ShieldCheckIcon,
   ClockIcon,
-  BriefcaseIcon,
-  UsersIcon,
   PlusIcon,
   CheckCircleIcon,
 } from '@/components/ui/Icons';
@@ -30,7 +25,6 @@ import {
   Users,
   Edit3,
   Check,
-  AlertCircle,
   ExternalLink,
   Phone,
   Mail,
@@ -92,11 +86,6 @@ export default function EmpresaDashboardPage() {
     [isAprobada]
   );
 
-  useEffect(() => {
-    if (authEmpresa) {
-      setEmpresaData(authEmpresa);
-    }
-  }, [authEmpresa]);
 
   useEffect(() => {
     if (!isAprobada) return;

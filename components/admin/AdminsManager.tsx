@@ -25,7 +25,6 @@ import {
   RefreshCw,
   Calendar,
   UserCheck,
-  ShieldAlert,
   Pencil,
 } from 'lucide-react';
 
@@ -68,7 +67,15 @@ export function AdminsManager() {
   }, [filtroEstado, search]);
 
   useEffect(() => {
-    void loadAdmins();
+    let isMounted = true;
+    const init = async () => {
+      if (!isMounted) return;
+      await loadAdmins();
+    };
+    void init();
+    return () => {
+      isMounted = false;
+    };
   }, [loadAdmins]);
 
   // Manejo de Desactivación (Baja Lógica)

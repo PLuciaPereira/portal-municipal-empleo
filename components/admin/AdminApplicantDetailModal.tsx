@@ -3,28 +3,22 @@
 import React, { useState } from 'react';
 import { PostulanteAdminItem, getCurriculumSignedUrlAdmin } from '@/lib/admin';
 import { Button } from '@/components/ui/Button';
+import { Perfil } from '@/types/database';
 import { Badge } from '@/components/ui/Badge';
 import {
   X,
-  User,
   MapPin,
   Phone,
-  Mail,
-  GraduationCap,
   Briefcase,
-  Clock,
-  Car,
   FileText,
   Download,
-  ExternalLink,
-  Star,
   CheckCircle2,
   Calendar,
   AlertCircle,
 } from 'lucide-react';
 
 interface AdminApplicantDetailModalProps {
-  postulante: PostulanteAdminItem | null;
+  postulante: (Partial<PostulanteAdminItem> & Pick<Perfil, 'id' | 'nombre'>) | null;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -84,7 +78,7 @@ export function AdminApplicantDetailModal({
               </div>
               <span className="text-xs text-zinc-500 font-medium">
                 DNI: <strong className="text-zinc-800">{postulante.dni || 'No registrado'}</strong> · Registrado el{' '}
-                {new Date(postulante.created_at).toLocaleDateString('es-AR')}
+                {postulante.created_at ? new Date(postulante.created_at).toLocaleDateString('es-AR') : 'Reciente'}
               </span>
             </div>
           </div>

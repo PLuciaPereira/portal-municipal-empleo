@@ -4,12 +4,13 @@ import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   OfertaAdminItem,
   PostulacionAdminItem,
+  PostulanteAdminItem,
   getPostulacionesPorOfertaAdmin,
   cambiarEstadoPostulacionAdmin,
   getCurriculumSignedUrlAdmin,
 } from '@/lib/admin';
-import { ApplicationStatus } from '@/types/database';
 import { ApplicationStatusBadge } from '@/components/applications/ApplicationStatusBadge';
+import { Perfil } from '@/types/database';
 import { AdminApplicantDetailModal } from './AdminApplicantDetailModal';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Button } from '@/components/ui/Button';
@@ -22,22 +23,17 @@ import {
   Briefcase,
   Users,
   Search,
-  Filter,
   CheckCircle2,
   XCircle,
   Clock,
   Eye,
   Send,
-  FileText,
   MapPin,
   Calendar,
   Phone,
-  HelpCircle,
-  MessageSquare,
   AlertCircle,
   Check,
   Download,
-  Info,
 } from 'lucide-react';
 
 interface IntermediationFunnelProps {
@@ -63,7 +59,7 @@ export function IntermediationFunnel({
   const [searchTerm, setSearchTerm] = useState('');
 
   // Modales
-  const [selectedPostulanteModal, setSelectedPostulanteModal] = useState<any | null>(null);
+  const [selectedPostulanteModal, setSelectedPostulanteModal] = useState<(Partial<PostulanteAdminItem> & Pick<Perfil, 'id' | 'nombre'>) | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
   // Diálogos de acción
@@ -88,7 +84,15 @@ export function IntermediationFunnel({
   }, [oferta.id]);
 
   useEffect(() => {
-    void loadData();
+    let isMounted = true;
+    const fetchFunnelData = async () => {
+      if (!isMounted) return;
+      await loadData();
+    };
+    void fetchFunnelData();
+    return () => {
+      isMounted = false;
+    };
   }, [loadData]);
 
   // Localidades únicas presentes en los postulantes inscritos a esta oferta

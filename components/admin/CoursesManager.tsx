@@ -33,7 +33,6 @@ import {
   AlertCircle,
   FileText,
   Calendar,
-  ExternalLink,
 } from 'lucide-react';
 
 const ESTADOS_ASIGNACION_CONFIG: Record<
@@ -116,12 +115,16 @@ export function CoursesManager() {
   }, [filtroCursoAsignacion, filtroEstadoAsignacion, searchAsignacion]);
 
   useEffect(() => {
-    void loadCursos();
-  }, [loadCursos]);
-
-  useEffect(() => {
-    void loadAsignaciones();
-  }, [loadAsignaciones]);
+    let isMounted = true;
+    const init = async () => {
+      if (!isMounted) return;
+      await Promise.all([loadCursos(), loadAsignaciones()]);
+    };
+    void init();
+    return () => {
+      isMounted = false;
+    };
+  }, [loadCursos, loadAsignaciones]);
 
   // Manejo de Creación / Edición
   const handleSaveCurso = async (datos: {

@@ -9,7 +9,6 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { Badge } from '@/components/ui/Badge';
 import {
   Briefcase,
   Search,
@@ -17,8 +16,6 @@ import {
   XCircle,
   Eye,
   Clock,
-  MapPin,
-  Building2,
   AlertCircle,
   Check,
   Star,

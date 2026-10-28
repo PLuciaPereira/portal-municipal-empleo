@@ -1,20 +1,14 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '@/context/AuthContext';
-import { Card, CardContent } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
 import {
   ShieldCheck,
   Building2,
   Users,
   Briefcase,
-  Layers,
   GraduationCap,
   UserCog,
   RefreshCw,
-  Clock,
-  Sparkles,
   Check,
 } from 'lucide-react';
 import { Empresa } from '@/types/database';
@@ -37,7 +31,6 @@ import { AdminsManager } from '@/components/admin/AdminsManager';
 type AdminTab = 'ofertas' | 'empresas' | 'postulantes' | 'capacitaciones' | 'administradores';
 
 export default function AdminDashboardPage() {
-  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<AdminTab>('ofertas');
   const [selectedOfertaFunnelId, setSelectedOfertaFunnelId] = useState<string | null>(null);
 
@@ -98,10 +91,20 @@ export default function AdminDashboardPage() {
   }, []);
 
   useEffect(() => {
-    void loadCounts();
-    void loadEmpresas();
-    void loadOfertas();
-    void loadPostulantes();
+    let isMounted = true;
+    const init = async () => {
+      if (!isMounted) return;
+      await Promise.all([
+        loadCounts(),
+        loadEmpresas(),
+        loadOfertas(),
+        loadPostulantes(),
+      ]);
+    };
+    void init();
+    return () => {
+      isMounted = false;
+    };
   }, [loadCounts, loadEmpresas, loadOfertas, loadPostulantes]);
 
   const handleRefreshAll = () => {

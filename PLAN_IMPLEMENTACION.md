@@ -803,7 +803,7 @@ El desarrollo sigue un orden estrictamente dependiente de la arquitectura y la l
 - [x] **Fase 4** — Catálogo Público y Ficha de Ofertas Conectado a Supabase
 - [x] **Fase 5** — Área de Postulante: Perfil, Múltiples CVs y Postulaciones
 - [x] **Fase 6** — Área de Empresa: Registro, Gestión de Ofertas y Candidatos
-- [ ] **Fase 7** — Área de Oficina de Empleo / Municipalidad: Intermediación y Gestión
+- [x] **Fase 7** — Área de Oficina de Empleo / Municipalidad: Intermediación y Gestión
 - [ ] **Fase 8** — Estadísticas de Gestión Laboral y Trazabilidad Histórica
 - [ ] **Fase 9** — Blindaje de UI/UX, Accesibilidad, Responsive y Confirmaciones Sensibles
 - [ ] **Fase 10** — Pruebas Integrales, Optimización y Preparación para Producción
@@ -812,11 +812,17 @@ El desarrollo sigue un orden estrictamente dependiente de la arquitectura y la l
 
 ## 10. Estado de avance
 
-- **Fase actual:** Fase 6 (Completada). Lista para iniciar la Fase 7.
-- **Estado:** Fases 1 a 6 finalizadas y verificadas con `npm run build` (0 errores). Plan alineado estrictamente con el Documento de Requerimientos de Funes.
-- **Fecha de última auditoría:** 2026-10-23.
+- **Fase actual:** Fase 7 (Completada). Lista para iniciar la Fase 8.
+- **Estado:** Fases 1 a 7 finalizadas, auditadas exhaustivamente y verificadas con `npm run build` (0 errores) y `npm run lint` (0 errores, 0 warnings).
+- **Fecha de última auditoría:** 2026-10-27.
 - **Observaciones:** 
-  - La Fase 6 implementó el portal integral de empresas: validación institucional, CRUD de ofertas con solicitud de baja y motivo, visualización segura de candidatos formalmente derivados con acceso condicional y revocación inmediata al contratarse o rechazarse vía RPC `responder_candidato_empresa()`.
-  - Se subsanaron las discrepancias del plan de implementación respecto al rol de administradores pares (sin superadmin), la eliminación del módulo de seguimiento post-contratación y la privacidad condicionada a la vigencia de la derivación.
-  - La base de datos y migraciones (000 a 010) se encuentran listas y compatibles para construir el centro operativo municipal de la Fase 7.
+  - La Fase 7 implementó el centro operativo integral de la Oficina de Empleo / Municipalidad (`/admin`):
+    - Revisión y aprobación/rechazo de empresas registradas con motivo obligatorio y visualización amigable para la empresa.
+    - Revisión, aprobación/publicación y baja de ofertas laborales con motivo explicativo.
+    - Preselección con prioridad automática y destacada para residentes de Funes.
+    - Embudo de selección e intermediación formal, registro confidencial de entrevistas preliminares y derivación formal a empresas.
+    - Gestión del catálogo de cursos de capacitación y derivación de postulantes que requieran formación laboral.
+    - Gestión de administradores municipales pares con bloqueo estricto en BD y UI contra la auto-desactivación.
+  - Se subsanaron todas las condiciones de auditoría técnica (cero errores en React 19 / ESLint 9).
+  - El sistema se encuentra completamente listo para el desarrollo de la Fase 8 (Estadísticas de Gestión Laboral y Trazabilidad Histórica).
 

@@ -9,14 +9,12 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { EmptyState } from '@/components/ui/EmptyState';
 import {
-  Building2,
   Search,
   CheckCircle2,
   XCircle,
   Eye,
   Clock,
   MapPin,
-  Phone,
   Mail,
   AlertCircle,
   Check,

@@ -12,10 +12,8 @@ import {
   Mail,
   User,
   Globe,
-  FileText,
   AlertTriangle,
   CheckCircle2,
-  Calendar,
   ShieldAlert,
 } from 'lucide-react';
 

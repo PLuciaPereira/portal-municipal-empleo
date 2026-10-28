@@ -1,10 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import {
-  User,
   X,
   Phone,
   CreditCard,
@@ -35,6 +34,7 @@ export function AdminEditModal({
   admin,
   onSave,
 }: AdminEditModalProps) {
+  const [prevAdminId, setPrevAdminId] = useState<string | null>(null);
   const [nombre, setNombre] = useState('');
   const [apellido, setApellido] = useState('');
   const [dni, setDni] = useState('');
@@ -43,15 +43,14 @@ export function AdminEditModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (admin) {
-      setNombre(admin.nombre || '');
-      setApellido(admin.apellido || '');
-      setDni(admin.dni || '');
-      setTelefono(admin.telefono || '');
-      setError(null);
-    }
-  }, [admin, isOpen]);
+  if (admin && admin.id !== prevAdminId) {
+    setPrevAdminId(admin.id);
+    setNombre(admin.nombre || '');
+    setApellido(admin.apellido || '');
+    setDni(admin.dni || '');
+    setTelefono(admin.telefono || '');
+    setError(null);
+  }
 
   if (!isOpen || !admin) return null;
 

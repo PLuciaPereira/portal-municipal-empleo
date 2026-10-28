@@ -10,7 +10,6 @@ import {
   X,
   Search,
   MapPin,
-  GraduationCap,
   AlertCircle,
   Loader2,
   Check,
@@ -36,9 +35,9 @@ export function CourseAssignModal({
   onClose,
   onAssign,
 }: CourseAssignModalProps) {
-  const [cursoSeleccionadoId, setCursoSeleccionadoId] = useState<string>(
-    cursoInicial?.id || cursosDisponibles[0]?.id || ''
-  );
+  const [customCursoId, setCustomCursoId] = useState<string | null>(null);
+  const cursoSeleccionadoId = customCursoId ?? (cursoInicial?.id || cursosDisponibles[0]?.id || '');
+  const setCursoSeleccionadoId = (id: string) => setCustomCursoId(id);
 
   // Búsqueda de postulante
   const [searchPostulante, setSearchPostulante] = useState('');
@@ -50,15 +49,6 @@ export function CourseAssignModal({
   const [observaciones, setObservaciones] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Sincronizar curso al abrir modal
-  useEffect(() => {
-    if (cursoInicial?.id) {
-      setCursoSeleccionadoId(cursoInicial.id);
-    } else if (cursosDisponibles.length > 0 && !cursoSeleccionadoId) {
-      setCursoSeleccionadoId(cursosDisponibles[0].id);
-    }
-  }, [cursoInicial, cursosDisponibles, cursoSeleccionadoId]);
 
   // Cargar postulantes iniciales
   useEffect(() => {
