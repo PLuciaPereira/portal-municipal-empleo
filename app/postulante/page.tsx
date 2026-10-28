@@ -30,7 +30,7 @@ import {
   User,
   Inbox,
   Award,
-  Sparkles,
+  Sparkles, Calendar, Camera,
 } from 'lucide-react';
 
 type TabKey = 'perfil' | 'postulaciones' | 'cursos';
@@ -54,8 +54,32 @@ export default function PostulanteDashboardPage() {
   const [applications, setApplications] = useState<PostulacionConDetalle[]>([]);
   const [courses, setCourses] = useState<PostulanteCurso[]>([]);
   const [availableRubros, setAvailableRubros] = useState<Rubro[]>([]);
+  const [ofertasSugeridas, setOfertasSugeridas] = useState<any[]>([]);
   const [isLoadingData, setIsLoadingData] = useState<boolean>(true);
   const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
+
+  const handleDirectAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user?.id) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      alert('La foto de perfil no debe superar los 2MB.');
+      return;
+    }
+
+    try {
+      const { uploadAvatarPostulante } = await import('@/lib/postulante');
+      const res = await uploadAvatarPostulante(user.id, file);
+      if (res.error) {
+        alert(res.error);
+      } else {
+        await refreshUser();
+        await loadDashboardData(user.id);
+      }
+    } catch {
+      alert('Error al subir la imagen.');
+    }
+  };
 
   const loadDashboardData = useCallback(async (userId: string) => {
     setIsLoadingData(true);
@@ -120,6 +144,12 @@ export default function PostulanteDashboardPage() {
     !displayProfile?.nivel_educativo?.trim();
 
   const initialLetter = displayProfile?.nombre?.charAt(0).toUpperCase() || 'P';
+  
+  // Detectar entrevistas activas agendadas
+  const upcomingInterviews = applications.filter(
+    (app) => app.estado === 'entrevista' && (app as any).fecha_entrevista
+  );
+
   const activeApplicationsCount = applications.filter(
     (app) => app.estado !== 'retirado_por_postulante'
   ).length;
@@ -139,12 +169,27 @@ export default function PostulanteDashboardPage() {
                   Postulante Activo
                 </span>
               </div>
-              <h1 className="mt-2 text-3xl sm:text-4xl font-extrabold tracking-tight leading-tight font-display text-white">
-                Mi Portal de Postulante
-              </h1>
-              <p className="mt-2 text-[#D6EADD] text-sm sm:text-base leading-relaxed max-w-[620px]">
-                Gestioná tu perfil laboral, administrá tus currículums vitae y hacé el seguimiento continuo de tus postulaciones ante la Oficina de Empleo de Funes.
-              </p>
+              <div className="mt-3 flex items-center gap-4">
+                {displayProfile?.avatar_url ? (
+                  <img
+                    src={displayProfile.avatar_url}
+                    alt={displayProfile.nombre}
+                    className="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover border-2 border-white/20 shadow-md shrink-0"
+                  />
+                ) : (
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white/10 border-2 border-white/20 text-white flex items-center justify-center font-extrabold text-2xl shrink-0 shadow-md">
+                    {initialLetter}
+                  </div>
+                )}
+                <div>
+                  <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight leading-tight font-display text-white">
+                    {displayProfile?.nombre ? `Hola, ${displayProfile.nombre}` : 'Mi Portal de Postulante'}
+                  </h1>
+                  <p className="mt-1 text-[#D6EADD] text-xs sm:text-sm leading-relaxed max-w-[550px]">
+                    Gestioná tu perfil laboral, administrá tus currículums vitae y hacé el seguimiento continuo de tus postulaciones.
+                  </p>
+                </div>
+              </div>
             </div>
 
             <div className="shrink-0 flex items-center gap-3">
@@ -231,7 +276,44 @@ export default function PostulanteDashboardPage() {
       </div>
 
       {/* 3. Contenedor de Contenido Principal */}
-      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-8">
+      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-8 space-y-6">
+
+        {/* Banner de entrevistas agendadas */}
+        {upcomingInterviews.length > 0 && (
+          <div className="p-4 sm:p-5 bg-brand-50 border border-brand-200 rounded-2xl shadow-xs space-y-3">
+            <div className="flex items-center gap-2 text-brand-900 font-bold text-sm sm:text-base">
+              <Calendar className="w-5 h-5 text-brand-700 shrink-0" />
+              <span>¡Tenés {upcomingInterviews.length === 1 ? 'una entrevista laboral agendada' : `${upcomingInterviews.length} entrevistas agendadas`}!</span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {upcomingInterviews.map((app) => (
+                <div key={app.id} className="p-3 bg-white rounded-xl border border-brand-100 text-xs text-zinc-700 space-y-1">
+                  <div className="font-bold text-zinc-900 text-sm">
+                    {app.oferta?.titulo || 'Entrevista Laboral'}
+                  </div>
+                  <div className="text-zinc-600">
+                    Empresa: <strong>{app.oferta?.empresa?.nombre_fantasia || app.oferta?.empresa?.razon_social || 'Empresa solicitante'}</strong>
+                  </div>
+                  <div className="text-brand-700 font-semibold flex items-center gap-1.5 pt-1">
+                    <Clock className="w-3.5 h-3.5" />
+                    <span>
+                      {new Date((app as any).fecha_entrevista).toLocaleString('es-AR', {
+                        dateStyle: 'medium',
+                        timeStyle: 'short',
+                      })} hs
+                    </span>
+                    <span className="capitalize">({(app as any).modalidad_entrevista || 'Presencial'})</span>
+                  </div>
+                  {(app as any).lugar_entrevista && (
+                    <div className="text-zinc-500 text-[11px] pt-0.5">
+                      Lugar/Link: {(app as any).lugar_entrevista}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         
         {/* Aviso de perfil incompleto */}
         {!isLoadingData && isProfileIncomplete && (
@@ -281,8 +363,30 @@ export default function PostulanteDashboardPage() {
                     </button>
                   )}
 
-                  <div className="w-20 h-20 mx-auto rounded-full bg-[#DDEFE3] text-[#0A3D2A] flex items-center justify-center font-extrabold text-3xl font-display shadow-xs border-2 border-white">
-                    {initialLetter}
+                  <div className="relative w-24 h-24 mx-auto group">
+                    {displayProfile?.avatar_url ? (
+                      <img
+                        src={displayProfile.avatar_url}
+                        alt={displayProfile.nombre}
+                        className="w-24 h-24 rounded-full object-cover shadow-sm border-2 border-white"
+                      />
+                    ) : (
+                      <div className="w-24 h-24 rounded-full bg-[#DDEFE3] text-[#0A3D2A] flex items-center justify-center font-extrabold text-3xl font-display shadow-sm border-2 border-white">
+                        {initialLetter}
+                      </div>
+                    )}
+                    <label
+                      title="Subir o cambiar foto de perfil directamente"
+                      className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-brand-700 text-white flex items-center justify-center shadow-md hover:bg-brand-800 transition-transform active:scale-95 border-2 border-white cursor-pointer"
+                    >
+                      <Camera className="w-4 h-4" />
+                      <input
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp"
+                        className="hidden"
+                        onChange={handleDirectAvatarUpload}
+                      />
+                    </label>
                   </div>
 
                   <h3 className="mt-3 font-extrabold text-xl leading-tight text-zinc-900 font-display">

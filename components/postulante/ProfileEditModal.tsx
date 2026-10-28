@@ -5,11 +5,14 @@ import { Rubro } from '@/types/database';
 import {
   PostulanteProfileFull,
   updatePostulanteProfile,
+  uploadAvatarPostulante,
+  removeAvatarPostulante,
 } from '@/lib/postulante';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Checkbox } from '@/components/ui/Checkbox';
 import { XMarkIcon } from '@/components/ui/Icons';
+import { Camera, Trash2, User } from 'lucide-react';
 
 export interface ProfileEditModalProps {
   isOpen: boolean;
@@ -58,6 +61,10 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
   const [apellido, setApellido] = useState(profile.apellido || '');
   const [dni, setDni] = useState(profile.dni || '');
   const [telefono, setTelefono] = useState(profile.telefono || '');
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(profile.avatar_url || null);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(profile.avatar_url || null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [fechaNacimiento, setFechaNacimiento] = useState(
     profile.fecha_nacimiento ? profile.fecha_nacimiento.slice(0, 10) : ''
   );
@@ -96,6 +103,35 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
     );
   };
 
+  
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      setErrorMsg('La foto de perfil no debe superar los 2MB.');
+      return;
+    }
+
+    setAvatarFile(file);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setAvatarPreview(event.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveAvatar = async () => {
+    if (confirm('¿Querés eliminar tu foto de perfil?')) {
+      setUploadingAvatar(true);
+      await removeAvatarPostulante(profile.id);
+      setAvatarUrl(null);
+      setAvatarFile(null);
+      setAvatarPreview(null);
+      setUploadingAvatar(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
@@ -107,6 +143,20 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
 
     try {
       setIsSaving(true);
+
+      // Subir foto de perfil si fue seleccionada
+      if (avatarFile) {
+        setUploadingAvatar(true);
+        const upRes = await uploadAvatarPostulante(profile.id, avatarFile);
+        if (upRes.error) {
+          setErrorMsg(upRes.error);
+          setIsSaving(false);
+          setUploadingAvatar(false);
+          return;
+        }
+        setUploadingAvatar(false);
+      }
+
       const res = await updatePostulanteProfile({
         nombre,
         apellido,
@@ -172,6 +222,54 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="max-h-[65vh] overflow-y-auto pr-1 space-y-5">
+            {/* Foto de Perfil */}
+            <div className="p-4 bg-emerald-50/60 rounded-2xl border border-emerald-100 flex flex-col sm:flex-row items-center gap-4">
+              <div className="relative shrink-0">
+                {avatarPreview ? (
+                  <img
+                    src={avatarPreview}
+                    alt={nombre || 'Postulante'}
+                    className="w-20 h-20 rounded-full object-cover border-2 border-emerald-300 shadow-sm"
+                  />
+                ) : (
+                  <div className="w-20 h-20 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-2xl border-2 border-emerald-200 shadow-sm">
+                    {nombre ? nombre.charAt(0).toUpperCase() : <User className="w-8 h-8" />}
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-1.5 text-center sm:text-left flex-1">
+                <h4 className="text-xs font-bold text-zinc-900">Foto de Perfil</h4>
+                <p className="text-[11px] text-zinc-500 leading-relaxed">
+                  Subí una foto clara y profesional (JPG, PNG o WebP, máx. 2MB). Esta imagen se compartirá cuando seas presentado a una oferta.
+                </p>
+                <div className="flex items-center gap-2 pt-1 justify-center sm:justify-start">
+                  <label className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-700 text-white rounded-xl text-xs font-semibold hover:bg-emerald-800 transition-colors shadow-2xs">
+                    <Camera className="w-3.5 h-3.5" />
+                    <span>{avatarPreview ? 'Cambiar foto' : 'Subir foto'}</span>
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp"
+                      className="hidden"
+                      onChange={handleAvatarChange}
+                      disabled={isSaving || uploadingAvatar}
+                    />
+                  </label>
+                  {avatarPreview && (
+                    <button
+                      type="button"
+                      onClick={handleRemoveAvatar}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 text-rose-700 rounded-xl text-xs font-semibold hover:bg-rose-100 transition-colors"
+                      disabled={isSaving || uploadingAvatar}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Eliminar</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+
             {/* Sección 1: Datos Personales y Contacto */}
             <div className="space-y-3">
               <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-800 border-b border-zinc-100 pb-1.5">

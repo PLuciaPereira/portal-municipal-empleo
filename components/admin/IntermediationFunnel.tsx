@@ -12,6 +12,8 @@ import {
 import { ApplicationStatusBadge } from '@/components/applications/ApplicationStatusBadge';
 import { Perfil } from '@/types/database';
 import { AdminApplicantDetailModal } from './AdminApplicantDetailModal';
+import { ScheduleInterviewModal } from './ScheduleInterviewModal';
+import { coordinarEntrevistaAdmin } from '@/lib/admin';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -66,6 +68,7 @@ export function IntermediationFunnel({
   const [targetPostulacion, setTargetPostulacion] = useState<PostulacionAdminItem | null>(null);
   const [isDeriveDialogOpen, setIsDeriveDialogOpen] = useState(false);
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
+  const [isScheduleInterviewOpen, setIsScheduleInterviewOpen] = useState(false);
   const [isInterviewDialogOpen, setIsInterviewDialogOpen] = useState(false);
   const [interviewNotes, setInterviewNotes] = useState('');
 
@@ -678,7 +681,10 @@ export function IntermediationFunnel({
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => handleOpenInterviewModal(post)}
+                              onClick={() => {
+                                setTargetPostulacion(post);
+                                setIsScheduleInterviewOpen(true);
+                              }}
                               className="h-8 px-2 text-purple-700 hover:bg-purple-50 gap-1 text-xs"
                               title="Registrar entrevista de orientación previa (opcional)"
                             >
@@ -811,6 +817,35 @@ export function IntermediationFunnel({
             </div>
           </div>
         </div>
+      )}
+
+
+      {/* Modal Avanzado de Coordinación de Entrevistas */}
+      {targetPostulacion && (
+        <ScheduleInterviewModal
+          isOpen={isScheduleInterviewOpen}
+          postulacionId={targetPostulacion.id}
+          postulanteNombre={`${targetPostulacion.postulante?.nombre || ''} ${targetPostulacion.postulante?.apellido || ''}`}
+          ofertaTitulo={oferta.titulo}
+          onClose={() => {
+            setIsScheduleInterviewOpen(false);
+            setTargetPostulacion(null);
+          }}
+          onConfirm={async (data) => {
+            await coordinarEntrevistaAdmin({
+              postulacionId: targetPostulacion.id,
+              postulanteId: targetPostulacion.postulante_id,
+              fecha: data.fecha,
+              hora: data.hora,
+              modalidad: data.modalidad,
+              lugar: data.lugar,
+              entrevistador: data.entrevistador,
+              notas: data.notas,
+            });
+            await loadData();
+            if (onUpdated) onUpdated();
+          }}
+        />
       )}
 
       {/* Modal de Legajo del Postulante */}

@@ -1192,3 +1192,203 @@ export async function reactivarAdmin(adminId: string): Promise<{ success: boolea
     };
   }
 }
+
+
+/**
+ * Registra un postulante de forma manual asistida desde el panel de administración
+ * (pensado para adultos mayores o personas sin acceso digital).
+ */
+export async function registrarPostulanteAsistido(data: {
+  nombre: string;
+  apellido: string;
+  dni: string;
+  email?: string;
+  telefono: string;
+  fecha_nacimiento?: string | null;
+  direccion?: string | null;
+  localidad: string;
+  es_residente_funes: boolean;
+  nivel_educativo: string;
+  situacion_laboral_actual: string;
+  disponibilidad_horaria: string;
+  movilidad_propia: boolean;
+  experiencia_resumen?: string | null;
+  habilidades: string[];
+  rubroIds: number[];
+  avatar_url?: string | null;
+  cvFile?: File;
+}): Promise<{ success: boolean; message: string; perfilId?: string }> {
+  const supabase = createClient();
+
+  try {
+    const { data: { user: adminUser } } = await supabase.auth.getUser();
+
+    // Generar un id nuevo si no cuenta con auth directa
+    const nuevoPerfilId = crypto.randomUUID();
+
+    const insertPayload: Record<string, unknown> = {
+      id: nuevoPerfilId,
+      rol: 'postulante',
+      nombre: data.nombre.trim(),
+      apellido: data.apellido.trim(),
+      dni: data.dni.trim(),
+      telefono: data.telefono.trim(),
+      fecha_nacimiento: data.fecha_nacimiento || null,
+      direccion: data.direccion ? data.direccion.trim() : null,
+      localidad: data.localidad.trim(),
+      es_residente_funes: data.es_residente_funes,
+      nivel_educativo: data.nivel_educativo,
+      situacion_laboral_actual: data.situacion_laboral_actual,
+      disponibilidad_horaria: data.disponibilidad_horaria,
+      movilidad_propia: data.movilidad_propia,
+      experiencia_resumen: data.experiencia_resumen ? data.experiencia_resumen.trim() : null,
+      habilidades: data.habilidades,
+      avatar_url: data.avatar_url || null,
+      registro_asistido: true,
+      creado_por_admin: adminUser?.id || null,
+      activo: true,
+    };
+
+    const { error: insertError } = await supabase.from('perfil').insert(insertPayload as any);
+    if (insertError) {
+      console.error('Error insertando perfil asistido:', insertError);
+      return { success: false, message: 'No se pudo registrar el legajo: ' + insertError.message };
+    }
+
+    // Insertar rubros de interés si se seleccionaron
+    if (data.rubroIds && data.rubroIds.length > 0) {
+      const rubroRows = data.rubroIds.map((rId) => ({
+        perfil_id: nuevoPerfilId,
+        rubro_id: rId,
+      }));
+      await supabase.from('perfil_rubros').insert(rubroRows);
+    }
+
+    // Si se adjuntó archivo de CV, subirlo a storage si está configurado
+    if (data.cvFile) {
+      try {
+        const fileExt = data.cvFile.name.split('.').pop();
+        const filePath = `${nuevoPerfilId}/cv_asistido_${Date.now()}.${fileExt}`;
+        const { error: uploadErr } = await supabase.storage
+          .from('postulantes-cvs')
+          .upload(filePath, data.cvFile, { upsert: true });
+
+        if (!uploadErr) {
+          const { data: publicUrlData } = supabase.storage
+            .from('postulantes-cvs')
+            .getPublicUrl(filePath);
+
+          await supabase.from('curriculums').insert({
+            postulante_id: nuevoPerfilId,
+            nombre_cv: 'CV Legajo Asistido',
+            archivo_url: publicUrlData.publicUrl,
+            es_principal: true,
+            activo: true,
+          });
+        }
+      } catch (cvErr) {
+        console.warn('Advertencia al subir CV asistido:', cvErr);
+      }
+    }
+
+    return { success: true, message: 'Legajo laboral registrado con éxito', perfilId: nuevoPerfilId };
+  } catch (err) {
+    console.error('Error inesperado en registrarPostulanteAsistido:', err);
+    return { success: false, message: 'Error inesperado al crear el legajo.' };
+  }
+}
+
+/**
+ * Coordina una entrevista formal para una postulación y notifica al postulante
+ */
+export async function coordinarEntrevistaAdmin(params: {
+  postulacionId: string;
+  postulanteId: string;
+  fecha: string;
+  hora: string;
+  modalidad: 'presencial' | 'virtual' | 'telefonica';
+  lugar: string;
+  entrevistador: string;
+  notas: string;
+}): Promise<{ success: boolean; message: string }> {
+  const supabase = createClient();
+
+  try {
+    const fechaHoraIso = new Date(`${params.fecha}T${params.hora}:00`).toISOString();
+
+    const { error } = await supabase
+      .from('postulaciones')
+      .update({
+        estado: 'entrevista',
+        fecha_entrevista: fechaHoraIso,
+        modalidad_entrevista: params.modalidad,
+        lugar_entrevista: params.lugar,
+        entrevistador: params.entrevistador || null,
+        notas_oficina_empleo: params.notas || null,
+      })
+      .eq('id', params.postulacionId);
+
+    if (error) {
+      return { success: false, message: 'Error actualizando postulación: ' + error.message };
+    }
+
+    // Crear notificación para el postulante
+    try {
+      await supabase.from('notificaciones').insert({
+        user_id: params.postulanteId,
+        titulo: 'Entrevista Municipal Coordinada',
+        mensaje: `Fuiste citado a una entrevista (${params.modalidad.toUpperCase()}) para el ${params.fecha} a las ${params.hora}. Lugar/Contacto: ${params.lugar}.`,
+        tipo: 'entrevista',
+        link: '/postulante/postulaciones',
+        leida: false,
+      });
+    } catch {
+      // Ignorar si la tabla de notificaciones aún no fue migrada en el backend remoto
+    }
+
+    return { success: true, message: 'Entrevista agendada y registrada con éxito.' };
+  } catch (err) {
+    return { success: false, message: 'Error al coordinar entrevista.' };
+  }
+}
+
+/**
+ * Invita o sugiere a un postulante postularse a una oferta laboral activa
+ */
+export async function invitarPostulanteAOferta(params: {
+  postulanteId: string;
+  ofertaId: string;
+  mensaje: string;
+}): Promise<{ success: boolean; message: string }> {
+  const supabase = createClient();
+
+  try {
+    // Obtener título de la oferta
+    const { data: oferta } = await supabase
+      .from('ofertas')
+      .select('titulo')
+      .eq('id', params.ofertaId)
+      .single();
+
+    const ofertaTitulo = oferta?.titulo || 'Oferta laboral activa';
+
+    // Crear notificación directa para el postulante
+    const { error } = await supabase.from('notificaciones').insert({
+      user_id: params.postulanteId,
+      titulo: 'Sugerencia de Empleo de la Oficina de Empleo',
+      mensaje: `La Oficina de Empleo te invita a postularte a la búsqueda: "${ofertaTitulo}". Mensaje: ${params.mensaje}`,
+      tipo: 'invitacion',
+      link: `/ofertas/${params.ofertaId}`,
+      leida: false,
+    });
+
+    if (error) {
+      console.warn('Error al insertar notificación de invitación:', error);
+    }
+
+    return { success: true, message: `Invitación enviada al postulante para la oferta "${ofertaTitulo}".` };
+  } catch (err) {
+    console.error('Error en invitarPostulanteAOferta:', err);
+    return { success: false, message: 'Error al enviar la sugerencia.' };
+  }
+}

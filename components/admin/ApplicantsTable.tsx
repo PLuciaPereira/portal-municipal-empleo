@@ -3,6 +3,8 @@
 import React, { useState, useMemo } from 'react';
 import { PostulanteAdminItem } from '@/lib/admin';
 import { AdminApplicantDetailModal } from './AdminApplicantDetailModal';
+import { InviteToJobModal } from './InviteToJobModal';
+import { OfertaAdminItem, invitarPostulanteAOferta } from '@/lib/admin';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
@@ -14,23 +16,31 @@ import {
   GraduationCap,
   FileText,
   Phone,
+  Send,
 } from 'lucide-react';
 
 interface ApplicantsTableProps {
   postulantes: PostulanteAdminItem[];
   loading?: boolean;
+  ofertasDisponibles?: OfertaAdminItem[];
   onRefresh: () => void;
 }
 
 export function ApplicantsTable({
   postulantes,
   loading,
+  ofertasDisponibles = [],
+  onRefresh,
 }: ApplicantsTableProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLocalidad, setSelectedLocalidad] = useState<string>('todas');
   const [selectedNivelEducativo, setSelectedNivelEducativo] = useState<string>('todos');
 
   // Modal de detalle
+  // Modal de invitación
+  const [postulanteToInvite, setPostulanteToInvite] = useState<PostulanteAdminItem | null>(null);
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [filterHabilidad, setFilterHabilidad] = useState('');
   const [selectedPostulante, setSelectedPostulante] = useState<PostulanteAdminItem | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
@@ -76,6 +86,14 @@ export function ApplicantsTable({
         }
       }
 
+      // Filtro de habilidad específica
+      if (filterHabilidad.trim()) {
+        const queryHab = filterHabilidad.toLowerCase().trim();
+        const hasSkill = (p.habilidades || []).some((h) => h.toLowerCase().includes(queryHab));
+        const inExp = (p.experiencia_resumen || '').toLowerCase().includes(queryHab);
+        if (!hasSkill && !inExp) return false;
+      }
+
       // Filtro de texto (nombre, apellido, DNI, habilidades o resumen laboral)
       if (searchTerm.trim()) {
         const q = searchTerm.toLowerCase();
@@ -97,7 +115,7 @@ export function ApplicantsTable({
 
       return true;
     });
-  }, [postulantes, selectedLocalidad, selectedNivelEducativo, searchTerm]);
+  }, [postulantes, selectedLocalidad, selectedNivelEducativo, searchTerm, filterHabilidad]);
 
   const handleOpenDetail = (p: PostulanteAdminItem) => {
     setSelectedPostulante(p);
@@ -106,6 +124,7 @@ export function ApplicantsTable({
 
   const handleClearFilters = () => {
     setSearchTerm('');
+    setFilterHabilidad('');
     setSelectedLocalidad('todas');
     setSelectedNivelEducativo('todos');
   };
@@ -319,6 +338,29 @@ export function ApplicantsTable({
           </div>
         )}
       </div>
+
+
+      {/* Modal de Invitación a Oferta */}
+      {postulanteToInvite && (
+        <InviteToJobModal
+          isOpen={isInviteModalOpen}
+          postulanteId={postulanteToInvite.id}
+          postulanteNombre={`${postulanteToInvite.nombre} ${postulanteToInvite.apellido || ''}`}
+          ofertasDisponibles={ofertasDisponibles}
+          onClose={() => {
+            setIsInviteModalOpen(false);
+            setPostulanteToInvite(null);
+          }}
+          onConfirm={async (ofertaId, mensaje) => {
+            await invitarPostulanteAOferta({
+              postulanteId: postulanteToInvite.id,
+              ofertaId,
+              mensaje,
+            });
+            onRefresh();
+          }}
+        />
+      )}
 
       {/* Modal de Legajo Completo del Postulante */}
       <AdminApplicantDetailModal

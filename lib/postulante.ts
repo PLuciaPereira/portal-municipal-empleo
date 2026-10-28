@@ -967,3 +967,116 @@ export async function getPostulanteCourses(
     return [];
   }
 }
+
+
+/**
+ * Sube o actualiza la foto de perfil (avatar) del postulante en Supabase Storage
+ */
+export async function uploadAvatarPostulante(userId: string, file: File): Promise<{
+  url?: string;
+  error?: string;
+}> {
+  const supabase = createClient();
+  try {
+    const fileExt = file.name.split('.').pop() || 'jpg';
+    const filePath = `postulantes/${userId}/avatar_${Date.now()}.${fileExt}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(filePath, file, { upsert: true });
+
+    if (uploadError) {
+      return { error: uploadError.message };
+    }
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('avatars')
+      .getPublicUrl(filePath);
+
+    const { error: updateError } = await supabase
+      .from('perfil')
+      .update({ avatar_url: publicUrl, updated_at: new Date().toISOString() })
+      .eq('id', userId);
+
+    if (updateError) {
+      return { error: updateError.message };
+    }
+
+    return { url: publicUrl };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Error al subir la foto de perfil';
+    return { error: msg };
+  }
+}
+
+/**
+ * Elimina la foto de perfil del postulante
+ */
+export async function removeAvatarPostulante(userId: string): Promise<{
+  success: boolean;
+  error?: string;
+}> {
+  const supabase = createClient();
+  try {
+    const { error } = await supabase
+      .from('perfil')
+      .update({ avatar_url: null, updated_at: new Date().toISOString() })
+      .eq('id', userId);
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+    return { success: true };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Error al eliminar foto de perfil';
+    return { success: false, error: msg };
+  }
+}
+
+/**
+ * Obtiene ofertas laborales sugeridas para el postulante según sus rubros vinculados
+ */
+export async function getOfertasSugeridasPostulante(userId: string): Promise<any[]> {
+  const supabase = createClient();
+  try {
+    // 1. Obtener los IDs de rubros del postulante
+    const { data: rubrosPerfil } = await supabase
+      .from('perfil_rubros')
+      .select('rubro_id')
+      .eq('perfil_id', userId);
+
+    const rubroIds = (rubrosPerfil || []).map((r) => r.rubro_id);
+    if (rubroIds.length === 0) return [];
+
+    const hoy = new Date().toISOString().split('T')[0];
+
+    // 2. Consultar ofertas publicadas que pertenezcan a esos rubros y no estén vencidas
+    const { data: ofertas, error } = await supabase
+      .from('ofertas')
+      .select(`
+        id,
+        titulo,
+        tipo_jornada,
+        ubicacion,
+        fecha_limite,
+        rubro:rubros!jobs_rubro_id_fkey(nombre),
+        empresa:empresas!ofertas_empresa_id_fkey(nombre_fantasia, razon_social, localidad, logo_url)
+      `)
+      .eq('estado', 'publicada')
+      .is('deleted_at', null)
+      .or(`fecha_limite.is.null,fecha_limite.gte.${hoy}`)
+      .in('rubro_id', rubroIds)
+      .order('created_at', { ascending: false })
+      .limit(6);
+
+    if (error) {
+      console.warn('Error al obtener ofertas sugeridas:', error);
+      return [];
+    }
+
+    return ofertas || [];
+  } catch (err) {
+    console.error('Error getOfertasSugeridasPostulante:', err);
+    return [];
+  }
+}

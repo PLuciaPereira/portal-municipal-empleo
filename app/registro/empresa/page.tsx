@@ -9,6 +9,8 @@ import { Input } from '@/components/ui/Input';
 import { Checkbox } from '@/components/ui/Checkbox';
 import { TermsAndPrivacyModal } from '@/components/shared/TermsAndPrivacyModal';
 import { getRubros } from '@/lib/jobs';
+import { createClient } from '@/lib/supabase/client';
+import { FileText, Paperclip, Trash2, Upload } from 'lucide-react';
 import { Rubro } from '@/types/database';
 import {
   formatCuit,
@@ -142,6 +144,13 @@ function RegisterEmpresaForm() {
   const { registerEmpresa, isLoading } = useAuth();
 
   // Lista de rubros cargada dinámicamente desde base de datos / mock
+  
+  // Estado para múltiples documentos opcionales
+  const [documentos, setDocumentos] = useState<
+    { file: File; nombre: string; tipo: string; id: string }[]
+  >([]);
+  const [uploadingDocs, setUploadingDocs] = useState(false);
+
   const [rubros, setRubros] = useState<Rubro[]>([]);
   const [isLoadingRubros, setIsLoadingRubros] = useState(true);
 
@@ -212,6 +221,33 @@ function RegisterEmpresaForm() {
   }, []);
 
   // Manejador de cambio con máscara automática de CUIT
+  
+  const handleAddFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    const validFiles = files.filter((f) => {
+      if (f.size > 5 * 1024 * 1024) {
+        alert(`El archivo ${f.name} supera el límite de 5MB.`);
+        return false;
+      }
+      return true;
+    });
+
+    const newDocs = validFiles.map((f) => ({
+      file: f,
+      nombre: f.name,
+      tipo: f.name.toLowerCase().includes('cuit') ? 'Constancia CUIT' : 'Documentación societaria / comercial',
+      id: Math.random().toString(36).substring(2, 9),
+    }));
+
+    setDocumentos((prev) => [...prev, ...newDocs]);
+  };
+
+  const handleRemoveDoc = (id: string) => {
+    setDocumentos((prev) => prev.filter((d) => d.id !== id));
+  };
+
   const handleCuitChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const formatted = formatCuit(e.target.value);
     setFormData((prev) => ({ ...prev, cuit: formatted }));
@@ -362,6 +398,48 @@ function RegisterEmpresaForm() {
     });
 
     if (res.success) {
+      // Subir documentos si se adjuntaron
+      if (documentos.length > 0) {
+        try {
+          setUploadingDocs(true);
+          const supabase = createClient();
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            const uploadedMetadata: any[] = [];
+            for (const doc of documentos) {
+              const fileExt = doc.file.name.split('.').pop() || 'pdf';
+              const filePath = `${user.id}/${Date.now()}_${doc.file.name.replace(/\s+/g, '_')}`;
+              const { error: upErr } = await supabase.storage
+                .from('empresas-documentos')
+                .upload(filePath, doc.file, { upsert: true });
+
+              if (!upErr) {
+                uploadedMetadata.push({
+                  nombre: doc.nombre,
+                  tipo: doc.tipo,
+                  path: filePath,
+                  tamano: doc.file.size,
+                  created_at: new Date().toISOString(),
+                });
+              } else {
+                console.warn('Error subiendo documento:', upErr);
+              }
+            }
+
+            if (uploadedMetadata.length > 0) {
+              await supabase
+                .from('empresas')
+                .update({ documentos: uploadedMetadata })
+                .eq('user_id', user.id);
+            }
+          }
+        } catch (docErr) {
+          console.warn('Error al subir documentación adjunta:', docErr);
+        } finally {
+          setUploadingDocs(false);
+        }
+      }
+
       if (res.requiresEmailConfirmation) {
         setSuccessConfirmation(true);
       } else {
@@ -829,7 +907,85 @@ function RegisterEmpresaForm() {
               />
             </div>
 
-            {/* Checkbox de Términos y Condiciones y Política de Privacidad */}
+            {/* ========================================================================= */}
+          {/* SECCIÓN 3: DOCUMENTACIÓN DE LA EMPRESA (OPCIONAL) */}
+          {/* ========================================================================= */}
+          <section className="space-y-4" aria-labelledby="sec3-title">
+            <div className="flex items-center gap-3 border-b border-border/80 pb-3">
+              <span className="w-7 h-7 rounded-full bg-brand-100 text-brand-800 font-bold text-xs flex items-center justify-center shrink-0">
+                3
+              </span>
+              <div>
+                <h2 id="sec3-title" className="text-base font-bold text-foreground flex items-center gap-2">
+                  <span>Documentación comercial o societaria</span>
+                  <span className="text-xs font-normal text-muted-foreground bg-zinc-100 px-2 py-0.5 rounded-full">Opcional</span>
+                </h2>
+                <p className="text-xs text-muted-foreground">
+                  Podés adjuntar constancias para facilitar y acelerar la validación de identidad por parte de la Oficina de Empleo.
+                </p>
+              </div>
+            </div>
+
+            <div className="p-4 sm:p-5 bg-brand-50/40 rounded-2xl border border-dashed border-brand-200 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="space-y-0.5">
+                  <span className="text-xs font-bold text-brand-900 block">
+                    Adjuntar Constancia de CUIT, Habilitación o Estatuto
+                  </span>
+                  <p className="text-[11px] text-brand-800/80 leading-relaxed">
+                    Formatos admitidos: PDF, JPG, PNG. Podés seleccionar varios archivos (máx. 5MB cada uno). No es un requisito excluyente para registrarte.
+                  </p>
+                </div>
+
+                <label className="cursor-pointer shrink-0 inline-flex items-center gap-1.5 px-4 py-2 bg-brand-800 text-white rounded-xl text-xs font-semibold hover:bg-brand-900 transition-colors shadow-2xs">
+                  <Upload className="w-4 h-4" />
+                  <span>Seleccionar archivos</span>
+                  <input
+                    type="file"
+                    multiple
+                    accept=".pdf,image/png,image/jpeg,image/webp"
+                    className="hidden"
+                    onChange={handleAddFiles}
+                    disabled={isLoading || uploadingDocs}
+                  />
+                </label>
+              </div>
+
+              {documentos.length > 0 && (
+                <div className="space-y-2 pt-2 border-t border-brand-200/60">
+                  <span className="text-xs font-bold text-zinc-700 block">
+                    Archivos listos para enviar ({documentos.length}):
+                  </span>
+                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {documentos.map((doc) => (
+                      <li
+                        key={doc.id}
+                        className="flex items-center justify-between p-2.5 bg-white rounded-xl border border-brand-200 text-xs shadow-2xs"
+                      >
+                        <div className="flex items-center gap-2 truncate">
+                          <FileText className="w-4 h-4 text-brand-700 shrink-0" />
+                          <div className="truncate">
+                            <p className="font-semibold text-zinc-900 truncate">{doc.nombre}</p>
+                            <p className="text-[10px] text-zinc-500">{(doc.file.size / 1024).toFixed(1)} KB</p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveDoc(doc.id)}
+                          className="p-1 text-zinc-400 hover:text-rose-600 transition-colors ml-2"
+                          title="Quitar archivo"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </section>
+
+          {/* Checkbox de Términos y Condiciones y Política de Privacidad */}
             <div className="pt-2">
               <Checkbox
                 ref={terminosRef}

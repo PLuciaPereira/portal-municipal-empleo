@@ -475,6 +475,9 @@ export function CompanyJobModal({
                 }
                 disabled={isBusy}
               />
+              <p className="mt-1 text-[11px] text-zinc-500 leading-tight">
+                Vigencia: Si no especificás una fecha límite, la oferta tendrá una validez estándar de 30 días corridos a partir de su publicación y luego se retirará automáticamente del portal.
+              </p>
             </div>
           </div>
 
