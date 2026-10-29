@@ -347,10 +347,22 @@ export async function getCandidatosPresentados(
 ): Promise<{ data: VistaCandidatoEmpresa[]; error?: string }> {
   const supabase = createClient();
 
-  // Se consulta a través de la función RPC segura obtener_candidatos_empresa
+  // 1. Obtener la empresa asociada al usuario autenticado
+  const { data: miEmpresa, error: empError } = await getMiEmpresa();
+  if (empError || !miEmpresa) {
+    return { data: [], error: empError || 'Empresa no encontrada o no autorizada.' };
+  }
+
+  if (miEmpresa.estado !== 'aprobada') {
+    return { data: [], error: 'La empresa debe estar aprobada para visualizar candidatos derivados.' };
+  }
+
+  // 2. Se consulta a través de la función RPC segura obtener_candidatos_empresa
   const { data, error } = await supabase.rpc('obtener_candidatos_empresa', {
     p_oferta_id: ofertaId || null,
   });
+
+  let rawList: VistaCandidatoEmpresa[] = [];
 
   if (error) {
     // Si la función falla, fallback directo a la vista con RLS
@@ -367,16 +379,25 @@ export async function getCandidatosPresentados(
     if (viewError) {
       return { data: [], error: viewError.message };
     }
-    return { data: (viewData || []) as VistaCandidatoEmpresa[] };
+    rawList = (viewData || []) as VistaCandidatoEmpresa[];
+  } else {
+    rawList = (data || []) as VistaCandidatoEmpresa[];
   }
 
-  return { data: (data || []) as VistaCandidatoEmpresa[] };
+  // 3. Defensa en profundidad: Aislamiento estricto por empresa_id en la capa de datos
+  const sanitizedList = rawList.filter((candidato) => {
+    if (candidato.empresa_id !== miEmpresa.id) {
+      console.warn(
+        `[SEGURIDAD] Candidato ${candidato.postulacion_id} con empresa_id ajeno (${candidato.empresa_id}) filtrado preventivamente.`
+      );
+      return false;
+    }
+    return true;
+  });
+
+  return { data: sanitizedList };
 }
 
-/**
- * Registra la decisión final de rechazo sobre un candidato derivado.
- * Requiere motivo obligatorio que queda resguardado para la Oficina de Empleo.
- */
 export async function rechazarCandidatoEmpresa(
   postulacionId: string,
   motivoRechazo: string
