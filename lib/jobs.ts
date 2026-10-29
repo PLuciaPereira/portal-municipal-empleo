@@ -7,7 +7,7 @@ import { validatePhone } from '@/lib/validators';
  * user_id y campos administrativos de revisión.
  */
 export const PUBLIC_EMPRESA_FIELDS =
-  'id, nombre_fantasia, razon_social, localidad, rubro, descripcion, sitio_web, verificada, estado';
+  'id, nombre_fantasia, razon_social, localidad, rubro, descripcion, sitio_web, logo_url, verificada, estado';
 
 /**
  * Selección base de ofertas con relaciones explícitas comprobadas en el esquema real:
@@ -159,11 +159,13 @@ export async function getJobs(filters?: JobFilterParams): Promise<{ jobs: Job[];
     }
 
     const buildQuery = (selectClause: string) => {
+      const hoyIso = new Date().toISOString().split('T')[0];
       let qBuilder = supabase
         .from('ofertas')
         .select(selectClause, { count: 'exact' })
         .eq('estado', 'publicada')
-        .is('deleted_at', null);
+        .is('deleted_at', null)
+        .or('fecha_limite.is.null,fecha_limite.gte.' + hoyIso);
 
       if (filters) {
         const { query: searchText, jornada, zona, destacadasOnly } = filters;

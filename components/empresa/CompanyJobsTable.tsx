@@ -14,7 +14,8 @@ import {
   CheckCircleIcon,
   AlertCircleIcon,
 } from '@/components/ui/Icons';
-import { enviarOfertaARevision } from '@/lib/empresa';
+import { enviarOfertaARevision, renovarOferta30Dias } from '@/lib/empresa';
+import { RefreshCw, Calendar, AlertTriangle } from 'lucide-react';
 import { CompanyJobModal } from './CompanyJobModal';
 import { DeactivateJobModal } from './DeactivateJobModal';
 
@@ -41,8 +42,29 @@ export function CompanyJobsTable({
   const [isDeactivateModalOpen, setIsDeactivateModalOpen] = useState(false);
 
   const [sendingId, setSendingId] = useState<string | null>(null);
+  const [renewingId, setRenewingId] = useState<string | null>(null);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+
+  
+  const handleRenewJob = async (ofertaId: string) => {
+    setRenewingId(ofertaId);
+    setActionSuccess(null);
+    setActionError(null);
+    try {
+      const res = await renovarOferta30Dias(ofertaId);
+      if (!res.success) {
+        setActionError(res.error || 'No se pudo renovar la oferta.');
+      } else {
+        setActionSuccess('Oferta renovada exitosamente por 30 días adicionales.');
+        onRefresh();
+      }
+    } catch (err: unknown) {
+      setActionError(err instanceof Error ? err.message : 'Error inesperado al renovar.');
+    } finally {
+      setRenewingId(null);
+    }
+  };
 
   const handleSendToReview = async (ofertaId: string) => {
     setSendingId(ofertaId);
@@ -108,6 +130,25 @@ export function CompanyJobsTable({
           const isPendiente = o.estado === 'pendiente_revision';
           const isRechazada = o.estado === 'rechazada';
           const isDeleted = Boolean(o.deleted_at);
+          const isPublicada = o.estado === 'publicada';
+
+          // Cálculo de días restantes de vigencia
+          let diasRestantes: number | null = null;
+          let isVencida = false;
+          let isPorVencer = false;
+
+          if (o.fecha_limite) {
+            const hoy = new Date();
+            hoy.setHours(0, 0, 0, 0);
+            const fechaFin = new Date(o.fecha_limite + 'T00:00:00');
+            const diffTime = fechaFin.getTime() - hoy.getTime();
+            diasRestantes = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            if (diasRestantes < 0) {
+              isVencida = true;
+            } else if (diasRestantes <= 5 && isPublicada) {
+              isPorVencer = true;
+            }
+          }
 
           return (
             <div
@@ -121,6 +162,16 @@ export function CompanyJobsTable({
                   <div className="flex items-center gap-2 flex-wrap">
                     <h4 className="text-base font-bold text-zinc-900">{o.titulo}</h4>
                     <JobStatusBadge estado={o.estado} isDeleted={isDeleted} />
+                    {isVencida && !isDeleted && (
+                      <span className="text-[11px] font-semibold px-2 py-0.5 bg-rose-100 text-rose-800 rounded-md flex items-center gap-1">
+                        <AlertCircleIcon className="w-3 h-3" /> Vencida
+                      </span>
+                    )}
+                    {isPorVencer && !isDeleted && (
+                      <span className="text-[11px] font-semibold px-2 py-0.5 bg-amber-100 text-amber-800 rounded-md flex items-center gap-1">
+                        <AlertTriangle className="w-3 h-3 text-amber-600" /> Vence en {diasRestantes === 0 ? 'hoy' : `${diasRestantes} días`}
+                      </span>
+                    )}
                     {o.rubro && (
                       <span className="text-[11px] px-2 py-0.5 bg-zinc-100 text-zinc-600 rounded-md">
                         {o.rubro.nombre}
@@ -183,6 +234,18 @@ export function CompanyJobsTable({
                     </Button>
                   )}
 
+                  {(isPorVencer || isVencida || o.estado === 'finalizada') && !isDeleted && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="border-brand-500 text-brand-700 hover:bg-brand-50"
+                      onClick={() => handleRenewJob(o.id)}
+                      isLoading={renewingId === o.id}
+                    >
+                      <RefreshCw className="w-3.5 h-3.5 mr-1" />
+                      Renovar por 30 días
+                    </Button>
+                  )}
                   {!isDeleted && !isPendiente && (
                     <Button
                       size="sm"
@@ -201,6 +264,44 @@ export function CompanyJobsTable({
               </div>
 
               {/* Mensajes de advertencia según estado */}
+              {isPorVencer && !isDeleted && (
+                <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-900 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                    <span>
+                      Esta oferta expira en <strong>{diasRestantes === 0 ? 'hoy' : `${diasRestantes} días`}</strong>. Podés renovarla ahora para que continúe publicada en el portal sin interrupciones.
+                    </span>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="primary"
+                    className="shrink-0 text-xs"
+                    onClick={() => handleRenewJob(o.id)}
+                    isLoading={renewingId === o.id}
+                  >
+                    Renovar ahora
+                  </Button>
+                </div>
+              )}
+              {isVencida && !isDeleted && (
+                <div className="p-3 bg-rose-50 rounded-xl border border-rose-200 text-xs text-rose-900 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <AlertCircleIcon className="w-4 h-4 text-rose-600 shrink-0" />
+                    <span>
+                      Esta oferta finalizó su período de vigencia y ya no es visible para los postulantes en el portal.
+                    </span>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="primary"
+                    className="shrink-0 text-xs"
+                    onClick={() => handleRenewJob(o.id)}
+                    isLoading={renewingId === o.id}
+                  >
+                    Republicar / Renovar 30 días
+                  </Button>
+                </div>
+              )}
               {isPendiente && !isDeleted && (
                 <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-900 flex items-start gap-2">
                   <ClockIcon className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />

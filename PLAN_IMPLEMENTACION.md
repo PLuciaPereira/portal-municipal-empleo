@@ -804,7 +804,7 @@ El desarrollo sigue un orden estrictamente dependiente de la arquitectura y la l
 - [x] **Fase 5** — Área de Postulante: Perfil, Múltiples CVs y Postulaciones
 - [x] **Fase 6** — Área de Empresa: Registro, Gestión de Ofertas y Candidatos
 - [x] **Fase 7** — Área de Oficina de Empleo / Municipalidad: Intermediación y Gestión
-- [ ] **Fase 8** — Estadísticas de Gestión Laboral y Trazabilidad Histórica
+- [x] **Fase 8** — Estadísticas de Gestión Laboral y Trazabilidad Histórica
 - [ ] **Fase 9** — Blindaje de UI/UX, Accesibilidad, Responsive y Confirmaciones Sensibles
 - [ ] **Fase 10** — Pruebas Integrales, Optimización y Preparación para Producción
 
@@ -812,9 +812,9 @@ El desarrollo sigue un orden estrictamente dependiente de la arquitectura y la l
 
 ## 10. Estado de avance
 
-- **Fase actual:** Fase 7 (Completada). Lista para iniciar la Fase 8.
-- **Estado:** Fases 1 a 7 finalizadas, auditadas exhaustivamente y verificadas con `npm run build` (0 errores) y `npm run lint` (0 errores, 0 warnings).
-- **Fecha de última auditoría:** 2026-10-27.
+- **Fase actual:** Fase 8 (Completada). Lista para iniciar la Fase 9.
+- **Estado:** Fases 1 a 8 finalizadas, auditadas exhaustivamente y verificadas con `npm run build` (0 errores) y `npm run lint` (0 errores, 0 warnings).
+- **Fecha de última auditoría:** 2026-10-28.
 - **Observaciones:** 
   - La Fase 7 implementó el centro operativo integral de la Oficina de Empleo / Municipalidad (`/admin`):
     - Revisión y aprobación/rechazo de empresas registradas con motivo obligatorio y visualización amigable para la empresa.
@@ -825,4 +825,3 @@ El desarrollo sigue un orden estrictamente dependiente de la arquitectura y la l
     - Gestión de administradores municipales pares con bloqueo estricto en BD y UI contra la auto-desactivación.
   - Se subsanaron todas las condiciones de auditoría técnica (cero errores en React 19 / ESLint 9).
   - El sistema se encuentra completamente listo para el desarrollo de la Fase 8 (Estadísticas de Gestión Laboral y Trazabilidad Histórica).
-

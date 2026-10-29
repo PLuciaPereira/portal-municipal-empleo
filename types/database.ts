@@ -66,6 +66,9 @@ export type Perfil = {
   habilidades: string[] | null;
   experiencia_resumen: string | null;
   cv_url: string | null;
+  avatar_url?: string | null;
+  registro_asistido?: boolean;
+  creado_por_admin?: string | null;
   disponibilidad_horaria: string | null;
   movilidad_propia: boolean;
   es_admin_general: boolean;
@@ -76,6 +79,15 @@ export type Perfil = {
   // Joins opcionales
   rubros?: Rubro[];
   curriculums?: Curriculum[];
+};
+
+export type DocumentoEmpresa = {
+  id?: string;
+  nombre: string;
+  path: string;
+  tipo?: string;
+  tamano?: number;
+  created_at: string;
 };
 
 export type Empresa = {
@@ -92,6 +104,8 @@ export type Empresa = {
   rubro: string | null;
   descripcion: string | null;
   sitio_web: string | null;
+  logo_url?: string | null;
+  documentos?: DocumentoEmpresa[];
   verificada: boolean;
   estado: EstadoEmpresa;
   motivo_rechazo: string | null;
@@ -115,6 +129,7 @@ export type EmpresaPublica = Pick<
   | 'rubro'
   | 'descripcion'
   | 'sitio_web'
+  | 'logo_url'
   | 'verificada'
   | 'estado'
 >;
@@ -175,6 +190,10 @@ export type Postulacion = {
   derivado_por: string | null;
   fecha_derivacion: string | null;
   observaciones_derivacion: string | null;
+  fecha_entrevista?: string | null;
+  modalidad_entrevista?: string | null;
+  lugar_entrevista?: string | null;
+  entrevistador?: string | null;
   motivo_rechazo_empresa: string | null;
   fecha_rechazo_empresa: string | null;
   fecha_respuesta_empresa: string | null;
@@ -223,12 +242,27 @@ export type PostulanteCurso = {
   postulante?: Perfil;
 };
 
+
+export type Notificacion = {
+  id: string;
+  user_id: string;
+  titulo: string;
+  mensaje: string;
+  tipo: 'info' | 'entrevista' | 'invitacion' | 'sistema';
+  link: string | null;
+  leida: boolean;
+  created_at: string;
+};
+
 export type VistaCandidatoEmpresa = {
   postulacion_id: string;
   oferta_id: string;
   oferta_titulo: string;
   empresa_id: string;
   postulante_id: string;
+  postulante_nombre?: string;
+  postulante_apellido?: string | null;
+  postulante_avatar_url?: string | null;
   nombre: string;
   apellido: string | null;
   dni: string | null;
@@ -273,6 +307,16 @@ export type CandidateView = VistaCandidatoEmpresa;
 export type Database = {
   public: {
     Tables: {
+      notificaciones: {
+        Row: Notificacion;
+        Insert: Omit<Notificacion, 'id' | 'created_at' | 'leida'> & {
+          id?: string;
+          leida?: boolean;
+          created_at?: string;
+        };
+        Update: Partial<Omit<Notificacion, 'id' | 'created_at'>>;
+        Relationships: [];
+      };
       rubros: {
         Row: Rubro;
         Insert: Omit<Rubro, 'id' | 'created_at' | 'activo'> & {

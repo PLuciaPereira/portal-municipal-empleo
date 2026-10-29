@@ -174,7 +174,11 @@ export async function crearOfertaBorrador(input: CreateOfertaInput): Promise<{
       ubicacion: input.ubicacion?.trim() || 'Funes, Santa Fe',
       rango_salarial: input.rango_salarial?.trim() || null,
       vacantes: input.vacantes,
-      fecha_limite: input.fecha_limite || null,
+      fecha_limite: input.fecha_limite ? input.fecha_limite : (() => {
+        const d = new Date();
+        d.setDate(d.getDate() + 30);
+        return d.toISOString().split('T')[0];
+      })(),
       rubro_id: primaryRubroId,
       estado: 'borrador' as JobStatus,
     })
@@ -505,4 +509,178 @@ export async function updateEmpresaProfile(
   }
 
   return { success: true, data: data as Empresa };
+}
+
+
+/**
+ * Renueva una oferta por 30 días corridos. Si ya venció o está próxima a vencer,
+ * calcula 30 días adicionales y reactiva la publicación.
+ */
+export async function renovarOferta30Dias(ofertaId: string): Promise<{
+  success: boolean;
+  nuevaFechaLimite?: string;
+  error?: string;
+}> {
+  const supabase = createClient();
+  try {
+    // Intentar vía RPC
+    const { data: rpcData, error: rpcError } = await (supabase.rpc as any)('renovar_oferta_empresa', {
+      p_oferta_id: ofertaId,
+    });
+
+    if (!rpcError && rpcData) {
+      const res = rpcData as unknown as { success: boolean; nueva_fecha_limite?: string; error?: string };
+      if (res.success) {
+        return { success: true, nuevaFechaLimite: res.nueva_fecha_limite };
+      }
+    }
+
+    // Fallback directo por client
+    const { data: oferta, error: fetchErr } = await supabase
+      .from('ofertas')
+      .select('id, fecha_limite, estado')
+      .eq('id', ofertaId)
+      .single();
+
+    if (fetchErr || !oferta) {
+      return { success: false, error: fetchErr?.message || 'Oferta no encontrada' };
+    }
+
+    const hoy = new Date();
+    const hoyStr = hoy.toISOString().split('T')[0];
+    let baseDate = new Date();
+    if (oferta.fecha_limite && oferta.fecha_limite > hoyStr) {
+      baseDate = new Date(oferta.fecha_limite);
+    }
+    baseDate.setDate(baseDate.getDate() + 30);
+    const nuevaFechaLimite = baseDate.toISOString().split('T')[0];
+
+    const { error: updateErr } = await supabase
+      .from('ofertas')
+      .update({
+        fecha_limite: nuevaFechaLimite,
+        estado: oferta.estado === 'finalizada' || oferta.estado === 'pausada' ? 'publicada' : oferta.estado,
+        deleted_at: null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', ofertaId);
+
+    if (updateErr) {
+      return { success: false, error: updateErr.message };
+    }
+
+    return { success: true, nuevaFechaLimite };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Error al renovar la oferta';
+    return { success: false, error: msg };
+  }
+}
+
+/**
+ * Sube o actualiza el logotipo de la empresa en Supabase Storage
+ */
+export async function subirLogoEmpresa(empresaId: string, file: File): Promise<{
+  url?: string;
+  error?: string;
+}> {
+  const supabase = createClient();
+  try {
+    const fileExt = file.name.split('.').pop() || 'png';
+    const filePath = `empresas/${empresaId}/logo_${Date.now()}.${fileExt}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(filePath, file, { upsert: true });
+
+    if (uploadError) {
+      return { error: uploadError.message };
+    }
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('avatars')
+      .getPublicUrl(filePath);
+
+    // Guardar en la tabla empresas
+    const { error: updateError } = await supabase
+      .from('empresas')
+      .update({ logo_url: publicUrl, updated_at: new Date().toISOString() })
+      .eq('id', empresaId);
+
+    if (updateError) {
+      return { error: updateError.message };
+    }
+
+    return { url: publicUrl };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Error al subir el logo';
+    return { error: msg };
+  }
+}
+
+/**
+ * Agendar entrevista desde la empresa a un candidato derivado
+ */
+export async function agendarEntrevistaEmpresa(params: {
+  postulacionId: string;
+  fecha: string;
+  hora: string;
+  modalidad: 'presencial' | 'virtual' | 'telefonica';
+  lugar: string;
+  entrevistador?: string;
+  notas?: string;
+}): Promise<{ success: boolean; error?: string }> {
+  const supabase = createClient();
+  try {
+    const fechaHora = `${params.fecha}T${params.hora}:00`;
+
+    // 1. Actualizar postulación
+    const { data: post, error: postError } = await supabase
+      .from('postulaciones')
+      .update({
+        estado: 'entrevista',
+        fecha_entrevista: fechaHora,
+        modalidad_entrevista: params.modalidad,
+        lugar_entrevista: params.lugar,
+        entrevistador: params.entrevistador || null,
+        observaciones_derivacion: params.notas || null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', params.postulacionId)
+      .select('id, postulante_id, oferta:ofertas(titulo, empresa:empresas(nombre_fantasia, razon_social))')
+      .single();
+
+    if (postError) {
+      return { success: false, error: postError.message };
+    }
+
+    // 2. Registrar en historial de la postulación
+    await supabase.from('historial_postulacion').insert({
+      postulacion_id: params.postulacionId,
+      estado_anterior: 'presentado_a_empresa',
+      estado_nuevo: 'entrevista',
+      cambiado_por: null,
+      observaciones: `Entrevista agendada por la empresa para el ${params.fecha} a las ${params.hora} hs (${params.modalidad})`,
+    });
+
+    // 3. Notificar al postulante
+    if (post?.postulante_id) {
+      const ofertaObj = post.oferta as any;
+      const empresaNombre = ofertaObj?.empresa?.nombre_fantasia || ofertaObj?.empresa?.razon_social || 'La empresa';
+      const ofertaTitulo = ofertaObj?.titulo || 'la búsqueda';
+
+      await supabase.from('notificaciones').insert({
+        user_id: post.postulante_id,
+        titulo: 'Entrevista de trabajo agendada',
+        mensaje: `${empresaNombre} coordinó una entrevista para ${ofertaTitulo} el día ${params.fecha} a las ${params.hora} hs (${params.modalidad}). Lugar/Contacto: ${params.lugar}`,
+        tipo: 'entrevista',
+        link: '/postulante',
+        leida: false,
+      });
+    }
+
+    return { success: true };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Error al agendar entrevista';
+    return { success: false, error: msg };
+  }
 }

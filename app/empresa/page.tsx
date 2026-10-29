@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
@@ -30,7 +30,7 @@ import {
   Mail,
   MapPin,
   Globe,
-  Sparkles,
+  Sparkles, Camera,
   Lock,
 } from 'lucide-react';
 
@@ -118,6 +118,29 @@ export default function EmpresaDashboardPage() {
     loadCandidatos();
   };
 
+  
+  const handleDirectLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !displayEmpresa?.id) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      alert('El logotipo no debe superar los 2MB.');
+      return;
+    }
+
+    try {
+      const { subirLogoEmpresa } = await import('@/lib/empresa');
+      const res = await subirLogoEmpresa(displayEmpresa.id, file);
+      if (res.error) {
+        alert(res.error);
+      } else {
+        await handleProfileSaved();
+      }
+    } catch (err) {
+      alert('Error al subir el logo.');
+    }
+  };
+
   const handleProfileSaved = async () => {
     await Promise.all([loadEmpresaData(), refreshUser()]);
   };
@@ -162,13 +185,27 @@ export default function EmpresaDashboardPage() {
                 )}
               </div>
 
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight leading-tight text-white font-sans">
-                {empresaNombre}
-              </h1>
-
-              <p className="mt-1.5 text-brand-100/90 text-xs sm:text-sm lg:text-base leading-relaxed">
-                Gestión integral de búsquedas laborales, seguimiento de candidatos derivados y vinculación estratégica con la Oficina de Empleo de Funes.
-              </p>
+              <div className="mt-2.5 flex items-center gap-4">
+                {displayEmpresa?.logo_url ? (
+                  <img
+                    src={displayEmpresa.logo_url}
+                    alt={empresaNombre}
+                    className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white object-contain p-1 border-2 border-white/20 shadow-md shrink-0"
+                  />
+                ) : (
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white/10 border-2 border-white/20 text-white flex items-center justify-center font-extrabold text-2xl shrink-0 shadow-md">
+                    {initialLetter}
+                  </div>
+                )}
+                <div>
+                  <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight leading-tight text-white font-sans">
+                    {empresaNombre}
+                  </h1>
+                  <p className="mt-1 text-brand-100/90 text-xs sm:text-sm lg:text-base leading-relaxed max-w-[650px]">
+                    Gestión integral de búsquedas laborales, seguimiento de candidatos derivados y vinculación estratégica con la Oficina de Empleo de Funes.
+                  </p>
+                </div>
+              </div>
             </div>
 
             <div className="shrink-0 flex items-center gap-3">
@@ -190,6 +227,26 @@ export default function EmpresaDashboardPage() {
           </div>
         </div>
       </section>
+
+      {/* Alerta destacada si hay candidatos derivados sin gestionar */}
+      {isAprobada && activeCandidatesCount > 0 && (
+        <div className="bg-amber-50 border-b border-amber-200 py-2.5 px-4 sm:px-6 lg:px-8 xl:px-10">
+          <div className="max-w-[1600px] mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div className="flex items-center gap-2 text-xs font-medium text-amber-900">
+              <Sparkles className="w-4 h-4 text-amber-600 shrink-0" />
+              <span>
+                Tenés <strong>{activeCandidatesCount} candidato{activeCandidatesCount === 1 ? '' : 's'} derivado{activeCandidatesCount === 1 ? '' : 's'}</strong> por la Oficina de Empleo pendiente{activeCandidatesCount === 1 ? '' : 's'} de revisión y coordinación de entrevista.
+              </span>
+            </div>
+            <button
+              onClick={() => setActiveTab('candidatos')}
+              className="text-xs font-bold text-amber-800 hover:text-amber-900 underline underline-offset-2 shrink-0 text-left sm:text-right cursor-pointer"
+            >
+              Revisar candidatos ahora &rarr;
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* 2. Barra de Navegación por Pestañas Segmentadas */}
       <div className="bg-surface border-b border-zinc-200">
@@ -283,8 +340,30 @@ export default function EmpresaDashboardPage() {
             <section className="bg-surface border border-zinc-200/90 rounded-2xl shadow-xs overflow-hidden">
               <div className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-zinc-200/80 bg-zinc-50/50">
                 <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-2xl bg-brand-100 text-brand-900 flex items-center justify-center font-extrabold text-2xl font-sans shadow-xs border border-brand-200 shrink-0">
-                    {initialLetter}
+                  <div className="relative w-16 h-16 shrink-0 group">
+                    {displayEmpresa?.logo_url ? (
+                      <img
+                        src={displayEmpresa.logo_url}
+                        alt={empresaNombre}
+                        className="w-16 h-16 rounded-2xl object-contain bg-white shadow-xs border border-zinc-200 p-1"
+                      />
+                    ) : (
+                      <div className="w-16 h-16 rounded-2xl bg-brand-100 text-brand-900 flex items-center justify-center font-extrabold text-2xl font-sans shadow-xs border border-brand-200">
+                        {initialLetter}
+                      </div>
+                    )}
+                    <label
+                      title="Subir o cambiar logo institucional directamente"
+                      className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-brand-700 text-white flex items-center justify-center shadow-md hover:bg-brand-800 transition-transform active:scale-95 border-2 border-white cursor-pointer"
+                    >
+                      <Camera className="w-3.5 h-3.5" />
+                      <input
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp"
+                        className="hidden"
+                        onChange={handleDirectLogoUpload}
+                      />
+                    </label>
                   </div>
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
@@ -501,3 +580,4 @@ export default function EmpresaDashboardPage() {
     </div>
   );
 }
+

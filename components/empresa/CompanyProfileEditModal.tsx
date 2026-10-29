@@ -3,7 +3,8 @@
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 import React, { useState } from 'react';
 import { Empresa } from '@/types/database';
-import { updateEmpresaProfile } from '@/lib/empresa';
+import { updateEmpresaProfile, subirLogoEmpresa } from '@/lib/empresa';
+import { Camera, Trash2, Upload, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { XMarkIcon, BuildingIcon } from '@/components/ui/Icons';
@@ -32,11 +33,33 @@ export const CompanyProfileEditModal: React.FC<CompanyProfileEditModalProps> = (
   const [rubro, setRubro] = useState(empresa.rubro || '');
   const [sitioWeb, setSitioWeb] = useState(empresa.sitio_web || '');
   const [descripcion, setDescripcion] = useState(empresa.descripcion || '');
+  const [logoUrl, setLogoUrl] = useState<string | null>(empresa.logo_url || null);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(empresa.logo_url || null);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
 
   const [isSaving, setIsSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   if (!isOpen) return null;
+
+  
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      setErrorMsg('El logo no debe superar los 2MB.');
+      return;
+    }
+
+    setLogoFile(file);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setLogoPreview(event.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,6 +87,18 @@ export const CompanyProfileEditModal: React.FC<CompanyProfileEditModalProps> = (
 
     setIsSaving(true);
     try {
+      if (logoFile) {
+        setUploadingLogo(true);
+        const upRes = await subirLogoEmpresa(empresa.id, logoFile);
+        if (upRes.error) {
+          setErrorMsg(upRes.error);
+          setIsSaving(false);
+          setUploadingLogo(false);
+          return;
+        }
+        setUploadingLogo(false);
+      }
+
       const res = await updateEmpresaProfile({
         nombre_fantasia: nombreFantasia.trim(),
         persona_contacto: personaContacto.trim(),
@@ -167,6 +202,44 @@ export const CompanyProfileEditModal: React.FC<CompanyProfileEditModalProps> = (
                 <span className="text-xs font-bold text-zinc-800 truncate block">
                   {empresa.razon_social || 'Sin especificar'}
                 </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Logotipo de la Empresa */}
+          <div className="p-4 bg-emerald-50/60 rounded-2xl border border-emerald-100 flex flex-col sm:flex-row items-center gap-4">
+            <div className="relative shrink-0">
+              {logoPreview ? (
+                <img
+                  src={logoPreview}
+                  alt={nombreFantasia || 'Logo de la empresa'}
+                  className="w-20 h-20 rounded-2xl object-contain bg-white border-2 border-emerald-300 p-1 shadow-sm"
+                />
+              ) : (
+                <div className="w-20 h-20 rounded-2xl bg-white border-2 border-emerald-200 flex flex-col items-center justify-center text-emerald-800 shadow-sm">
+                  <Building2 className="w-8 h-8" />
+                  <span className="text-[10px] font-semibold mt-1">Sin Logo</span>
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-1.5 text-center sm:text-left flex-1">
+              <h4 className="text-xs font-bold text-zinc-900">Logotipo Institucional</h4>
+              <p className="text-[11px] text-zinc-500 leading-relaxed">
+                Aparecerá en el encabezado de tu panel y en tus publicaciones laborales en el portal. Formatos JPG o PNG hasta 2MB.
+              </p>
+              <div className="flex items-center gap-2 pt-1 justify-center sm:justify-start">
+                <label className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-700 text-white rounded-xl text-xs font-semibold hover:bg-emerald-800 transition-colors shadow-2xs">
+                  <Camera className="w-3.5 h-3.5" />
+                  <span>{logoPreview ? 'Cambiar logo' : 'Subir logo'}</span>
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    className="hidden"
+                    onChange={handleLogoChange}
+                    disabled={isSaving || uploadingLogo}
+                  />
+                </label>
               </div>
             </div>
           </div>

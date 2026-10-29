@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
@@ -12,6 +12,8 @@ import {
   RefreshCw,
   Check,
   Sparkles,
+  TrendingUp,
+  UserPlus,
 } from 'lucide-react';
 import { Empresa } from '@/types/database';
 import {
@@ -29,8 +31,10 @@ import { ApplicantsTable } from '@/components/admin/ApplicantsTable';
 import { IntermediationFunnel } from '@/components/admin/IntermediationFunnel';
 import { CoursesManager } from '@/components/admin/CoursesManager';
 import { AdminsManager } from '@/components/admin/AdminsManager';
+import { AdminStatsView } from '@/components/admin/AdminStatsView';
+import { ManualProfileRegister } from '@/components/admin/ManualProfileRegister';
 
-type AdminTab = 'ofertas' | 'empresas' | 'postulantes' | 'capacitaciones' | 'administradores';
+type AdminTab = 'ofertas' | 'empresas' | 'postulantes' | 'registro_asistido' | 'capacitaciones' | 'administradores' | 'estadisticas';
 
 export default function AdminDashboardPage() {
   const [activeTab, setActiveTab] = useState<AdminTab>('ofertas');
@@ -239,6 +243,21 @@ export default function AdminDashboardPage() {
               </span>
             </button>
 
+            {/* Registro Asistido */}
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === 'registro_asistido'}
+              onClick={() => setActiveTab('registro_asistido')}
+              className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+                activeTab === 'registro_asistido'
+                  ? 'bg-[#0E4D36] text-white shadow-xs'
+                  : 'text-[#4B6256] hover:text-[#10231B] hover:bg-[#F4F8F4]'
+              }`}
+            >
+              <UserPlus className="w-4 h-4" />
+              <span>Registro Asistido</span>
+            </button>
             {/* Capacitaciones */}
             <button
               type="button"
@@ -255,6 +274,21 @@ export default function AdminDashboardPage() {
               <span>Cursos y Formación</span>
             </button>
 
+            {/* Estadísticas */}
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === 'estadisticas'}
+              onClick={() => setActiveTab('estadisticas')}
+              className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+                activeTab === 'estadisticas'
+                  ? 'bg-[#0E4D36] text-white shadow-xs'
+                  : 'text-[#4B6256] hover:text-[#10231B] hover:bg-[#F4F8F4]'
+              }`}
+            >
+              <TrendingUp className="w-4 h-4" />
+              <span>Estadísticas</span>
+            </button>
             {/* Administradores */}
             <button
               type="button"
@@ -508,14 +542,33 @@ export default function AdminDashboardPage() {
         )}
 
         {/* ============================================================== */}
-        {/* SECCIÓN 4: CAPACITACIONES                                      */}
+        {/* SECCIÓN 4: REGISTRO ASISTIDO (Presencial en Oficina)           */}
+        {/* ============================================================== */}
+        {activeTab === 'registro_asistido' && (
+          <ManualProfileRegister
+            onCreated={() => {
+              void loadPostulantes();
+              void loadCounts();
+            }}
+          />
+        )}
+
+        {/* ============================================================== */}
+        {/* SECCIÓN 5: CAPACITACIONES                                      */}
         {/* ============================================================== */}
         {activeTab === 'capacitaciones' && (
           <CoursesManager />
         )}
 
         {/* ============================================================== */}
-        {/* SECCIÓN 5: ADMINISTRADORES                                     */}
+        {/* SECCIÓN 6: ESTADÍSTICAS (Métricas y Reportes)                  */}
+        {/* ============================================================== */}
+        {activeTab === 'estadisticas' && (
+          <AdminStatsView />
+        )}
+
+        {/* ============================================================== */}
+        {/* SECCIÓN 7: ADMINISTRADORES                                     */}
         {/* ============================================================== */}
         {activeTab === 'administradores' && (
           <AdminsManager />

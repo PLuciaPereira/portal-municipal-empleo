@@ -17,6 +17,8 @@ import {
   ShieldCheckIcon,
 } from '@/components/ui/Icons';
 import { CandidateActionModal } from './CandidateActionModal';
+import { CompanyScheduleInterviewModal } from './CompanyScheduleInterviewModal';
+import { Calendar, User as UserIconLucide } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
 interface CandidatesTableProps {
@@ -33,6 +35,8 @@ export function CandidatesTable({
   const [selectedCandidate, setSelectedCandidate] = useState<VistaCandidatoEmpresa | null>(null);
   const [actionType, setActionType] = useState<'contratar' | 'rechazar'>('contratar');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isInterviewModalOpen, setIsInterviewModalOpen] = useState(false);
+  const [candidateToInterview, setCandidateToInterview] = useState<VistaCandidatoEmpresa | null>(null);
   const [downloadingCvId, setDownloadingCvId] = useState<string | null>(null);
 
   const handleOpenAction = (candidato: VistaCandidatoEmpresa, type: 'contratar' | 'rechazar') => {

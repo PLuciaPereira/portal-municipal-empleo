@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/Icons';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
+import { NotificationBell } from '@/components/layout/NotificationBell';
 
 export const Navbar: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -145,9 +146,17 @@ export const Navbar: React.FC = () => {
                   href={dashboardHref}
                   className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-zinc-100 transition-colors text-left"
                 >
-                  <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-xs shrink-0">
-                    {displayName.charAt(0)}
-                  </div>
+                  {user?.avatar_url || empresa?.logo_url ? (
+                    <img
+                      src={user?.avatar_url || empresa?.logo_url || ''}
+                      alt={displayName}
+                      className="w-8 h-8 rounded-full object-cover border border-emerald-300 shrink-0"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-xs shrink-0">
+                      {displayName.charAt(0)}
+                    </div>
+                  )}
                   <div className="flex flex-col">
                     <span className="font-semibold text-zinc-900 leading-tight text-xs max-w-[140px] truncate">
                       {displayName}
