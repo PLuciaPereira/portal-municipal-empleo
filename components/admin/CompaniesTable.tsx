@@ -287,8 +287,8 @@ export function CompaniesTable({ empresas, loading, onRefresh }: CompaniesTableP
               <thead className="bg-zinc-50/80 text-zinc-600 border-b border-zinc-200 uppercase tracking-wider font-semibold text-[11px]">
                 <tr>
                   <th className="py-3.5 px-4">Empresa</th>
-                  <th className="py-3.5 px-4">CUIT & Rubro</th>
-                  <th className="py-3.5 px-4">Ubicación & Contacto</th>
+                  <th className="py-3.5 px-4">CUIT y Rubro</th>
+                  <th className="py-3.5 px-4">Ubicación y Contacto</th>
                   <th className="py-3.5 px-4">Estado</th>
                   <th className="py-3.5 px-4">Fecha de Alta</th>
                   <th className="py-3.5 px-4 text-right">Acciones</th>
@@ -367,31 +367,50 @@ export function CompaniesTable({ empresas, loading, onRefresh }: CompaniesTableP
                           <span className="hidden sm:inline">Ficha</span>
                         </Button>
 
-                        {emp.estado !== 'aprobada' && (
-                          <Button
-                            variant="primary"
-                            size="sm"
-                            onClick={() => handleInitiateApprove(emp)}
-                            className="h-8 px-2.5 bg-brand-800 hover:bg-brand-900 text-xs gap-1"
-                            title="Aprobar empresa"
-                          >
-                            <CheckCircle2 className="w-3.5 h-3.5" />
-                            <span className="hidden sm:inline">Aprobar</span>
-                          </Button>
+                        {/* Si está pendiente: opciones de Aprobar o Rechazar */
+                        emp.estado === 'pendiente' && (
+                          <>
+                            <Button
+                              variant="primary"
+                              size="sm"
+                              onClick={() => handleInitiateApprove(emp)}
+                              disabled={actionLoading}
+                              className="h-8 px-2.5 bg-brand-800 hover:bg-brand-900 text-xs gap-1"
+                              title="Aprobar empresa"
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              <span className="hidden sm:inline">Aprobar</span>
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => handleInitiateReject(emp)}
+                              disabled={actionLoading}
+                              className="h-8 px-2.5 text-xs gap-1"
+                              title="Rechazar empresa"
+                            >
+                              <XCircle className="w-3.5 h-3.5" />
+                              <span className="hidden sm:inline">Rechazar</span>
+                            </Button>
+                          </>
                         )}
 
-                        {emp.estado !== 'rechazada' && (
+                        {/* Si ya está aprobada: no puede volver a aprobarse, solo dar de baja / inhabilitar si fuera necesario */}
+                        {emp.estado === 'aprobada' && (
                           <Button
                             variant="destructive"
                             size="sm"
                             onClick={() => handleInitiateReject(emp)}
+                            disabled={actionLoading}
                             className="h-8 px-2.5 text-xs gap-1"
-                            title="Rechazar empresa"
+                            title="Inhabilitar / Rechazar empresa"
                           >
                             <XCircle className="w-3.5 h-3.5" />
-                            <span className="hidden sm:inline">Rechazar</span>
+                            <span className="hidden sm:inline">Inhabilitar</span>
                           </Button>
                         )}
+
+                        {/* Si está rechazada: estado terminal. No permite aprobar ni volver a rechazar sin reactivación explícita */}
                       </div>
                     </td>
                   </tr>

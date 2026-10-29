@@ -20,7 +20,7 @@ export default async function OfertasPage() {
   return (
     <Suspense
       fallback={
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 py-16 text-center">
           <div className="inline-block animate-spin h-8 w-8 border-4 border-emerald-600 border-t-transparent rounded-full" />
           <p className="mt-4 text-sm text-zinc-500">Cargando catálogo de ofertas laborales de Funes...</p>
         </div>

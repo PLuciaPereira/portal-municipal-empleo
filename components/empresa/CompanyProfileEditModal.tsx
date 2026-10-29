@@ -1,5 +1,6 @@
 'use client';
 
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 import React, { useState } from 'react';
 import { Empresa } from '@/types/database';
 import { updateEmpresaProfile } from '@/lib/empresa';
@@ -21,6 +22,7 @@ export const CompanyProfileEditModal: React.FC<CompanyProfileEditModalProps> = (
   onClose,
   onSaved,
 }) => {
+  useBodyScrollLock(Boolean(isOpen));
   const [nombreFantasia, setNombreFantasia] = useState(empresa.nombre_fantasia || '');
   const [personaContacto, setPersonaContacto] = useState(empresa.persona_contacto || '');
   const [telefono, setTelefono] = useState(empresa.telefono || '');
@@ -221,9 +223,11 @@ export const CompanyProfileEditModal: React.FC<CompanyProfileEditModalProps> = (
                   Teléfono / WhatsApp de Contacto *
                 </label>
                 <Input
+                  type="tel"
+                  inputMode="numeric"
                   value={telefono}
-                  onChange={(e) => setTelefono(e.target.value)}
-                  placeholder="Ej: 341 555-1234"
+                  onChange={(e) => setTelefono(e.target.value.replace(/\D/g, ''))}
+                  placeholder="Ej: 3415551234"
                   required
                 />
               </div>

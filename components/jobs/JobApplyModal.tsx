@@ -1,5 +1,6 @@
 'use client';
 
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 import React, { useState, useEffect, useRef } from 'react';
 import { Curriculum, Job } from '@/types/database';
 import { useAuth } from '@/context/AuthContext';
@@ -35,6 +36,7 @@ export const JobApplyModal: React.FC<JobApplyModalProps> = ({
   onClose,
   onApplicationSuccess,
 }) => {
+  useBodyScrollLock(Boolean(isOpen));
   const { user, hasAppliedTo, recordApplication, refreshUser } = useAuth();
 
   const [formData, setFormData] = useState<{
@@ -279,12 +281,12 @@ export const JobApplyModal: React.FC<JobApplyModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="relative bg-white rounded-2xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-zinc-200 animate-in fade-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+      <div className="relative bg-white rounded-2xl max-w-lg w-full max-h-[90vh] flex flex-col p-5 sm:p-7 shadow-2xl border border-zinc-200 animate-in fade-in zoom-in-95 duration-200 overflow-hidden">
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-5 right-5 p-1 rounded-lg text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 transition-colors"
+          className="absolute top-4 right-4 z-20 p-2 rounded-xl text-zinc-400 hover:text-zinc-800 hover:bg-zinc-100 transition-colors cursor-pointer"
           aria-label="Cerrar modal"
         >
           <XMarkIcon className="w-6 h-6" />
@@ -346,7 +348,7 @@ export const JobApplyModal: React.FC<JobApplyModalProps> = ({
               La Oficina de Empleo se pondrá en contacto contigo si tu perfil resulta preseleccionado.
             </div>
             <Button
-              variant="secondary"
+              variant="outline"
               size="md"
               className="w-full justify-center"
               onClick={onClose}
@@ -356,7 +358,7 @@ export const JobApplyModal: React.FC<JobApplyModalProps> = ({
           </div>
         ) : (
           /* Formulario de Postulación de Usuario Autenticado */
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 space-y-4">
             <div>
               <div className="flex items-center gap-2 text-xs font-semibold text-emerald-700 mb-1">
                 <BriefcaseIcon className="w-4 h-4" />
@@ -391,7 +393,7 @@ export const JobApplyModal: React.FC<JobApplyModalProps> = ({
               </div>
             )}
 
-            <div className="space-y-4 max-h-[55vh] overflow-y-auto pr-1">
+            <div className="space-y-4 flex-1 overflow-y-auto pr-1 min-h-0">
               {needsIdentityCompletion && (
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <Input
@@ -410,9 +412,12 @@ export const JobApplyModal: React.FC<JobApplyModalProps> = ({
                   />
                   <Input
                     label="DNI (sin puntos) *"
+                    type="text"
+                    inputMode="numeric"
                     placeholder="Ej: 35123456"
+                    maxLength={8}
                     value={currentDni}
-                    onChange={(e) => setFormData({ ...formData, dni: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, dni: e.target.value.replace(/\D/g, '').slice(0, 8) })}
                     required
                   />
                 </div>
@@ -420,10 +425,12 @@ export const JobApplyModal: React.FC<JobApplyModalProps> = ({
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Input
-                  label="Teléfono / WhatsApp de contacto *"
-                  placeholder="Ej: 341 555-0123"
+                  label="Teléfono / WhatsApp *"
+                  type="tel"
+                  inputMode="numeric"
+                  placeholder="Ej: 3415550123"
                   value={currentTelefono}
-                  onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, telefono: e.target.value.replace(/\D/g, '') })}
                   required
                 />
                 <Input

@@ -1,5 +1,6 @@
 'use client';
 
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 import React from 'react';
 import { Empresa } from '@/types/database';
 import { CompanyStatusBadge } from './CompanyStatusBadge';
@@ -32,7 +33,8 @@ export function CompanyDetailModal({
   onApprove,
   onReject,
 }: CompanyDetailModalProps) {
-  if (!isOpen || !empresa) return null;
+    useBodyScrollLock(Boolean(isOpen));
+if (!isOpen || !empresa) return null;
 
   return (
     <div
@@ -227,7 +229,30 @@ export function CompanyDetailModal({
           </Button>
 
           <div className="flex items-center gap-2">
-            {empresa.estado !== 'rechazada' && (
+            {empresa.estado === 'pendiente' && (
+              <>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => onReject(empresa)}
+                  className="gap-1.5"
+                >
+                  <ShieldAlert className="w-4 h-4" />
+                  Rechazar Empresa
+                </Button>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => onApprove(empresa)}
+                  className="gap-1.5 bg-brand-800 hover:bg-brand-900"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  Aprobar Empresa
+                </Button>
+              </>
+            )}
+
+            {empresa.estado === 'aprobada' && (
               <Button
                 variant="destructive"
                 size="sm"
@@ -235,20 +260,14 @@ export function CompanyDetailModal({
                 className="gap-1.5"
               >
                 <ShieldAlert className="w-4 h-4" />
-                Rechazar Empresa
+                Inhabilitar Empresa
               </Button>
             )}
 
-            {empresa.estado !== 'aprobada' && (
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={() => onApprove(empresa)}
-                className="gap-1.5 bg-brand-800 hover:bg-brand-900"
-              >
-                <CheckCircle2 className="w-4 h-4" />
-                Aprobar Empresa
-              </Button>
+            {empresa.estado === 'rechazada' && (
+              <span className="text-xs font-medium text-rose-700 bg-rose-50 border border-rose-200 px-3 py-1.5 rounded-lg">
+                Empresa rechazada · Estado definitivo
+              </span>
             )}
           </div>
         </div>

@@ -1,5 +1,6 @@
 'use client';
 
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 import React, { useState } from 'react';
 import { Rubro } from '@/types/database';
 import {
@@ -54,6 +55,7 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
   onClose,
   onSaved,
 }) => {
+  useBodyScrollLock(Boolean(isOpen));
   const [nombre, setNombre] = useState(profile.nombre || '');
   const [apellido, setApellido] = useState(profile.apellido || '');
   const [dni, setDni] = useState(profile.dni || '');
@@ -195,16 +197,21 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
                 />
                 <Input
                   label="DNI (sin puntos) *"
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={8}
                   value={dni}
-                  onChange={(e) => setDni(e.target.value)}
+                  onChange={(e) => setDni(e.target.value.replace(/\D/g, '').slice(0, 8))}
                   placeholder="Ej: 38123456"
                   required
                 />
                 <Input
                   label="Teléfono / WhatsApp *"
+                  type="tel"
+                  inputMode="numeric"
                   value={telefono}
-                  onChange={(e) => setTelefono(e.target.value)}
-                  placeholder="Ej: 341 555-1234"
+                  onChange={(e) => setTelefono(e.target.value.replace(/\D/g, ''))}
+                  placeholder="Ej: 3415551234"
                   required
                 />
                 <Input

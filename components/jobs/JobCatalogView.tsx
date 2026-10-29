@@ -4,6 +4,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Job, Rubro } from '@/types/database';
 import { JobCard } from './JobCard';
+import { Pagination } from '@/components/ui/Pagination';
 import { JobFilters, FilterState } from './JobFilters';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -41,6 +42,8 @@ export const JobCatalogView: React.FC<JobCatalogViewProps> = ({
   });
 
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   // Sincronizar URL cuando cambian los filtros principales
   useEffect(() => {
@@ -115,6 +118,17 @@ export const JobCatalogView: React.FC<JobCatalogViewProps> = ({
     });
   }, [initialJobs, filters]);
 
+  const paginatedJobs = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredJobs.slice(start, start + pageSize);
+  }, [filteredJobs, currentPage, pageSize]);
+
+  const totalPages = Math.ceil(filteredJobs.length / pageSize);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters]);
+
   const handleReset = () => {
     setFilters({
       query: '',
@@ -133,19 +147,19 @@ export const JobCatalogView: React.FC<JobCatalogViewProps> = ({
     filters.destacadasOnly;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-8">
-      {/* Banner de Cabecera */}
-      <div className="bg-brand-900 border border-brand-800 rounded-2xl p-6 sm:p-10 text-white relative overflow-hidden shadow-sm">
-        <div className="relative z-10 max-w-3xl space-y-3">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-brand-800/90 border border-brand-700/60 text-brand-100 text-xs font-semibold shadow-xs">
-            <ShieldCheckIcon className="w-3.5 h-3.5 text-brand-300" />
+    <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 py-6 sm:py-8 space-y-6">
+      {/* Banner de Cabecera Full-Width */}
+      <div className="bg-gradient-to-r from-brand-950 via-brand-900 to-brand-800 border border-brand-950/40 rounded-2xl p-6 sm:p-8 text-white relative overflow-hidden shadow-xs">
+        <div className="relative z-10 max-w-4xl space-y-2.5">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-white/10 border border-white/15 text-white/95 text-xs font-semibold backdrop-blur-xs">
+            <ShieldCheckIcon className="w-3.5 h-3.5 text-emerald-300" />
             Bolsa de Empleo Municipal &bull; Funes, Santa Fe
           </div>
-          <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-white">
-            Ofertas Laborales Vigentes
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-white font-sans">
+            Ofertas Laborales Vigentes en Funes
           </h1>
-          <p className="text-sm sm:text-base text-brand-100/90 leading-relaxed">
-            Consultá las búsquedas activas de comercios y empresas de Funes. Postulate de manera gratuita; la Oficina de Empleo acompaña y preselecciona cada postulación con absoluta confidencialidad.
+          <p className="text-xs sm:text-sm lg:text-base text-brand-100/90 leading-relaxed">
+            Consultá las búsquedas activas de comercios y empresas de la ciudad. Postulate de manera gratuita; la Oficina de Empleo acompaña y preselecciona cada postulación con absoluta confidencialidad y prioridad comunitaria.
           </p>
         </div>
       </div>
@@ -259,11 +273,26 @@ export const JobCatalogView: React.FC<JobCatalogViewProps> = ({
           </div>
 
           {filteredJobs.length > 0 ? (
+            <>
             <div className="grid grid-cols-1 gap-4">
-              {filteredJobs.map((job) => (
+              {paginatedJobs.map((job) => (
                 <JobCard key={job.id} job={job} />
               ))}
             </div>
+              {filteredJobs.length > pageSize && (
+                <div className="pt-2">
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalItems={filteredJobs.length}
+                    pageSize={pageSize}
+                    onPageChange={setCurrentPage}
+                    onPageSizeChange={setPageSize}
+                    pageSizeOptions={[10, 20, 30]}
+                  />
+                </div>
+              )}
+            </>
           ) : (
             /* Estado sin resultados */
             <div className="bg-surface rounded-2xl border border-border p-8 sm:p-12 text-center space-y-4">

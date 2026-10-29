@@ -94,7 +94,7 @@ export const JobDetailView: React.FC<JobDetailViewProps> = ({
     : null;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-8">
+    <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 py-6 sm:py-8 space-y-6">
       {/* Navegación y Breadcrumbs */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs sm:text-sm text-zinc-500">
@@ -331,7 +331,7 @@ export const JobDetailView: React.FC<JobDetailViewProps> = ({
                 {isNonPostulanteUser
                   ? 'Estás navegando con una cuenta institucional o empresarial. Las postulaciones están habilitadas únicamente para cuentas de postulantes.'
                   : isAuthenticated
-                    ? 'Estás conectado/a con tu perfil de postulante. Confirmá tu postulación en un clic.'
+                    ? 'Estás conectado/a con tu perfil de postulante. Confirmá tu postulación en un click.'
                     : 'Requiere inicio de sesión. Si todavía no tenés cuenta, podrás registrarte gratuitamente.'}
               </p>
             </div>
@@ -362,7 +362,7 @@ export const JobDetailView: React.FC<JobDetailViewProps> = ({
                 onClick={handleApplyClick}
                 className="w-full justify-center text-base py-3"
               >
-                {isAuthenticated ? 'Postularme a esta Oferta' : 'Iniciar Sesión para Postularme'}
+                {isAuthenticated ? 'Postularme Ahora' : 'Iniciar Sesión'}
               </Button>
             )}
 

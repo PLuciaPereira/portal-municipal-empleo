@@ -44,7 +44,7 @@ export function AdminJobsTable({
   onRefresh,
   onSelectOfertaPostulaciones,
 }: AdminJobsTableProps) {
-  const [filterEstado, setFilterEstado] = useState<FilterEstado>('pendiente_revision');
+  const [filterEstado, setFilterEstado] = useState<FilterEstado>('todas');
   const [searchTerm, setSearchTerm] = useState('');
 
   // Modales
@@ -276,6 +276,17 @@ export function AdminJobsTable({
         {/* Pestañas de estado */}
         <div className="flex items-center gap-1.5 p-1 bg-zinc-100 rounded-xl overflow-x-auto shrink-0">
           <button
+            onClick={() => setFilterEstado('todas')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${
+              filterEstado === 'todas'
+                ? 'bg-white text-zinc-900 shadow-xs'
+                : 'text-zinc-600 hover:text-zinc-900'
+            }`}
+          >
+            Todas ({counts.todas})
+          </button>
+
+          <button
             onClick={() => setFilterEstado('pendiente_revision')}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 ${
               filterEstado === 'pendiente_revision'
@@ -321,17 +332,6 @@ export function AdminJobsTable({
           >
             <BadgeAlert className="w-3.5 h-3.5 text-zinc-600" />
             Dadas de Baja ({counts.bajas})
-          </button>
-
-          <button
-            onClick={() => setFilterEstado('todas')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${
-              filterEstado === 'todas'
-                ? 'bg-white text-zinc-900 shadow-xs'
-                : 'text-zinc-600 hover:text-zinc-900'
-            }`}
-          >
-            Todas ({counts.todas})
           </button>
         </div>
 

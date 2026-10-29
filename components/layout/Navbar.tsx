@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
@@ -17,6 +17,36 @@ import { Badge } from '@/components/ui/Badge';
 
 export const Navbar: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
+  const lastScrollY = useRef(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (mobileMenuOpen) {
+        setIsVisible(true);
+        return;
+      }
+
+      const currentScrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
+      const delta = currentScrollY - lastScrollY.current;
+
+      // Arriba de todo siempre visible
+      if (currentScrollY <= 20) {
+        setIsVisible(true);
+      } else if (delta > 8 && currentScrollY > 70) {
+        // Scrolleando hacia abajo de manera clara -> ocultar
+        setIsVisible(false);
+      } else if (delta < -5) {
+        // Scrolleando hacia arriba (incluso leve) -> mostrar inmediatamente
+        setIsVisible(true);
+      }
+
+      lastScrollY.current = currentScrollY;
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [mobileMenuOpen]);
   const pathname = usePathname();
   const { user, empresa, isAuthenticated, logout } = useAuth();
 
@@ -64,8 +94,8 @@ export const Navbar: React.FC = () => {
       : `${user?.nombre || 'Usuario'} ${user?.apellido || ''}`.trim();
 
   return (
-    <header className="sticky top-0 z-50 bg-surface/95 backdrop-blur-md border-b border-border">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <header className={`sticky top-0 z-50 w-full bg-surface/95 backdrop-blur-md border-b border-border transform-gpu transition-all duration-300 ease-in-out ${isVisible ? 'translate-y-0 opacity-100 shadow-xs' : '-translate-y-full opacity-0 pointer-events-none'}`}>
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10">
         <div className="flex items-center justify-between h-16">
           {/* Logo y Branding Institucional */}
           <Link href="/" className="flex items-center gap-3 group">

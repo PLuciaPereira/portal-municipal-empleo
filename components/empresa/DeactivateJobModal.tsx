@@ -1,5 +1,6 @@
 'use client';
 
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { AlertCircleIcon, XIcon } from '@/components/ui/Icons';
@@ -19,7 +20,8 @@ export function DeactivateJobModal({
   onClose,
   onSuccess,
 }: DeactivateJobModalProps) {
-  const [motivo, setMotivo] = useState('');
+    useBodyScrollLock(Boolean(isOpen));
+const [motivo, setMotivo] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

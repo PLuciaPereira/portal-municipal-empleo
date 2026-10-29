@@ -1,5 +1,6 @@
 'use client';
 
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 import React from 'react';
 import { OfertaAdminItem } from '@/lib/admin';
 import { JobStatusBadge } from '@/components/empresa/JobStatusBadge';
@@ -36,7 +37,8 @@ export function AdminJobDetailModal({
   onDeactivate,
   onToggleHighlight,
 }: AdminJobDetailModalProps) {
-  if (!isOpen || !oferta) return null;
+    useBodyScrollLock(Boolean(isOpen));
+if (!isOpen || !oferta) return null;
 
   const isBaja = Boolean(oferta.deleted_at);
 

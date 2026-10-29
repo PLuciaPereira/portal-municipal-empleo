@@ -152,12 +152,13 @@ function RegisterEmpresaForm() {
     cuit: '',
     rubro: '',
     direccion: '',
-    localidad: 'Funes',
+    localidad: '',
     telefono: '',
     email: '',
     personaContacto: '',
     sitioWeb: '',
     password: '',
+    confirmPassword: '',
     aceptoTerminos: false,
   });
 
@@ -168,6 +169,7 @@ function RegisterEmpresaForm() {
   // Validaciones visuales en caliente
   const [isCuitValid, setIsCuitValid] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Modal legal
   const [modalOpen, setModalOpen] = useState(false);
@@ -188,6 +190,7 @@ function RegisterEmpresaForm() {
   const telefonoRef = useRef<HTMLInputElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
+  const confirmPasswordRef = useRef<HTMLInputElement>(null);
   const terminosRef = useRef<HTMLInputElement>(null);
 
   // Carga inicial de rubros
@@ -307,6 +310,12 @@ function RegisterEmpresaForm() {
       newErrors.password = 'La contraseña debe tener al menos 6 caracteres.';
     }
 
+        if (!formData.confirmPassword) {
+      newErrors.confirmPassword = 'Por favor confirmá tu contraseña.';
+    } else if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Las contraseñas no coinciden.';
+    }
+
     if (!formData.aceptoTerminos) {
       newErrors.terminos = 'Debés aceptar los términos y condiciones para continuar.';
     }
@@ -337,6 +346,8 @@ function RegisterEmpresaForm() {
         emailRef.current?.focus();
       } else if (newErrors.password) {
         passwordRef.current?.focus();
+      } else if (newErrors.confirmPassword) {
+        confirmPasswordRef.current?.focus();
       } else if (newErrors.terminos) {
         terminosRef.current?.focus();
       }
@@ -352,7 +363,7 @@ function RegisterEmpresaForm() {
       cuit: formData.cuit.trim(),
       rubro: formData.rubro,
       direccion: formData.direccion.trim(),
-      localidad: formData.localidad.trim() || 'Funes',
+      localidad: formData.localidad.trim(),
       telefono: formData.telefono.trim(),
       persona_contacto: formData.personaContacto.trim(),
       email: formData.email.trim(),
@@ -638,7 +649,7 @@ function RegisterEmpresaForm() {
                     Localidad <span className="text-destructive" aria-hidden="true">*</span>
                   </span>
                 }
-                placeholder="Funes"
+                placeholder="Ej: Funes"
                 value={formData.localidad}
                 onChange={(e) => {
                   setFormData({ ...formData, localidad: e.target.value });
@@ -723,6 +734,7 @@ function RegisterEmpresaForm() {
                 id="telefono"
                 name="telefono"
                 type="tel"
+                inputMode="numeric"
                 required
                 leftIcon={<Phone className="w-4 h-4" aria-hidden="true" />}
                 label={
@@ -731,15 +743,16 @@ function RegisterEmpresaForm() {
                     <span className="text-destructive" aria-hidden="true">*</span>
                   </span>
                 }
-                placeholder="Ej: 341 493-1234"
+                placeholder="Ej: 3414931234"
                 value={formData.telefono}
                 onChange={(e) => {
-                  setFormData({ ...formData, telefono: e.target.value });
+                  const onlyNums = e.target.value.replace(/\D/g, '');
+                  setFormData({ ...formData, telefono: onlyNums });
                   if (errors.telefono) {
                     setErrors({ ...errors, telefono: undefined });
                   }
                 }}
-                hint="Fijo o móvil con código de área."
+                hint="Mínimo 8 dígitos numéricos (con código de área)."
                 error={errors.telefono}
               />
             </div>
@@ -820,6 +833,45 @@ function RegisterEmpresaForm() {
                     className="text-placeholder hover:text-foreground focus:outline-none focus:ring-1 focus:ring-brand-800 rounded p-1 cursor-pointer transition-colors"
                   >
                     {showPassword ? (
+                      <EyeOff className="w-4 h-4" aria-hidden="true" />
+                    ) : (
+                      <Eye className="w-4 h-4" aria-hidden="true" />
+                    )}
+                  </button>
+                }
+              />
+
+              <Input
+                ref={confirmPasswordRef}
+                id="confirmPassword"
+                name="confirmPassword"
+                type={showConfirmPassword ? 'text' : 'password'}
+                required
+                minLength={6}
+                leftIcon={<Lock className="w-4 h-4" aria-hidden="true" />}
+                label={
+                  <span>
+                    Repetir contraseña <span className="text-destructive" aria-hidden="true">*</span>
+                  </span>
+                }
+                placeholder="Reingresá tu contraseña"
+                value={formData.confirmPassword}
+                onChange={(e) => {
+                  setFormData({ ...formData, confirmPassword: e.target.value });
+                  if (errors.confirmPassword) {
+                    setErrors({ ...errors, confirmPassword: undefined });
+                  }
+                }}
+                error={errors.confirmPassword}
+                rightElement={
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword((prev) => !prev)}
+                    aria-pressed={showConfirmPassword}
+                    aria-label="Mostrar u ocultar confirmación de contraseña"
+                    className="text-placeholder hover:text-foreground focus:outline-none focus:ring-1 focus:ring-brand-800 rounded p-1 cursor-pointer transition-colors"
+                  >
+                    {showConfirmPassword ? (
                       <EyeOff className="w-4 h-4" aria-hidden="true" />
                     ) : (
                       <Eye className="w-4 h-4" aria-hidden="true" />

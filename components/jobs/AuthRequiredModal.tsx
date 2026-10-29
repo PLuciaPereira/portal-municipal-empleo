@@ -90,16 +90,6 @@ export const AuthRequiredModal: React.FC<AuthRequiredModalProps> = ({
             </p>
           </div>
 
-          <div className="p-3 bg-zinc-50 border border-zinc-200 rounded-xl text-xs text-zinc-600 space-y-1">
-            <div className="flex items-center gap-1.5 font-semibold text-zinc-800">
-              <ShieldCheckIcon className="w-4 h-4 text-emerald-700" />
-              <span>¿Por qué es necesario registrarse?</span>
-            </div>
-            <p className="leading-relaxed">
-              La Oficina de Empleo de Funes intermediará tu postulación vinculando tus antecedentes laborales y CV oficial, protegiendo tus datos ante las empresas.
-            </p>
-          </div>
-
           {error && (
             <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-lg">
               {error}

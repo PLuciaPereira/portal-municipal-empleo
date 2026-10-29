@@ -570,7 +570,7 @@ export const CurriculumManager: React.FC<CurriculumManagerProps> = ({
                     className="min-h-[44px] px-3.5 rounded-full text-[#A3193B] font-bold text-sm inline-flex items-center gap-1.5 hover:bg-rose-50 cursor-pointer disabled:opacity-50"
                   >
                     <Archive className="w-3.5 h-3.5" />
-                    Archivar
+                    Eliminar
                   </button>
                 </div>
               </div>
@@ -605,13 +605,13 @@ export const CurriculumManager: React.FC<CurriculumManagerProps> = ({
 
       <ConfirmDialog
         isOpen={Boolean(cvToArchive)}
-        title="¿Archivar este Currículum Vitae?"
+        title="¿Eliminar Currículum Vitae?"
         description={
           cvToArchive
             ? `El archivo "${cvToArchive.nombre_cv}" dejará de estar en tu lista de CVs activos. Si ya lo utilizaste en postulaciones anteriores, esas postulaciones conservarán su copia histórica sin verse afectadas.`
             : undefined
         }
-        confirmText="Sí, archivar CV"
+        confirmText="Eliminar CV"
         cancelText="Cancelar"
         variant="destructive"
         isLoading={isArchiving}

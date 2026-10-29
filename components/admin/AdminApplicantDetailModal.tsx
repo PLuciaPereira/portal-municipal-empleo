@@ -1,5 +1,6 @@
 'use client';
 
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 import React, { useState } from 'react';
 import { PostulanteAdminItem, getCurriculumSignedUrlAdmin } from '@/lib/admin';
 import { Button } from '@/components/ui/Button';
@@ -28,7 +29,8 @@ export function AdminApplicantDetailModal({
   isOpen,
   onClose,
 }: AdminApplicantDetailModalProps) {
-  const [downloadingCvId, setDownloadingCvId] = useState<string | null>(null);
+    useBodyScrollLock(Boolean(isOpen));
+const [downloadingCvId, setDownloadingCvId] = useState<string | null>(null);
   const [cvError, setCvError] = useState<string | null>(null);
 
   if (!isOpen || !postulante) return null;

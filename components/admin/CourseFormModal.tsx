@@ -1,5 +1,6 @@
 'use client';
 
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 import { useState } from 'react';
 import { Curso } from '@/types/database';
 import { Button } from '@/components/ui/Button';
@@ -33,7 +34,8 @@ export function CourseFormModal({
   onClose,
   onSave,
 }: CourseFormModalProps) {
-  const isEditing = Boolean(curso);
+    useBodyScrollLock(Boolean(isOpen));
+const isEditing = Boolean(curso);
 
   const [titulo, setTitulo] = useState(curso?.titulo || '');
   const [institucion, setInstitucion] = useState(curso?.institucion || '');

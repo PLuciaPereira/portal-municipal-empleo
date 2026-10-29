@@ -1,5 +1,6 @@
 'use client';
 
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -36,7 +37,8 @@ export function AdminFormModal({
   onSuccess,
   onSave,
 }: AdminFormModalProps) {
-  const [email, setEmail] = useState('');
+    useBodyScrollLock(Boolean(isOpen));
+const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [nombre, setNombre] = useState('');
   const [apellido, setApellido] = useState('');
@@ -168,9 +170,11 @@ export function AdminFormModal({
               <div className="relative">
                 <Input
                   type="text"
+                  inputMode="numeric"
+                  maxLength={8}
                   placeholder="Sin puntos"
                   value={dni}
-                  onChange={(e) => setDni(e.target.value)}
+                  onChange={(e) => setDni(e.target.value.replace(/\D/g, '').slice(0, 8))}
                   disabled={loading}
                   className="pl-8 text-xs"
                 />
@@ -184,10 +188,11 @@ export function AdminFormModal({
               </label>
               <div className="relative">
                 <Input
-                  type="text"
-                  placeholder="Ej. 341-..."
+                  type="tel"
+                  inputMode="numeric"
+                  placeholder="Ej. 3415551234"
                   value={telefono}
-                  onChange={(e) => setTelefono(e.target.value)}
+                  onChange={(e) => setTelefono(e.target.value.replace(/\D/g, ''))}
                   disabled={loading}
                   className="pl-8 text-xs"
                 />

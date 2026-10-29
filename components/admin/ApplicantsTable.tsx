@@ -223,7 +223,7 @@ export function ApplicantsTable({
               <thead className="bg-zinc-50/80 text-zinc-600 border-b border-zinc-200 uppercase tracking-wider font-semibold text-[11px]">
                 <tr>
                   <th className="py-3.5 px-4">Postulante</th>
-                  <th className="py-3.5 px-4">Localidad & Contacto</th>
+                  <th className="py-3.5 px-4">Localidad y Contacto</th>
                   <th className="py-3.5 px-4">Nivel Educativo</th>
                   <th className="py-3.5 px-4">Situación Laboral</th>
                   <th className="py-3.5 px-4">Currículums</th>
@@ -274,11 +274,6 @@ export function ApplicantsTable({
                         <span className="text-zinc-800 block font-medium">
                           {postulante.nivel_educativo || 'No especificado'}
                         </span>
-                        {postulante.habilidades && postulante.habilidades.length > 0 && (
-                          <span className="text-[11px] text-zinc-500 block truncate max-w-[160px]">
-                            {postulante.habilidades.join(', ')}
-                          </span>
-                        )}
                       </td>
 
                       {/* Situación Laboral */}

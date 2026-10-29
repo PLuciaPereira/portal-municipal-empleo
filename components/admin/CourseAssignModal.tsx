@@ -1,5 +1,6 @@
 'use client';
 
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 import { useState, useEffect } from 'react';
 import { Curso, Perfil } from '@/types/database';
 import { Button } from '@/components/ui/Button';
@@ -35,7 +36,8 @@ export function CourseAssignModal({
   onClose,
   onAssign,
 }: CourseAssignModalProps) {
-  const [customCursoId, setCustomCursoId] = useState<string | null>(null);
+    useBodyScrollLock(Boolean(isOpen));
+const [customCursoId, setCustomCursoId] = useState<string | null>(null);
   const cursoSeleccionadoId = customCursoId ?? (cursoInicial?.id || cursosDisponibles[0]?.id || '');
   const setCursoSeleccionadoId = (id: string) => setCustomCursoId(id);
 

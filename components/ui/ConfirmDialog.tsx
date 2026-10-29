@@ -1,5 +1,6 @@
 'use client';
 
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { AlertTriangle, X } from 'lucide-react';
@@ -148,6 +149,7 @@ const ConfirmDialogContent: React.FC<ConfirmDialogContentProps> = ({
 };
 
 export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({ isOpen, ...props }) => {
+  useBodyScrollLock(isOpen);
   if (!isOpen) return null;
   return <ConfirmDialogContent {...props} />;
 };

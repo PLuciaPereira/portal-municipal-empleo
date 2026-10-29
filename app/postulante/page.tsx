@@ -125,34 +125,38 @@ export default function PostulanteDashboardPage() {
   ).length;
 
   return (
-    <div className="min-h-screen bg-[#F8FAF8] text-[#10231B]">
-      {/* 1. Banda Verde Superior Institucional Funes */}
-      <section className="bg-gradient-to-r from-[#06402B] to-[#0A3D2A] text-white pt-10 pb-8 border-b border-[#04281B]">
-        <div className="max-w-[1200px] mx-auto px-4 sm:px-6">
+    <div className="min-h-screen bg-page text-foreground flex flex-col font-sans">
+      {/* 1. Banda Verde Superior Institucional Funes Full-Width */}
+      <section className="bg-gradient-to-r from-brand-950 via-brand-900 to-brand-800 text-white pt-8 pb-7 border-b border-brand-950/40 shadow-sm">
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-            <div className="flex-1 max-w-[760px]">
-              <div className="flex flex-wrap items-center gap-3">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#DDEFE3]/20 border border-[#DDEFE3]/30 text-[#E8F5EE] text-xs font-semibold">
-                  <span className="w-3.5 h-3.5 rounded-full bg-[#DDEFE3] text-[#06402B] flex items-center justify-center shrink-0">
-                    <Check className="w-2.5 h-2.5 stroke-[3]" />
-                  </span>
-                  Postulante Activo
+            <div className="flex-1 max-w-[820px]">
+              <div className="flex flex-wrap items-center gap-2.5 mb-2">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-white/10 border border-white/15 text-white/95 text-xs font-semibold backdrop-blur-xs">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                  Portal de Empleo · Municipalidad de Funes
                 </span>
+                {displayProfile?.es_residente_funes && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-emerald-500/20 text-emerald-200 text-xs font-semibold">
+                    <Check className="w-3.5 h-3.5 text-emerald-300 stroke-[3]" />
+                    Vecino Residente de Funes
+                  </span>
+                )}
               </div>
-              <h1 className="mt-2 text-3xl sm:text-4xl font-extrabold tracking-tight leading-tight font-display text-white">
-                Mi Portal de Postulante
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight leading-tight text-white font-sans">
+                {displayProfile?.nombre ? `${displayProfile.nombre} ${displayProfile.apellido || ''}` : 'Mi Perfil Laboral'}
               </h1>
-              <p className="mt-2 text-[#D6EADD] text-sm sm:text-base leading-relaxed max-w-[620px]">
-                Gestioná tu perfil laboral, administrá tus currículums vitae y hacé el seguimiento continuo de tus postulaciones ante la Oficina de Empleo de Funes.
+              <p className="mt-1.5 text-brand-100/90 text-xs sm:text-sm lg:text-base leading-relaxed">
+                Gestioná tu legajo laboral, actualizá tus currículums y seguí en tiempo real las intermediaciones de la Oficina de Empleo de Funes.
               </p>
             </div>
 
             <div className="shrink-0 flex items-center gap-3">
               <Link
                 href="/ofertas"
-                className="min-h-[46px] px-6 rounded-full bg-[#F2B84B] hover:bg-[#E5AC41] text-[#2B1D00] font-bold text-sm inline-flex items-center gap-2 transition-all shadow-sm hover:-translate-y-0.5"
+                className="min-h-[42px] px-5 rounded-xl bg-amber-400 hover:bg-amber-300 text-amber-950 font-bold text-xs inline-flex items-center gap-2 transition-all shadow-xs cursor-pointer"
               >
-                <Search className="w-4 h-4 stroke-[2.4]" />
+                <Search className="w-3.5 h-3.5 stroke-[2.4]" />
                 Explorar Ofertas Laborales
               </Link>
             </div>
@@ -160,23 +164,23 @@ export default function PostulanteDashboardPage() {
         </div>
       </section>
 
-      {/* 2. Barra de Navegación por Pestañas (Sticky, navegación dinámica sin recarga) */}
-      <div className="bg-white border-b border-[#E0E8E1]">
-        <div className="max-w-[1200px] mx-auto px-4 sm:px-6">
-          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-2" role="tablist">
+      {/* 2. Barra de Navegación por Pestañas Segmentadas */}
+      <div className="bg-surface border-b border-zinc-200">
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10">
+          <div className="flex items-center gap-1 overflow-x-auto py-1.5 no-scrollbar text-xs" role="tablist">
             <button
               type="button"
               role="tab"
               aria-selected={activeTab === 'perfil'}
               onClick={() => setActiveTab('perfil')}
-              className={`inline-flex items-center gap-2 px-5 py-3 rounded-full text-sm font-bold transition-all whitespace-nowrap cursor-pointer ${
+              className={`inline-flex items-center gap-2 px-4 py-2.5 border-b-2 font-bold transition-all whitespace-nowrap cursor-pointer ${
                 activeTab === 'perfil'
-                  ? 'bg-[#0E4D36] text-white shadow-xs'
-                  : 'text-[#4B6256] hover:text-[#10231B] hover:bg-[#F4F8F4]'
+                  ? 'border-brand-800 text-brand-900 font-extrabold bg-brand-50/50'
+                  : 'border-transparent text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50'
               }`}
             >
-              <User className="w-4 h-4" />
-              Mi Perfil
+              <User className="w-4 h-4 text-brand-800" />
+              <span>Mi Perfil y CV</span>
             </button>
 
             <button
@@ -184,19 +188,19 @@ export default function PostulanteDashboardPage() {
               role="tab"
               aria-selected={activeTab === 'postulaciones'}
               onClick={() => setActiveTab('postulaciones')}
-              className={`inline-flex items-center gap-2 px-5 py-3 rounded-full text-sm font-bold transition-all whitespace-nowrap cursor-pointer ${
+              className={`inline-flex items-center gap-2 px-4 py-2.5 border-b-2 font-bold transition-all whitespace-nowrap cursor-pointer ${
                 activeTab === 'postulaciones'
-                  ? 'bg-[#0E4D36] text-white shadow-xs'
-                  : 'text-[#4B6256] hover:text-[#10231B] hover:bg-[#F4F8F4]'
+                  ? 'border-brand-800 text-brand-900 font-extrabold bg-brand-50/50'
+                  : 'border-transparent text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50'
               }`}
             >
-              <Inbox className="w-4 h-4" />
-              Mis Postulaciones
+              <Inbox className="w-4 h-4 text-brand-800" />
+              <span>Mis Postulaciones</span>
               <span
-                className={`text-xs px-2 py-0.5 rounded-full font-bold ${
+                className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
                   activeTab === 'postulaciones'
-                    ? 'bg-white/20 text-white'
-                    : 'bg-[#DDEFE3] text-[#0A3D2A]'
+                    ? 'bg-brand-100 text-brand-900'
+                    : 'bg-zinc-100 text-zinc-700'
                 }`}
               >
                 {activeApplicationsCount}
@@ -208,21 +212,15 @@ export default function PostulanteDashboardPage() {
               role="tab"
               aria-selected={activeTab === 'cursos'}
               onClick={() => setActiveTab('cursos')}
-              className={`inline-flex items-center gap-2 px-5 py-3 rounded-full text-sm font-bold transition-all whitespace-nowrap cursor-pointer ${
+              className={`inline-flex items-center gap-2 px-4 py-2.5 border-b-2 font-bold transition-all whitespace-nowrap cursor-pointer ${
                 activeTab === 'cursos'
-                  ? 'bg-[#0E4D36] text-white shadow-xs'
-                  : 'text-[#4B6256] hover:text-[#10231B] hover:bg-[#F4F8F4]'
+                  ? 'border-brand-800 text-brand-900 font-extrabold bg-brand-50/50'
+                  : 'border-transparent text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50'
               }`}
             >
-              <Award className="w-4 h-4" />
-              Mis Cursos y Capacitaciones
-              <span
-                className={`text-xs px-2 py-0.5 rounded-full font-bold ${
-                  activeTab === 'cursos'
-                    ? 'bg-white/20 text-white'
-                    : 'bg-zinc-100 text-zinc-600'
-                }`}
-              >
+              <Award className="w-4 h-4 text-zinc-600" />
+              <span>Cursos y Talleres</span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-zinc-100 text-zinc-700">
                 {courses.length}
               </span>
             </button>
@@ -230,8 +228,8 @@ export default function PostulanteDashboardPage() {
         </div>
       </div>
 
-      {/* 3. Contenedor de Contenido Principal */}
-      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-8">
+      {/* 3. Contenedor de Contenido Principal Full-Width (hasta 1600px) */}
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 py-6 sm:py-8 w-full flex-1 space-y-6">
         
         {/* Aviso de perfil incompleto */}
         {!isLoadingData && isProfileIncomplete && (
@@ -261,238 +259,198 @@ export default function PostulanteDashboardPage() {
         {/* PESTAÑA 1: MI PERFIL (Pantalla inicial y prioritaria)         */}
         {/* ============================================================== */}
         {activeTab === 'perfil' && (
-          <div className="flex flex-col lg:flex-row items-start gap-6">
-            
-            {/* Columna Lateral (360px): Datos Personales y Contacto */}
-            <aside className="w-full lg:w-[360px] shrink-0 flex flex-col gap-4">
-              <section className="bg-white border border-[#E0E8E1] rounded-[24px] overflow-hidden shadow-xs">
-                
-                {/* Cabecera de la tarjeta con avatar grande */}
-                <div className="text-center p-6 bg-gradient-to-b from-[#F4F8F4] to-white border-b border-[#E0E8E1] relative">
+          <div className="space-y-6 w-full">
+            {/* 1. Módulo Maestro de Datos Personales (Full-Width Header Integrado) */}
+            <section className="bg-surface border border-zinc-200/90 rounded-2xl shadow-xs overflow-hidden">
+              <div className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-zinc-200/80 bg-zinc-50/50">
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 rounded-2xl bg-brand-100 text-brand-900 flex items-center justify-center font-extrabold text-2xl font-sans shadow-xs border border-brand-200 shrink-0">
+                    {initialLetter}
+                  </div>
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h2 className="font-extrabold text-xl sm:text-2xl text-zinc-900 leading-tight font-sans">
+                        {displayProfile?.nombre} {displayProfile?.apellido}
+                      </h2>
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-brand-100 text-brand-900 text-xs font-bold">
+                        <Sparkles className="w-3 h-3" />
+                        Búsqueda activa
+                      </span>
+                    </div>
+                    <div className="text-xs text-zinc-500 mt-1 flex flex-wrap items-center gap-3">
+                      <span>{user?.email || 'Postulante registrado'}</span>
+                      <span>•</span>
+                      <span>DNI: <strong className="text-zinc-700 font-semibold tabular-nums">{displayProfile?.dni || 'No informado'}</strong></span>
+                      <span>•</span>
+                      <span>Localidad: <strong className="text-zinc-700 font-semibold">{displayProfile?.localidad || (displayProfile?.es_residente_funes ? 'Funes' : 'No informada')}</strong></span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="shrink-0 flex items-center gap-3">
                   {displayProfile && (
                     <button
                       type="button"
                       onClick={() => setIsEditModalOpen(true)}
-                      aria-label="Editar datos personales"
-                      title="Editar datos personales"
-                      className="absolute top-4 right-4 w-9 h-9 rounded-full border border-[#D3DED5] bg-white text-[#10231B] flex items-center justify-center hover:bg-zinc-50 transition-colors cursor-pointer shadow-xs"
+                      className="min-h-[40px] px-4 rounded-xl border border-zinc-200 bg-white hover:bg-zinc-50 font-bold text-xs text-zinc-800 transition-all shadow-xs flex items-center gap-2 cursor-pointer"
                     >
-                      <Edit3 className="w-4 h-4 text-[#4B6256]" />
+                      <Edit3 className="w-3.5 h-3.5 text-brand-800" />
+                      <span>Editar Legajo</span>
                     </button>
                   )}
-
-                  <div className="w-20 h-20 mx-auto rounded-full bg-[#DDEFE3] text-[#0A3D2A] flex items-center justify-center font-extrabold text-3xl font-display shadow-xs border-2 border-white">
-                    {initialLetter}
-                  </div>
-
-                  <h3 className="mt-3 font-extrabold text-xl leading-tight text-zinc-900 font-display">
-                    {displayProfile?.nombre} {displayProfile?.apellido}
-                  </h3>
-                  <div className="text-xs text-[#4B6256] mt-0.5 truncate max-w-[260px] mx-auto">
-                    {user?.email || 'Postulante registrado'}
-                  </div>
-
-                  <div className="mt-2.5 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#DDEFE3] text-[#0A3D2A] text-xs font-bold">
-                    <Sparkles className="w-3 h-3" />
-                    Búsqueda activa
-                  </div>
                 </div>
-
-                {/* Lista de Datos Personales */}
-                <div className="p-6 space-y-4">
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-xs font-bold uppercase tracking-wider text-[#5A7064]">DNI</span>
-                    <span className="font-bold text-sm text-zinc-900">
-                      {displayProfile?.dni || 'No informado'}
-                    </span>
-                  </div>
-
-                  <div className="flex flex-col gap-0.5 pt-3 border-t border-[#EEF2EE]">
-                    <span className="text-xs font-bold uppercase tracking-wider text-[#5A7064]">Teléfono / WhatsApp</span>
-                    <span className="font-bold text-sm text-zinc-900">
-                      {displayProfile?.telefono || 'No informado'}
-                    </span>
-                  </div>
-
-                  <div className="flex flex-col gap-0.5 pt-3 border-t border-[#EEF2EE]">
-                    <span className="text-xs font-bold uppercase tracking-wider text-[#5A7064]">Localidad</span>
-                    <span className="font-bold text-sm text-zinc-900">
-                      {displayProfile?.localidad || (displayProfile?.es_residente_funes ? 'Funes' : 'No especificada')}
-                    </span>
-                  </div>
-
-                  <div className="flex flex-col gap-0.5 pt-3 border-t border-[#EEF2EE]">
-                    <span className="text-xs font-bold uppercase tracking-wider text-[#5A7064]">Domicilio</span>
-                    <span className="font-bold text-sm text-zinc-900">
-                      {displayProfile?.direccion || 'No especificado'}
-                    </span>
-                  </div>
-
-                  <div className="pt-4 border-t border-[#EEF2EE]">
-                    <button
-                      type="button"
-                      onClick={() => setIsEditModalOpen(true)}
-                      className="w-full min-h-[42px] rounded-full border border-[#0E4D36] bg-white text-[#0E4D36] font-bold text-xs sm:text-sm flex items-center justify-center gap-2 hover:bg-[#F4F8F4] transition-colors cursor-pointer"
-                    >
-                      <Edit3 className="w-3.5 h-3.5" />
-                      Actualizar datos personales
-                    </button>
-                  </div>
-                </div>
-              </section>
-
-              {/* Leyenda de resguardo municipal */}
-              <div className="p-4 rounded-2xl bg-[#E4F1E8] text-[#0A3D2A] text-xs leading-relaxed flex items-start gap-2.5 border border-[#BFE0CB]">
-                <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5 text-[#0E4D36]" />
-                <span>
-                  Tus datos personales y de contacto están resguardados por la Oficina de Empleo del Gobierno de Funes bajo la política municipal de privacidad.
-                </span>
               </div>
-            </aside>
 
-            {/* Columna Principal: Trayectoria, Formación y CVs */}
-            <main className="w-full flex-1 min-w-0 flex flex-col gap-6">
-              
-              {/* Tarjeta: Perfil Laboral y Formación */}
-              <section className="bg-white border border-[#E0E8E1] rounded-[24px] p-6 sm:p-7 shadow-xs">
-                <div className="flex items-center justify-between gap-4 pb-5 border-b border-[#EEF2EE]">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-[#EAF3EC] text-[#0E4D36] flex items-center justify-center shrink-0">
-                      <GraduationCap className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight text-zinc-900 font-display">
-                        Perfil Laboral y Formación
-                      </h2>
-                      <p className="text-xs sm:text-sm text-[#4B6256]">
-                        Experiencia previa, disponibilidad y competencias para búsquedas laborales.
-                      </p>
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setIsEditModalOpen(true)}
-                    className="px-4 py-2 rounded-full border border-[#D3DED5] hover:bg-zinc-50 font-bold text-xs sm:text-sm text-[#10231B] transition-colors cursor-pointer shrink-0"
-                  >
-                    Editar
-                  </button>
+              {/* Fila de Datos Rápidos de Contacto y Resguardo */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-zinc-200/80 text-xs">
+                <div className="p-4 flex flex-col gap-0.5">
+                  <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">Teléfono / WhatsApp</span>
+                  <span className="font-bold text-sm text-zinc-900">{displayProfile?.telefono || 'No informado'}</span>
                 </div>
+                <div className="p-4 flex flex-col gap-0.5">
+                  <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">Domicilio</span>
+                  <span className="font-bold text-sm text-zinc-900">{displayProfile?.direccion || 'No especificado'}</span>
+                </div>
+                <div className="p-4 flex flex-col gap-0.5">
+                  <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">Residencia Municipal</span>
+                  <span className="font-bold text-sm text-brand-900">{displayProfile?.es_residente_funes ? 'Residente verificado en Funes' : 'Otras localidades'}</span>
+                </div>
+                <div className="p-4 flex items-center gap-2 text-zinc-500 bg-zinc-50/30">
+                  <ShieldCheck className="w-4 h-4 text-brand-800 shrink-0" />
+                  <span className="text-[11px] leading-relaxed">Legajo resguardado por la Oficina de Empleo de Funes.</span>
+                </div>
+              </div>
+            </section>
 
-                <div className="mt-5 space-y-5">
-                  {/* Resumen de Experiencia */}
-                  <div className="p-4 rounded-xl bg-[#F8FAF8] border border-[#E0E8E1]">
-                    <span className="text-xs font-bold uppercase tracking-wider text-[#5A7064] block">
-                      Resumen de Experiencia
-                    </span>
-                    <p className="text-sm mt-1.5 text-zinc-800 leading-relaxed">
-                      {displayProfile?.experiencia_resumen ||
-                        'Aún no registraste una descripción de tu trayectoria laboral.'}
+            {/* 2. Módulo de Trayectoria, Formación y Habilidades (Full-Width) */}
+            <section className="bg-surface border border-zinc-200/90 rounded-2xl p-6 sm:p-7 shadow-xs space-y-6">
+              <div className="flex items-center justify-between gap-4 pb-4 border-b border-zinc-100">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-brand-50 text-brand-800 flex items-center justify-center shrink-0">
+                    <GraduationCap className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold tracking-tight text-zinc-900 font-sans">
+                      Perfil Laboral y Competencias
+                    </h2>
+                    <p className="text-xs text-zinc-500">
+                      Experiencia previa, disponibilidad horaria y oficios declarados ante el Municipio.
                     </p>
                   </div>
+                </div>
 
-                  {/* Grid de atributos laborales */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="flex gap-3 items-start p-3.5 rounded-xl border border-[#EEF2EE] bg-white">
-                      <div className="w-8 h-8 rounded-lg bg-[#EAF3EC] text-[#0E4D36] flex items-center justify-center shrink-0 mt-0.5">
-                        <GraduationCap className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <div className="text-xs text-[#5A7064] font-medium">Nivel educativo</div>
-                        <div className="font-bold text-sm text-zinc-900 mt-0.5">
-                          {displayProfile?.nivel_educativo || 'No especificado'}
-                        </div>
-                      </div>
-                    </div>
+                <button
+                  type="button"
+                  onClick={() => setIsEditModalOpen(true)}
+                  className="px-3.5 py-1.5 rounded-lg border border-zinc-200 hover:bg-zinc-50 font-semibold text-xs text-zinc-700 transition-colors cursor-pointer shrink-0"
+                >
+                  Modificar
+                </button>
+              </div>
 
-                    <div className="flex gap-3 items-start p-3.5 rounded-xl border border-[#EEF2EE] bg-white">
-                      <div className="w-8 h-8 rounded-lg bg-[#EAF3EC] text-[#0E4D36] flex items-center justify-center shrink-0 mt-0.5">
-                        <Briefcase className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <div className="text-xs text-[#5A7064] font-medium">Situación actual</div>
-                        <div className="font-bold text-sm text-zinc-900 mt-0.5">
-                          {displayProfile?.situacion_laboral_actual || 'No informada'}
-                        </div>
-                      </div>
-                    </div>
+              {/* Resumen de Experiencia */}
+              <div className="p-4 rounded-xl bg-zinc-50 border border-zinc-200/80">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 block">
+                  Resumen de Trayectoria
+                </span>
+                <p className="text-sm mt-1.5 text-zinc-800 leading-relaxed font-sans">
+                  {displayProfile?.experiencia_resumen ||
+                    'Aún no registraste una descripción de tu trayectoria laboral.'}
+                </p>
+              </div>
 
-                    <div className="flex gap-3 items-start p-3.5 rounded-xl border border-[#EEF2EE] bg-white">
-                      <div className="w-8 h-8 rounded-lg bg-[#EAF3EC] text-[#0E4D36] flex items-center justify-center shrink-0 mt-0.5">
-                        <Clock className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <div className="text-xs text-[#5A7064] font-medium">Disponibilidad horaria</div>
-                        <div className="font-bold text-sm text-zinc-900 mt-0.5">
-                          {displayProfile?.disponibilidad_horaria || 'No informada'}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-3 items-start p-3.5 rounded-xl border border-[#EEF2EE] bg-white">
-                      <div className="w-8 h-8 rounded-lg bg-[#EAF3EC] text-[#0E4D36] flex items-center justify-center shrink-0 mt-0.5">
-                        <CheckCircle2 className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <div className="text-xs text-[#5A7064] font-medium">Movilidad propia</div>
-                        <div className="font-bold text-sm text-zinc-900 mt-0.5">
-                          {displayProfile?.movilidad_propia ? 'Con movilidad propia' : 'Sin movilidad propia'}
-                        </div>
-                      </div>
-                    </div>
+              {/* Grid Horizontal de Atributos */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="p-3.5 rounded-xl border border-zinc-200/80 bg-surface flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-brand-50 text-brand-800 flex items-center justify-center shrink-0 mt-0.5">
+                    <GraduationCap className="w-4 h-4" />
                   </div>
-
-                  {/* Habilidades y Oficios */}
                   <div>
-                    <span className="text-xs font-bold uppercase tracking-wider text-[#5A7064] block mb-2">
-                      Habilidades y Oficios Declarados
-                    </span>
-                    <div className="flex flex-wrap gap-2">
-                      {displayProfile?.habilidades && displayProfile.habilidades.length > 0 ? (
-                        displayProfile.habilidades.map((h, i) => (
-                          <span
-                            key={i}
-                            className="px-3 py-1 rounded-full border border-[#D3DED5] text-xs sm:text-sm font-semibold text-zinc-800 bg-[#F8FAF8]"
-                          >
-                            {h}
-                          </span>
-                        ))
-                      ) : (
-                        <span className="text-xs text-zinc-400 italic">Sin habilidades registradas</span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Rubros de Interés Laboral */}
-                  <div>
-                    <span className="text-xs font-bold uppercase tracking-wider text-[#5A7064] block mb-2">
-                      Rubros de Interés en Funes
-                    </span>
-                    <div className="flex flex-wrap gap-2">
-                      {displayProfile?.rubros && displayProfile.rubros.length > 0 ? (
-                        displayProfile.rubros.map((r) => (
-                          <span
-                            key={r.id}
-                            className="px-3 py-1 rounded-full bg-[#DDEFE3] text-[#0A3D2A] text-xs sm:text-sm font-bold border border-[#BFE0CB]"
-                          >
-                            {r.nombre}
-                          </span>
-                        ))
-                      ) : (
-                        <span className="text-xs text-zinc-400 italic">No seleccionaste rubros aún</span>
-                      )}
-                    </div>
+                    <span className="text-[11px] text-zinc-400 font-semibold uppercase tracking-wider block">Educación</span>
+                    <span className="font-bold text-sm text-zinc-900 mt-0.5 block">{displayProfile?.nivel_educativo || 'No especificado'}</span>
                   </div>
                 </div>
-              </section>
 
-              {/* Tarjeta: Gestión de Currículums Vitae (CV) */}
-              <CurriculumManager
-                curriculums={profileFull?.curriculums || []}
-                isLoading={isLoadingData}
-                onChanged={handleDataChanged}
-              />
-            </main>
+                <div className="p-3.5 rounded-xl border border-zinc-200/80 bg-surface flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-brand-50 text-brand-800 flex items-center justify-center shrink-0 mt-0.5">
+                    <Briefcase className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="text-[11px] text-zinc-400 font-semibold uppercase tracking-wider block">Situación Laboral</span>
+                    <span className="font-bold text-sm text-zinc-900 mt-0.5 block">{displayProfile?.situacion_laboral_actual || 'No informada'}</span>
+                  </div>
+                </div>
+
+                <div className="p-3.5 rounded-xl border border-zinc-200/80 bg-surface flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-brand-50 text-brand-800 flex items-center justify-center shrink-0 mt-0.5">
+                    <Clock className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="text-[11px] text-zinc-400 font-semibold uppercase tracking-wider block">Disponibilidad</span>
+                    <span className="font-bold text-sm text-zinc-900 mt-0.5 block">{displayProfile?.disponibilidad_horaria || 'No informada'}</span>
+                  </div>
+                </div>
+
+                <div className="p-3.5 rounded-xl border border-zinc-200/80 bg-surface flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-brand-50 text-brand-800 flex items-center justify-center shrink-0 mt-0.5">
+                    <CheckCircle2 className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="text-[11px] text-zinc-400 font-semibold uppercase tracking-wider block">Movilidad</span>
+                    <span className="font-bold text-sm text-zinc-900 mt-0.5 block">{displayProfile?.movilidad_propia ? 'Con movilidad' : 'Sin movilidad'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Habilidades y Oficios */}
+              <div className="pt-2 border-t border-zinc-100">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 block mb-2">
+                  Habilidades y Oficios Declarados
+                </span>
+                <div className="flex flex-wrap gap-2">
+                  {displayProfile?.habilidades && displayProfile.habilidades.length > 0 ? (
+                    displayProfile.habilidades.map((h, i) => (
+                      <span
+                        key={i}
+                        className="px-3 py-1 rounded-lg border border-zinc-200 text-xs font-semibold text-zinc-800 bg-zinc-50"
+                      >
+                        {h}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-xs text-zinc-400 italic">Sin habilidades registradas</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Rubros de Interés */}
+              <div className="pt-2 border-t border-zinc-100">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 block mb-2">
+                  Rubros de Interés en Funes
+                </span>
+                <div className="flex flex-wrap gap-2">
+                  {displayProfile?.rubros && displayProfile.rubros.length > 0 ? (
+                    displayProfile.rubros.map((r) => (
+                      <span
+                        key={r.id}
+                        className="px-3 py-1 rounded-lg bg-brand-50 text-brand-900 text-xs font-bold border border-brand-200"
+                      >
+                        {r.nombre}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-xs text-zinc-400 italic">No seleccionaste rubros aún</span>
+                  )}
+                </div>
+              </div>
+            </section>
+
+            {/* 3. Módulo de Currículums Vitae (Full-Width) */}
+            <CurriculumManager
+              curriculums={profileFull?.curriculums || []}
+              isLoading={isLoadingData}
+              onChanged={handleDataChanged}
+            />
           </div>
         )}
 
@@ -526,11 +484,11 @@ export default function PostulanteDashboardPage() {
         {/* PESTAÑA 3: MIS CURSOS Y CAPACITACIONES                      */}
         {/* ============================================================== */}
         {activeTab === 'cursos' && (
-          <section className="bg-white border border-[#E0E8E1] rounded-[24px] p-6 sm:p-8 shadow-xs">
+          <section className="bg-white border border-[#E0E8E1] rounded-2xl p-6 sm:p-8 shadow-xs">
             <div className="flex flex-wrap items-center justify-between gap-3 pb-5 border-b border-[#EEF2EE]">
               <div>
                 <div className="flex items-center gap-3">
-                  <h2 className="text-2xl font-extrabold tracking-tight text-zinc-900 font-display">
+                  <h2 className="text-2xl font-extrabold tracking-tight text-zinc-900 font-sans">
                     Mis Cursos y Capacitaciones Municipales
                   </h2>
                   <span className="inline-flex items-center px-3 py-0.5 rounded-full text-xs font-bold bg-[#E6F0FB] text-[#174F93]">
@@ -546,11 +504,11 @@ export default function PostulanteDashboardPage() {
             {isLoadingData ? (
               <div className="mt-6 h-36 rounded-2xl bg-zinc-100 animate-pulse" />
             ) : courses.length === 0 ? (
-              <div className="mt-8 border-[1.5px] border-dashed border-[#C3D1C7] rounded-[20px] p-8 sm:p-12 flex flex-col items-center text-center max-w-2xl mx-auto">
-                <div className="w-16 h-16 rounded-[20px] bg-[#E4F1E8] text-[#0E4D36] flex items-center justify-center mb-4">
+              <div className="mt-8 border-[1.5px] border-dashed border-[#C3D1C7] rounded-2xl p-8 sm:p-12 flex flex-col items-center text-center max-w-2xl mx-auto">
+                <div className="w-16 h-16 rounded-2xl bg-[#E4F1E8] text-[#0E4D36] flex items-center justify-center mb-4">
                   <BookOpen className="w-8 h-8 stroke-[1.8]" />
                 </div>
-                <h3 className="text-xl sm:text-2xl font-bold text-zinc-900 font-display">
+                <h3 className="text-xl sm:text-2xl font-bold text-zinc-900 font-sans">
                   No tenés cursos asignados por el momento
                 </h3>
                 <p className="mt-2 max-w-[500px] text-sm text-[#4B6256] leading-relaxed">
@@ -566,7 +524,7 @@ export default function PostulanteDashboardPage() {
                 </div>
               </div>
             ) : (
-              <div className="mt-6 divide-y divide-[#E0E8E1] border border-[#E0E8E1] rounded-[18px] overflow-hidden bg-white">
+              <div className="mt-6 divide-y divide-[#E0E8E1] border border-[#E0E8E1] rounded-2xl overflow-hidden bg-white">
                 {courses.map((pc) => {
                   const badgeConfig =
                     CURSO_STATUS_BADGE[pc.estado] || {

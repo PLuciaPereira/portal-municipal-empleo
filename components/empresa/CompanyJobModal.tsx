@@ -1,5 +1,6 @@
 'use client';
 
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -45,7 +46,8 @@ export function CompanyJobModal({
   onClose,
   onSuccess,
 }: CompanyJobModalProps) {
-  const [rubros, setRubros] = useState<Rubro[]>([]);
+    useBodyScrollLock(Boolean(isOpen));
+const [rubros, setRubros] = useState<Rubro[]>([]);
   const [loadingRubros, setLoadingRubros] = useState(false);
   const [submittingBorrador, setSubmittingBorrador] = useState(false);
   const [submittingPublicar, setSubmittingPublicar] = useState(false);
@@ -382,12 +384,13 @@ export function CompanyJobModal({
                 type="number"
                 min="1"
                 value={formState.vacantes}
-                onChange={(e) =>
+                onChange={(e) => {
+                  const cleaned = e.target.value.replace(/\D/g, '');
                   setFormState((prev) => ({
                     ...prev,
-                    vacantes: parseInt(e.target.value, 10) || 1,
-                  }))
-                }
+                    vacantes: cleaned ? parseInt(cleaned, 10) : 1,
+                  }));
+                }}
                 required
                 disabled={isBusy}
               />

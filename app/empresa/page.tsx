@@ -140,33 +140,33 @@ export default function EmpresaDashboardPage() {
   const initialLetter = empresaNombre.charAt(0).toUpperCase() || 'E';
 
   return (
-    <div className="min-h-screen bg-[#F8FAF8] text-[#10231B]">
-      {/* 1. Banda Verde Superior Institucional Funes */}
-      <section className="bg-gradient-to-r from-[#06402B] to-[#0A3D2A] text-white pt-10 pb-8 border-b border-[#04281B]">
-        <div className="max-w-[1200px] mx-auto px-4 sm:px-6">
+    <div className="min-h-screen bg-page text-foreground flex flex-col font-sans">
+      {/* 1. Banda Verde Superior Institucional Funes Full-Width */}
+      <section className="bg-gradient-to-r from-brand-950 via-brand-900 to-brand-800 text-white pt-8 pb-7 border-b border-brand-950/40 shadow-sm">
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-            <div className="flex-1 max-w-[760px]">
-              <div className="flex flex-wrap items-center gap-3">
+            <div className="flex-1 max-w-[820px]">
+              <div className="flex flex-wrap items-center gap-2.5 mb-2">
                 {isAprobada ? (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#DDEFE3]/20 border border-[#DDEFE3]/30 text-[#E8F5EE] text-xs font-semibold">
-                    <span className="w-3.5 h-3.5 rounded-full bg-[#DDEFE3] text-[#06402B] flex items-center justify-center shrink-0">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-emerald-500/20 border border-emerald-400/30 text-emerald-200 text-xs font-semibold backdrop-blur-xs">
+                    <span className="w-3.5 h-3.5 rounded-full bg-emerald-400 text-brand-950 flex items-center justify-center shrink-0">
                       <Check className="w-2.5 h-2.5 stroke-[3]" />
                     </span>
-                    Empresa Habilitada por la Oficina de Empleo
+                    Empresa Habilitada por la Oficina de Empleo de Funes
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-400/40 text-amber-200 text-xs font-semibold">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-amber-500/20 border border-amber-400/40 text-amber-200 text-xs font-semibold backdrop-blur-xs">
                     <ClockIcon className="w-3.5 h-3.5 text-amber-300" />
                     Pendiente de Aprobación Municipal
                   </span>
                 )}
               </div>
 
-              <h1 className="mt-2 text-3xl sm:text-4xl font-extrabold tracking-tight leading-tight font-display text-white">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight leading-tight text-white font-sans">
                 {empresaNombre}
               </h1>
 
-              <p className="mt-2 text-[#D6EADD] text-sm sm:text-base leading-relaxed max-w-[640px]">
+              <p className="mt-1.5 text-brand-100/90 text-xs sm:text-sm lg:text-base leading-relaxed">
                 Gestión integral de búsquedas laborales, seguimiento de candidatos derivados y vinculación estratégica con la Oficina de Empleo de Funes.
               </p>
             </div>
@@ -176,13 +176,13 @@ export default function EmpresaDashboardPage() {
                 <button
                   type="button"
                   onClick={() => setIsCreateModalOpen(true)}
-                  className="min-h-[46px] px-6 rounded-full bg-[#F2B84B] hover:bg-[#E5AC41] text-[#2B1D00] font-bold text-sm inline-flex items-center gap-2 transition-all shadow-sm hover:-translate-y-0.5 cursor-pointer"
+                  className="min-h-[42px] px-5 rounded-xl bg-amber-400 hover:bg-amber-300 text-amber-950 font-bold text-xs inline-flex items-center gap-2 transition-all shadow-xs cursor-pointer"
                 >
-                  <PlusIcon className="w-4 h-4 stroke-[2.4]" />
+                  <PlusIcon className="w-3.5 h-3.5 stroke-[2.4]" />
                   Publicar Nueva Oferta
                 </button>
               ) : (
-                <span className="px-4 py-2 rounded-full bg-white/10 border border-white/20 text-xs text-white/80">
+                <span className="px-4 py-2 rounded-xl bg-white/10 border border-white/20 text-xs text-white/80 font-medium">
                   Habilitación en revisión
                 </span>
               )}
@@ -191,23 +191,23 @@ export default function EmpresaDashboardPage() {
         </div>
       </section>
 
-      {/* 2. Barra de Navegación por Pestañas */}
-      <div className="bg-white border-b border-[#E0E8E1] sticky top-0 z-30 shadow-2xs">
-        <div className="max-w-[1200px] mx-auto px-4 sm:px-6">
-          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-2" role="tablist">
+      {/* 2. Barra de Navegación por Pestañas Segmentadas */}
+      <div className="bg-surface border-b border-zinc-200">
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10">
+          <div className="flex items-center gap-1 overflow-x-auto py-1.5 no-scrollbar text-xs" role="tablist">
             <button
               type="button"
               role="tab"
               aria-selected={activeTab === 'perfil'}
               onClick={() => setActiveTab('perfil')}
-              className={`inline-flex items-center gap-2 px-5 py-3 rounded-full text-sm font-bold transition-all whitespace-nowrap cursor-pointer ${
+              className={`inline-flex items-center gap-2 px-4 py-2.5 border-b-2 font-bold transition-all whitespace-nowrap cursor-pointer ${
                 activeTab === 'perfil'
-                  ? 'bg-[#0E4D36] text-white shadow-xs'
-                  : 'text-[#4B6256] hover:text-[#10231B] hover:bg-[#F4F8F4]'
+                  ? 'border-brand-800 text-brand-900 font-extrabold bg-brand-50/50'
+                  : 'border-transparent text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50'
               }`}
             >
-              <Building2 className="w-4 h-4" />
-              Perfil de Empresa
+              <Building2 className="w-4 h-4 text-brand-800" />
+              <span>Perfil de Empresa</span>
             </button>
 
             <button
@@ -215,19 +215,19 @@ export default function EmpresaDashboardPage() {
               role="tab"
               aria-selected={activeTab === 'ofertas'}
               onClick={() => setActiveTab('ofertas')}
-              className={`inline-flex items-center gap-2 px-5 py-3 rounded-full text-sm font-bold transition-all whitespace-nowrap cursor-pointer ${
+              className={`inline-flex items-center gap-2 px-4 py-2.5 border-b-2 font-bold transition-all whitespace-nowrap cursor-pointer ${
                 activeTab === 'ofertas'
-                  ? 'bg-[#0E4D36] text-white shadow-xs'
-                  : 'text-[#4B6256] hover:text-[#10231B] hover:bg-[#F4F8F4]'
+                  ? 'border-brand-800 text-brand-900 font-extrabold bg-brand-50/50'
+                  : 'border-transparent text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50'
               }`}
             >
-              <Briefcase className="w-4 h-4" />
-              Mis Ofertas Laborales
+              <Briefcase className="w-4 h-4 text-brand-800" />
+              <span>Mis Ofertas Laborales</span>
               <span
-                className={`text-xs px-2 py-0.5 rounded-full font-bold ${
+                className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
                   activeTab === 'ofertas'
-                    ? 'bg-white/20 text-white'
-                    : 'bg-[#DDEFE3] text-[#0A3D2A]'
+                    ? 'bg-brand-100 text-brand-900'
+                    : 'bg-zinc-100 text-zinc-700'
                 }`}
               >
                 {ofertas.length}
@@ -239,22 +239,16 @@ export default function EmpresaDashboardPage() {
               role="tab"
               aria-selected={activeTab === 'candidatos'}
               onClick={() => setActiveTab('candidatos')}
-              className={`inline-flex items-center gap-2 px-5 py-3 rounded-full text-sm font-bold transition-all whitespace-nowrap cursor-pointer ${
+              className={`inline-flex items-center gap-2 px-4 py-2.5 border-b-2 font-bold transition-all whitespace-nowrap cursor-pointer ${
                 activeTab === 'candidatos'
-                  ? 'bg-[#0E4D36] text-white shadow-xs'
-                  : 'text-[#4B6256] hover:text-[#10231B] hover:bg-[#F4F8F4]'
+                  ? 'border-brand-800 text-brand-900 font-extrabold bg-brand-50/50'
+                  : 'border-transparent text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50'
               }`}
             >
-              <Users className="w-4 h-4" />
-              Candidatos Derivados
+              <Users className="w-4 h-4 text-brand-800" />
+              <span>Candidatos Derivados</span>
               {activeCandidatesCount > 0 && (
-                <span
-                  className={`text-xs px-2 py-0.5 rounded-full font-bold ${
-                    activeTab === 'candidatos'
-                      ? 'bg-white/20 text-white'
-                      : 'bg-[#F2B84B] text-[#2B1D00]'
-                  }`}
-                >
+                <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-100 text-amber-900">
                   {activeCandidatesCount}
                 </span>
               )}
@@ -263,8 +257,8 @@ export default function EmpresaDashboardPage() {
         </div>
       </div>
 
-      {/* 3. Contenedor de Contenido Principal */}
-      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-8">
+      {/* 3. Contenedor de Contenido Principal Full-Width (hasta 1600px) */}
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 py-6 sm:py-8 w-full flex-1 space-y-6">
         {/* Alerta de Verificación Pendiente */}
         {!isAprobada && (
           <div className="mb-6 p-5 bg-amber-50 border border-amber-200 rounded-3xl flex items-start gap-4 text-xs sm:text-sm text-amber-950 shadow-xs">
@@ -284,301 +278,129 @@ export default function EmpresaDashboardPage() {
         {/* PESTAÑA 1: PERFIL DE EMPRESA                                   */}
         {/* ============================================================== */}
         {activeTab === 'perfil' && (
-          <div className="flex flex-col lg:flex-row items-start gap-6">
-            {/* Columna Izquierda (360px): Tarjeta Institucional de la Empresa */}
-            <aside className="w-full lg:w-[360px] shrink-0 flex flex-col gap-4">
-              <section className="bg-white border border-[#E0E8E1] rounded-[24px] overflow-hidden shadow-xs">
-                {/* Cabecera de la tarjeta con avatar comercial */}
-                <div className="text-center p-6 bg-gradient-to-b from-[#F4F8F4] to-white border-b border-[#E0E8E1] relative">
-                  <div className="w-20 h-20 mx-auto rounded-full bg-[#DDEFE3] text-[#0A3D2A] flex items-center justify-center font-extrabold text-3xl font-display shadow-xs border-2 border-white">
+          <div className="space-y-6 w-full">
+            {/* 1. Módulo Maestro de Datos de la Empresa (Full-Width Header Integrado) */}
+            <section className="bg-surface border border-zinc-200/90 rounded-2xl shadow-xs overflow-hidden">
+              <div className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-zinc-200/80 bg-zinc-50/50">
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 rounded-2xl bg-brand-100 text-brand-900 flex items-center justify-center font-extrabold text-2xl font-sans shadow-xs border border-brand-200 shrink-0">
                     {initialLetter}
                   </div>
-
-                  <h3 className="mt-3 font-extrabold text-xl leading-tight text-zinc-900 font-display">
-                    {empresaNombre}
-                  </h3>
-
-                  <div className="text-xs text-[#4B6256] mt-0.5 truncate max-w-[260px] mx-auto">
-                    {displayEmpresa?.razon_social || 'Empresa Registrada'}
-                  </div>
-
-                  <div className="mt-2.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#DDEFE3] text-[#0A3D2A] text-xs font-bold">
-                    <Sparkles className="w-3.5 h-3.5 text-[#0E4D36]" />
-                    {isAprobada ? 'Empresa Habilitada' : 'En Validación'}
-                  </div>
-                </div>
-
-                {/* Lista de Datos Comerciales y Fiscales */}
-                <div className="p-6 space-y-4 text-xs">
-                  {/* CUIT con candado de protección fiscal */}
-                  <div className="flex flex-col gap-0.5">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-[#5A7064] flex items-center gap-1">
-                        CUIT
-                        <Lock className="w-3 h-3 text-zinc-400" />
-                      </span>
-                      <span className="text-[10px] text-zinc-600 bg-zinc-100 px-1.5 py-0.5 rounded font-medium">
-                        Validez fiscal
-                      </span>
-                    </div>
-                    <span className="font-mono font-bold text-sm text-zinc-900">
-                      {displayEmpresa?.cuit || 'No informado'}
-                    </span>
-                  </div>
-
-                  {/* Razón Social con candado */}
-                  <div className="flex flex-col gap-0.5 pt-3 border-t border-[#EEF2EE]">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-[#5A7064] flex items-center gap-1">
-                        Razón Social
-                        <Lock className="w-3 h-3 text-zinc-400" />
-                      </span>
-                    </div>
-                    <span className="font-bold text-sm text-zinc-900">
-                      {displayEmpresa?.razon_social || 'No informado'}
-                    </span>
-                  </div>
-
-                  {/* Rubro */}
-                  <div className="flex flex-col gap-0.5 pt-3 border-t border-[#EEF2EE]">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-[#5A7064]">
-                      Rubro / Actividad
-                    </span>
-                    <span className="font-bold text-sm text-zinc-900">
-                      {displayEmpresa?.rubro || 'General'}
-                    </span>
-                  </div>
-
-                  {/* Persona de Contacto */}
-                  <div className="flex flex-col gap-0.5 pt-3 border-t border-[#EEF2EE]">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-[#5A7064]">
-                      Persona de Contacto (RRHH)
-                    </span>
-                    <span className="font-bold text-sm text-zinc-900">
-                      {displayEmpresa?.persona_contacto || user?.nombre || 'No informado'}
-                    </span>
-                  </div>
-
-                  {/* Teléfono */}
-                  <div className="flex flex-col gap-0.5 pt-3 border-t border-[#EEF2EE]">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-[#5A7064] flex items-center gap-1">
-                      <Phone className="w-3 h-3 text-[#4B6256]" />
-                      Teléfono / WhatsApp
-                    </span>
-                    <span className="font-bold text-sm text-zinc-900">
-                      {displayEmpresa?.telefono || 'No informado'}
-                    </span>
-                  </div>
-
-                  {/* Email de contacto */}
-                  <div className="flex flex-col gap-0.5 pt-3 border-t border-[#EEF2EE]">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-[#5A7064] flex items-center gap-1">
-                      <Mail className="w-3 h-3 text-[#4B6256]" />
-                      Correo Electrónico
-                    </span>
-                    <span className="font-bold text-sm text-zinc-900 truncate">
-                      {displayEmpresa?.email_contacto || user?.email || 'No informado'}
-                    </span>
-                  </div>
-
-                  {/* Dirección y Localidad */}
-                  <div className="flex flex-col gap-0.5 pt-3 border-t border-[#EEF2EE]">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-[#5A7064] flex items-center gap-1">
-                      <MapPin className="w-3 h-3 text-[#4B6256]" />
-                      Ubicación
-                    </span>
-                    <span className="font-bold text-sm text-zinc-900">
-                      {displayEmpresa?.direccion || 'Funes'}, {displayEmpresa?.localidad || 'Funes'}
-                    </span>
-                  </div>
-
-                  {/* Sitio Web si existe */}
-                  {displayEmpresa?.sitio_web && (
-                    <div className="flex flex-col gap-0.5 pt-3 border-t border-[#EEF2EE]">
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-[#5A7064] flex items-center gap-1">
-                        <Globe className="w-3 h-3 text-[#4B6256]" />
-                        Sitio Web / Red Social
-                      </span>
-                      <a
-                        href={displayEmpresa.sitio_web}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-xs font-bold text-[#0E4D36] hover:underline flex items-center gap-1 truncate"
-                      >
-                        {displayEmpresa.sitio_web}
-                        <ExternalLink className="w-3 h-3 shrink-0" />
-                      </a>
-                    </div>
-                  )}
-
-                  {/* Botón explícito de editar perfil */}
-                  <div className="pt-2">
-                    <button
-                      type="button"
-                      onClick={() => setIsEditProfileOpen(true)}
-                      className="w-full py-2.5 px-4 rounded-xl border border-[#D3DED5] bg-white text-xs font-bold text-[#0E4D36] hover:bg-[#F4F8F4] transition-colors flex items-center justify-center gap-2 cursor-pointer"
-                    >
-                      <Edit3 className="w-3.5 h-3.5" />
-                      Editar Datos de la Empresa
-                    </button>
-                  </div>
-                </div>
-              </section>
-
-              {/* Idoneidad e intermediación municipal */}
-              <div className="p-4 bg-[#F4F8F4] border border-[#DDEFE3] rounded-2xl flex items-start gap-3">
-                <ShieldCheckIcon className="w-5 h-5 text-[#0E4D36] shrink-0 mt-0.5" />
-                <p className="text-xs text-[#0A3D2A] font-medium leading-relaxed">
-                  Los candidatos derivados son seleccionados por el equipo de intermediación de la Oficina de Empleo de Funes para garantizar su adecuación al puesto y promover el trabajo local.
-                </p>
-              </div>
-            </aside>
-
-            {/* Columna Derecha: Métricas y Reseña de la Empresa */}
-            <main className="flex-1 w-full flex flex-col gap-6">
-              {/* Tarjetas de Métricas Clave */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="p-5 rounded-2xl bg-white border border-[#E0E8E1] shadow-2xs">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-[#5A7064] uppercase tracking-wider">
-                      Ofertas Publicadas
-                    </span>
-                    <Briefcase className="w-4 h-4 text-[#0E4D36]" />
-                  </div>
-                  <div className="mt-2 text-2xl font-extrabold text-zinc-900 font-display">
-                    {ofertas.length}
-                  </div>
-                  <div className="text-[11px] text-[#4B6256] mt-0.5">
-                    {ofertasActivasCount} activas actualmente
-                  </div>
-                </div>
-
-                <div className="p-5 rounded-2xl bg-white border border-[#E0E8E1] shadow-2xs">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-[#5A7064] uppercase tracking-wider">
-                      Candidatos Derivados
-                    </span>
-                    <Users className="w-4 h-4 text-[#0E4D36]" />
-                  </div>
-                  <div className="mt-2 text-2xl font-extrabold text-zinc-900 font-display">
-                    {candidatos.length}
-                  </div>
-                  <div className="text-[11px] text-[#4B6256] mt-0.5">
-                    {activeCandidatesCount} pendientes de evaluación
-                  </div>
-                </div>
-
-                <div className="p-5 rounded-2xl bg-white border border-[#E0E8E1] shadow-2xs">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-[#5A7064] uppercase tracking-wider">
-                      Contrataciones
-                    </span>
-                    <CheckCircleIcon className="w-4 h-4 text-[#0E4D36]" />
-                  </div>
-                  <div className="mt-2 text-2xl font-extrabold text-zinc-900 font-display">
-                    {contratadosCount}
-                  </div>
-                  <div className="text-[11px] text-[#4B6256] mt-0.5">
-                    Incorporados mediante el portal
-                  </div>
-                </div>
-              </div>
-
-              {/* Descripción Institucional de la Empresa */}
-              <section className="bg-white border border-[#E0E8E1] rounded-[24px] p-6 shadow-xs space-y-4">
-                <div className="flex items-center justify-between border-b border-[#EEF2EE] pb-4">
                   <div>
-                    <h3 className="font-extrabold text-base text-zinc-900 font-display">
-                      Descripción de la Empresa
-                    </h3>
-                    <p className="text-xs text-[#4B6256]">
-                      Información pública visible para postulantes interesados en tus búsquedas.
-                    </p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h2 className="font-extrabold text-xl sm:text-2xl text-zinc-900 leading-tight font-sans">
+                        {empresaNombre}
+                      </h2>
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-brand-100 text-brand-900 text-xs font-bold">
+                        <Sparkles className="w-3.5 h-3.5 text-brand-800" />
+                        {isAprobada ? 'Empresa Habilitada' : 'En Validación Municipal'}
+                      </span>
+                    </div>
+                    <div className="text-xs text-zinc-500 mt-1 flex flex-wrap items-center gap-3">
+                      <span>Razón Social: <strong className="text-zinc-700 font-semibold">{displayEmpresa?.razon_social || 'No informada'}</strong></span>
+                      <span>•</span>
+                      <span>CUIT: <strong className="text-zinc-700 font-semibold tabular-nums">{displayEmpresa?.cuit || 'Pendiente'}</strong></span>
+                      <span>•</span>
+                      <span>Rubro: <strong className="text-zinc-700 font-semibold">{displayEmpresa?.rubro || 'General'}</strong></span>
+                    </div>
                   </div>
+                </div>
+
+                <div className="shrink-0 flex items-center gap-3">
                   <button
                     type="button"
                     onClick={() => setIsEditProfileOpen(true)}
-                    className="text-xs font-bold text-[#0E4D36] hover:underline flex items-center gap-1 cursor-pointer"
+                    className="min-h-[40px] px-4 rounded-xl border border-zinc-200 bg-white hover:bg-zinc-50 font-bold text-xs text-zinc-800 transition-all shadow-xs flex items-center gap-2 cursor-pointer"
                   >
-                    <Edit3 className="w-3 h-3" />
-                    Modificar
+                    <Edit3 className="w-3.5 h-3.5 text-brand-800" />
+                    <span>Editar Datos Comerciales</span>
                   </button>
                 </div>
+              </div>
 
-                {displayEmpresa?.descripcion ? (
-                  <p className="text-sm text-[#4B6256] leading-relaxed whitespace-pre-line">
-                    {displayEmpresa.descripcion}
-                  </p>
-                ) : (
-                  <div className="p-6 rounded-2xl bg-zinc-50 border border-dashed border-zinc-200 text-center space-y-2">
-                    <p className="text-xs text-zinc-500">
-                      Aún no agregaste una reseña o descripción de tu empresa.
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => setIsEditProfileOpen(true)}
-                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#0E4D36] text-white text-xs font-bold hover:bg-[#06402B] transition-colors cursor-pointer"
+              {/* Fila de Datos Rápidos Comerciales */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-zinc-200/80 text-xs">
+                <div className="p-4 flex flex-col gap-0.5">
+                  <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-1">
+                    <Phone className="w-3 h-3 text-zinc-400" />
+                    Teléfono / WhatsApp
+                  </span>
+                  <span className="font-bold text-sm text-zinc-900">{displayEmpresa?.telefono || 'No informado'}</span>
+                </div>
+                <div className="p-4 flex flex-col gap-0.5">
+                  <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-1">
+                    <Mail className="w-3 h-3 text-zinc-400" />
+                    Correo Electrónico
+                  </span>
+                  <span className="font-bold text-sm text-zinc-900 truncate">{displayEmpresa?.email_contacto || user?.email || 'No informado'}</span>
+                </div>
+                <div className="p-4 flex flex-col gap-0.5">
+                  <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-1">
+                    <MapPin className="w-3 h-3 text-zinc-400" />
+                    Ubicación en Funes
+                  </span>
+                  <span className="font-bold text-sm text-zinc-900">{displayEmpresa?.direccion || 'Funes'}, {displayEmpresa?.localidad || 'Funes'}</span>
+                </div>
+                <div className="p-4 flex flex-col gap-0.5">
+                  <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-1">
+                    <Users className="w-3 h-3 text-zinc-400" />
+                    Contacto RRHH
+                  </span>
+                  <span className="font-bold text-sm text-zinc-900">{displayEmpresa?.persona_contacto || user?.nombre || 'No informado'}</span>
+                </div>
+              </div>
+            </section>
+
+            {/* 2. Módulo de Información Corporativa y Acciones Rápidas (Full-Width) */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+              <section className="lg:col-span-8 bg-surface border border-zinc-200/90 rounded-2xl p-6 shadow-xs space-y-4">
+                <div className="flex items-center justify-between pb-3 border-b border-zinc-100">
+                  <h3 className="font-bold text-base text-zinc-900 font-sans">
+                    Descripción y Actividad Comercial
+                  </h3>
+                  {displayEmpresa?.sitio_web && (
+                    <a
+                      href={displayEmpresa.sitio_web}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-xs font-bold text-brand-800 hover:underline flex items-center gap-1"
                     >
-                      <PlusIcon className="w-3.5 h-3.5" />
-                      Agregar Reseña Institucional
-                    </button>
-                  </div>
-                )}
+                      <Globe className="w-3.5 h-3.5" />
+                      Sitio Web
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  )}
+                </div>
+                <p className="text-sm text-zinc-700 leading-relaxed font-sans">
+                  {displayEmpresa?.descripcion || 'Empresa local radicada o vinculada comercialmente a la ciudad de Funes.'}
+                </p>
               </section>
 
-              {/* Acciones Rápidas y Gestión de la Empresa */}
-              <section className="bg-white border border-[#E0E8E1] rounded-[24px] p-6 shadow-xs space-y-4">
-                <h3 className="font-extrabold text-base text-zinc-900 font-display">
+              <section className="lg:col-span-4 bg-surface border border-zinc-200/90 rounded-2xl p-6 shadow-xs space-y-4">
+                <h3 className="font-bold text-base text-zinc-900 font-sans">
                   Acciones Rápidas
                 </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-3">
                   <button
                     type="button"
-                    onClick={() => {
-                      if (isAprobada) {
-                        setIsCreateModalOpen(true);
-                      }
-                    }}
                     disabled={!isAprobada}
-                    className="p-4 rounded-2xl border border-[#D3DED5] bg-[#F4F8F4] text-left hover:bg-[#EAF3EB] transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed group"
+                    onClick={() => setIsCreateModalOpen(true)}
+                    className="w-full py-2.5 px-4 rounded-xl bg-brand-800 hover:bg-brand-900 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition-all disabled:opacity-50 cursor-pointer"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-[#0E4D36] text-white flex items-center justify-center shrink-0">
-                        <PlusIcon className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <strong className="block text-sm font-bold text-[#10231B]">
-                          Publicar Nueva Búsqueda
-                        </strong>
-                        <span className="text-xs text-[#4B6256]">
-                          Creá una vacante para recibir candidatos preseleccionados.
-                        </span>
-                      </div>
-                    </div>
+                    <Briefcase className="w-3.5 h-3.5" />
+                    <span>Publicar Nueva Búsqueda</span>
                   </button>
-
                   <button
                     type="button"
                     onClick={() => setActiveTab('candidatos')}
-                    className="p-4 rounded-2xl border border-[#D3DED5] bg-white text-left hover:bg-zinc-50 transition-colors cursor-pointer group"
+                    className="w-full py-2.5 px-4 rounded-xl border border-zinc-200 bg-zinc-50 hover:bg-zinc-100 text-zinc-800 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-[#DDEFE3] text-[#0A3D2A] flex items-center justify-center shrink-0">
-                        <Users className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <strong className="block text-sm font-bold text-[#10231B]">
-                          Evaluar Postulantes
-                        </strong>
-                        <span className="text-xs text-[#4B6256]">
-                          Revisá CVs derivados y registrá contrataciones o devoluciones.
-                        </span>
-                      </div>
-                    </div>
+                    <Users className="w-3.5 h-3.5 text-brand-800" />
+                    <span>Ver Candidatos Derivados</span>
                   </button>
                 </div>
               </section>
-            </main>
+            </div>
           </div>
         )}
 
@@ -586,10 +408,10 @@ export default function EmpresaDashboardPage() {
         {/* PESTAÑA 2: MIS OFERTAS LABORALES                               */}
         {/* ============================================================== */}
         {activeTab === 'ofertas' && (
-          <div className="bg-white rounded-[24px] border border-[#E0E8E1] p-6 shadow-xs space-y-6">
+          <div className="bg-white rounded-2xl border border-[#E0E8E1] p-6 shadow-xs space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#EEF2EE] pb-4">
               <div>
-                <h2 className="text-xl font-extrabold text-[#10231B] font-display">
+                <h2 className="text-xl font-extrabold text-[#10231B] font-sans">
                   Mis Búsquedas Laborales
                 </h2>
                 <p className="text-xs sm:text-sm text-[#4B6256] mt-0.5">
@@ -622,10 +444,10 @@ export default function EmpresaDashboardPage() {
         {/* PESTAÑA 3: CANDIDATOS DERIVADOS                                */}
         {/* ============================================================== */}
         {activeTab === 'candidatos' && (
-          <div className="bg-white rounded-[24px] border border-[#E0E8E1] p-6 shadow-xs space-y-6">
+          <div className="bg-white rounded-2xl border border-[#E0E8E1] p-6 shadow-xs space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#EEF2EE] pb-4">
               <div>
-                <h2 className="text-xl font-extrabold text-[#10231B] font-display">
+                <h2 className="text-xl font-extrabold text-[#10231B] font-sans">
                   Candidatos Derivados por la Oficina de Empleo
                 </h2>
                 <p className="text-xs sm:text-sm text-[#4B6256] mt-0.5">

@@ -1,5 +1,6 @@
 'use client';
 
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -34,7 +35,8 @@ export function AdminEditModal({
   admin,
   onSave,
 }: AdminEditModalProps) {
-  const [prevAdminId, setPrevAdminId] = useState<string | null>(null);
+    useBodyScrollLock(Boolean(isOpen));
+const [prevAdminId, setPrevAdminId] = useState<string | null>(null);
   const [nombre, setNombre] = useState('');
   const [apellido, setApellido] = useState('');
   const [dni, setDni] = useState('');
@@ -147,8 +149,11 @@ export function AdminEditModal({
                 <CreditCard className="w-3 h-3 text-zinc-400" /> DNI
               </label>
               <Input
+                type="text"
+                inputMode="numeric"
+                maxLength={8}
                 value={dni}
-                onChange={(e) => setDni(e.target.value)}
+                onChange={(e) => setDni(e.target.value.replace(/\D/g, '').slice(0, 8))}
                 placeholder="Ej. 35123456"
               />
             </div>
@@ -157,9 +162,11 @@ export function AdminEditModal({
                 <Phone className="w-3 h-3 text-zinc-400" /> Teléfono
               </label>
               <Input
+                type="tel"
+                inputMode="numeric"
                 value={telefono}
-                onChange={(e) => setTelefono(e.target.value)}
-                placeholder="Ej. 341-5551234"
+                onChange={(e) => setTelefono(e.target.value.replace(/\D/g, ''))}
+                placeholder="Ej. 3415551234"
               />
             </div>
           </div>

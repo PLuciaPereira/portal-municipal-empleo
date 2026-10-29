@@ -80,9 +80,6 @@ function RegistroPostulanteAside() {
         </ol>
       </div>
 
-      <div className="text-[11px] text-brand-200/80 leading-relaxed">
-        Gobierno de la Ciudad de Funes &bull; Secretaría de Desarrollo Económico
-      </div>
     </aside>
   );
 }
@@ -124,6 +121,7 @@ interface FormErrors {
   localidad?: string;
   email?: string;
   password?: string;
+  confirmPassword?: string;
   terminos?: string;
 }
 
@@ -140,12 +138,14 @@ function RegisterPostulanteForm() {
     localidad: '',
     email: '',
     password: '',
+    confirmPassword: '',
     aceptoTerminos: false,
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
   const [generalError, setGeneralError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [successConfirmation, setSuccessConfirmation] = useState(false);
 
   // Modal legal
@@ -161,6 +161,7 @@ function RegisterPostulanteForm() {
   const localidadRef = useRef<HTMLInputElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
+  const confirmPasswordRef = useRef<HTMLInputElement>(null);
   const terminosRef = useRef<HTMLInputElement>(null);
 
   const handleOpenTermsModal = () => {
@@ -255,6 +256,12 @@ function RegisterPostulanteForm() {
       newErrors.password = 'La contraseña debe contener al menos 6 caracteres.';
     }
 
+    if (!formData.confirmPassword) {
+      newErrors.confirmPassword = 'Por favor confirmá tu contraseña.';
+    } else if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Las contraseñas no coinciden.';
+    }
+
     if (!formData.aceptoTerminos) {
       newErrors.terminos = 'Debés aceptar los términos y condiciones y política de privacidad.';
     }
@@ -279,6 +286,8 @@ function RegisterPostulanteForm() {
         emailRef.current?.focus();
       } else if (newErrors.password) {
         passwordRef.current?.focus();
+      } else if (newErrors.confirmPassword) {
+        confirmPasswordRef.current?.focus();
       } else if (newErrors.terminos) {
         terminosRef.current?.focus();
       }
@@ -377,7 +386,7 @@ function RegisterPostulanteForm() {
       <RegistroPostulanteAside />
 
       <div className="flex flex-col justify-between min-w-0 bg-surface">
-        <div className="w-full max-w-3xl mx-auto p-6 sm:p-10 lg:p-12 space-y-8">
+        <div className="w-full max-w-none p-6 sm:p-10 lg:p-12 xl:p-14 space-y-8">
           <div className="flex items-center justify-between border-b border-border/80 pb-4">
             <h2 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight">
               Completá tu registro
@@ -484,20 +493,22 @@ function RegisterPostulanteForm() {
                   id="telefono"
                   name="telefono"
                   type="tel"
+                  inputMode="numeric"
                   autoComplete="tel"
                   label={
                     <span>
                       Teléfono / Celular <span className="text-destructive">*</span>
                     </span>
                   }
-                  placeholder="Ej: 341 555-0123"
+                  placeholder="Ej: 3415550123"
                   leftIcon={<Phone className="w-4 h-4" aria-hidden="true" />}
                   value={formData.telefono}
                   onChange={(e) => {
-                    setFormData({ ...formData, telefono: e.target.value });
+                    const onlyNums = e.target.value.replace(/\D/g, '');
+                    setFormData({ ...formData, telefono: onlyNums });
                     if (errors.telefono) setErrors({ ...errors, telefono: undefined });
                   }}
-                  hint="Mínimo 8 dígitos (fijo o celular con código de área)."
+                  hint="Mínimo 8 dígitos numéricos (con código de área)."
                   error={errors.telefono}
                   required
                 />
@@ -622,6 +633,43 @@ function RegisterPostulanteForm() {
                   }}
                   hint="Mínimo 6 caracteres alfanuméricos."
                   error={errors.password}
+                  required
+                />
+
+                <Input
+                  ref={confirmPasswordRef}
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  autoComplete="new-password"
+                  label={
+                    <span>
+                      Repetir contraseña <span className="text-destructive">*</span>
+                    </span>
+                  }
+                  placeholder="Reingresá tu contraseña"
+                  leftIcon={<Lock className="w-4 h-4" aria-hidden="true" />}
+                  rightElement={
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      aria-pressed={showConfirmPassword}
+                      aria-label={showConfirmPassword ? 'Ocultar confirmación de contraseña' : 'Mostrar confirmación de contraseña'}
+                      className="p-1 rounded text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-1 focus:ring-brand-800 cursor-pointer"
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff className="w-4 h-4" aria-hidden="true" />
+                      ) : (
+                        <Eye className="w-4 h-4" aria-hidden="true" />
+                      )}
+                    </button>
+                  }
+                  value={formData.confirmPassword}
+                  onChange={(e) => {
+                    setFormData({ ...formData, confirmPassword: e.target.value });
+                    if (errors.confirmPassword) setErrors({ ...errors, confirmPassword: undefined });
+                  }}
+                  error={errors.confirmPassword}
                   required
                 />
               </div>
