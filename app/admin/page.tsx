@@ -1,6 +1,7 @@
-﻿'use client';
+'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import {
   ShieldCheck,
@@ -14,6 +15,7 @@ import {
   Sparkles,
   TrendingUp,
   UserPlus,
+  ArrowRight,
 } from 'lucide-react';
 import { Empresa } from '@/types/database';
 import {
@@ -37,7 +39,32 @@ import { ManualProfileRegister } from '@/components/admin/ManualProfileRegister'
 type AdminTab = 'ofertas' | 'empresas' | 'postulantes' | 'registro_asistido' | 'capacitaciones' | 'administradores' | 'estadisticas';
 
 export default function AdminDashboardPage() {
-  const [activeTab, setActiveTab] = useState<AdminTab>('ofertas');
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-page flex items-center justify-center p-8 text-zinc-500 font-sans text-sm">Cargando panel de gestión...</div>}>
+      <AdminDashboardContent />
+    </Suspense>
+  );
+}
+
+function AdminDashboardContent() {
+  const searchParams = useSearchParams();
+
+  const [activeTab, setActiveTab] = useState<AdminTab>(() => {
+    const tabParam = searchParams.get('tab');
+    const validTabs: AdminTab[] = [
+      'ofertas',
+      'empresas',
+      'postulantes',
+      'registro_asistido',
+      'capacitaciones',
+      'administradores',
+      'estadisticas',
+    ];
+    if (tabParam && validTabs.includes(tabParam as AdminTab)) {
+      return tabParam as AdminTab;
+    }
+    return 'ofertas';
+  });
   const [selectedOfertaFunnelId, setSelectedOfertaFunnelId] = useState<string | null>(null);
 
   const [counts, setCounts] = useState<AdminCounts>({
@@ -57,6 +84,23 @@ export default function AdminDashboardPage() {
   const [loadingPostulantes, setLoadingPostulantes] = useState(true);
 
   const [refreshingCounts, setRefreshingCounts] = useState(false);
+
+  // Sincronizar activeTab cuando cambia el query param (ej. enlaces de notificación)
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    const validTabs: AdminTab[] = [
+      'ofertas',
+      'empresas',
+      'postulantes',
+      'registro_asistido',
+      'capacitaciones',
+      'administradores',
+      'estadisticas',
+    ];
+    if (tabParam && validTabs.includes(tabParam as AdminTab)) {
+      setActiveTab(tabParam as AdminTab);
+    }
+  }, [searchParams]);
 
   // Cargar contadores globales
   const loadCounts = useCallback(async () => {
@@ -311,8 +355,63 @@ export default function AdminDashboardPage() {
 
       {/* 3. Contenedor Principal Full-Width (hasta 1600px) */}
       <main className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 py-6 sm:py-8 w-full space-y-6 flex-1">
-        
-        {/* Ribbon Unificado de KPIs Operativos (Superficie continua sin tarjetas flotantes separadas) */}
+
+        {/* ============================================================== */}
+        {/* SECCIÓN 1: OFERTAS LABORALES Y FUNNEL DE DERIVACIÓN            */}
+        {/* ============================================================== */}
+        {activeTab === 'ofertas' && (
+          <div className="space-y-4">
+            {selectedOfertaFunnelId ? (
+              (() => {
+                const selectedOferta = ofertas.find(
+                  (o) => o.id === selectedOfertaFunnelId
+                );
+                if (!selectedOferta) {
+                  return (
+                    <div className="p-8 text-center text-xs text-zinc-500 bg-surface rounded-2xl border border-zinc-200">
+                      Oferta no encontrada.
+                      <button
+                        onClick={() => setSelectedOfertaFunnelId(null)}
+                        className="ml-2 font-bold text-brand-900 underline cursor-pointer"
+                      >
+                        Volver
+                      </button>
+                    </div>
+                  );
+                }
+                return (
+                  <IntermediationFunnel
+                    oferta={selectedOferta}
+                    onBack={() => {
+                      setSelectedOfertaFunnelId(null);
+                      void loadOfertas();
+                    }}
+                    onUpdated={() => {
+                      void loadOfertas();
+                      void loadCounts();
+                    }}
+                  />
+                );
+              })()
+            ) : (
+              <>
+                {/* Resumen Operativo de Métricas Clave (Solo en Vista Principal de Ofertas) */}
+                <div className="space-y-2.5">
+                  <div className="flex items-center justify-between px-1">
+                    <span className="text-xs font-bold uppercase tracking-wider text-zinc-500">
+                      Resumen Operativo Municipal
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('estadisticas')}
+                      className="inline-flex items-center gap-1.5 text-xs font-bold text-brand-800 hover:text-brand-950 transition-colors cursor-pointer group"
+                    >
+                      <span>Ver estadísticas completas</span>
+                      <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
+                    </button>
+                  </div>
+
+{/* Ribbon Unificado de KPIs Operativos (Superficie continua sin tarjetas flotantes separadas) */}
         <div className="bg-surface border border-zinc-200/90 rounded-2xl shadow-xs overflow-hidden">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-zinc-200/80">
             
@@ -422,47 +521,9 @@ export default function AdminDashboardPage() {
             </div>
 
           </div>
-        </div>
+                </div>
+              </div>
 
-        {/* ============================================================== */}
-        {/* SECCIÓN 1: OFERTAS LABORALES Y FUNNEL DE DERIVACIÓN            */}
-        {/* ============================================================== */}
-        {activeTab === 'ofertas' && (
-          <div className="space-y-4">
-            {selectedOfertaFunnelId ? (
-              (() => {
-                const selectedOferta = ofertas.find(
-                  (o) => o.id === selectedOfertaFunnelId
-                );
-                if (!selectedOferta) {
-                  return (
-                    <div className="p-8 text-center text-xs text-zinc-500 bg-surface rounded-2xl border border-zinc-200">
-                      Oferta no encontrada.
-                      <button
-                        onClick={() => setSelectedOfertaFunnelId(null)}
-                        className="ml-2 font-bold text-brand-900 underline cursor-pointer"
-                      >
-                        Volver
-                      </button>
-                    </div>
-                  );
-                }
-                return (
-                  <IntermediationFunnel
-                    oferta={selectedOferta}
-                    onBack={() => {
-                      setSelectedOfertaFunnelId(null);
-                      void loadOfertas();
-                    }}
-                    onUpdated={() => {
-                      void loadOfertas();
-                      void loadCounts();
-                    }}
-                  />
-                );
-              })()
-            ) : (
-              <>
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-1">
                   <div>
                     <h2 className="text-lg font-bold text-zinc-900 tracking-tight">

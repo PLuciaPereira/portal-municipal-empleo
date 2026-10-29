@@ -7,6 +7,8 @@ import {
   VistaCandidatoEmpresa,
 } from '@/types/database';
 import { createClient } from '@/lib/supabase/client';
+import { notificarAdmins, crearNotificacionDeduplicada } from '@/lib/notifications';
+import { darDeBajaOfertaEmpresaAction } from '@/app/empresa/actions';
 
 export interface CreateOfertaInput {
   titulo: string;
@@ -307,6 +309,42 @@ export async function enviarOfertaARevision(ofertaId: string): Promise<{
     return { success: false, error: error.message };
   }
 
+    // Notificar a administradores y confirmar a la empresa
+  try {
+    const { data: ofData } = await supabase
+      .from('ofertas')
+      .select('titulo, empresa:empresas(user_id, nombre_fantasia, razon_social)')
+      .eq('id', ofertaId)
+      .single();
+
+    const tituloOferta = ofData?.titulo || 'Oferta';
+    const nombreEmp = (ofData?.empresa as any)?.nombre_fantasia || (ofData?.empresa as any)?.razon_social || 'Una empresa';
+    const empUserId = (ofData?.empresa as any)?.user_id;
+
+    // Aviso a administradores
+    await notificarAdmins({
+      titulo: 'Nueva oferta para revisión',
+      mensaje: `La empresa "${nombreEmp}" envió a revisión la oferta "${tituloOferta}".`,
+      tipo: 'postulacion',
+      link: '/admin?tab=ofertas&estado=pendiente_revision',
+      agrupadorKey: 'oferta_revision_' + ofertaId,
+    });
+
+    // Confirmación a la empresa
+    if (empUserId) {
+      await crearNotificacionDeduplicada({
+        userId: empUserId,
+        titulo: 'Oferta enviada a revisión técnica',
+        mensaje: `Tu oferta "${tituloOferta}" fue enviada a la Oficina de Empleo para su revisión y aprobación.`,
+        tipo: 'info',
+        link: '/empresa',
+        agrupadorKey: 'empresa_confirma_revision_' + ofertaId,
+      });
+    }
+  } catch (e) {
+    console.warn('Aviso: no se pudo notificar envio a revision:', e);
+  }
+
   return { success: true };
 }
 
@@ -321,22 +359,8 @@ export async function darDeBajaOfertaEmpresa(
     return { success: false, error: 'El motivo de baja es obligatorio.' };
   }
 
-  const supabase = createClient();
-
-  const { error } = await supabase
-    .from('ofertas')
-    .update({
-      deleted_at: new Date().toISOString(),
-      motivo_baja: motivo.trim(),
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', ofertaId);
-
-  if (error) {
-    return { success: false, error: error.message };
-  }
-
-  return { success: true };
+  // Se delega a la Server Action que cuenta con verificación estricta de propiedad y permisos para sortear RLS restrictivo en revisión
+  return await darDeBajaOfertaEmpresaAction({ ofertaId, motivo });
 }
 
 /**
@@ -357,15 +381,32 @@ export async function getCandidatosPresentados(
     return { data: [], error: 'La empresa debe estar aprobada para visualizar candidatos derivados.' };
   }
 
-  // 2. Se consulta a través de la función RPC segura obtener_candidatos_empresa
+  // 1.1 Bloqueo en servidor: no se pueden consultar candidatos de ofertas en revisión o no aprobadas
+  if (ofertaId) {
+    const { data: ofertaCheck } = await supabase
+      .from('ofertas')
+      .select('id, estado, empresa_id')
+      .eq('id', ofertaId)
+      .maybeSingle();
+
+    if (ofertaCheck && ofertaCheck.estado === 'pendiente_revision') {
+      return {
+        data: [],
+        error: 'Los candidatos estarán disponibles cuando la oferta sea aprobada por la Oficina de Empleo.',
+      };
+    }
+  }
+
+  // 2. Se consulta a través de la función RPC segura obtener_candidatos_empresa o vista_candidatos_empresa
   const { data, error } = await supabase.rpc('obtener_candidatos_empresa', {
     p_oferta_id: ofertaId || null,
   });
 
   let rawList: VistaCandidatoEmpresa[] = [];
 
-  if (error) {
-    // Si la función falla, fallback directo a la vista con RLS
+  // Si la RPC arroja error o devuelve vacío pero existe la vista con RLS (por disparidad de claims/sesión),
+  // consultar la vista asegurando que la empresa acceda a sus candidatos derivados.
+  if (error || !data || (Array.isArray(data) && data.length === 0)) {
     const viewQuery = supabase
       .from('vista_candidatos_empresa')
       .select('*')
@@ -376,10 +417,13 @@ export async function getCandidatosPresentados(
     }
 
     const { data: viewData, error: viewError } = await viewQuery;
-    if (viewError) {
-      return { data: [], error: viewError.message };
+    if (!viewError && viewData && viewData.length > 0) {
+      rawList = viewData as VistaCandidatoEmpresa[];
+    } else if (data && data.length > 0) {
+      rawList = data as VistaCandidatoEmpresa[];
+    } else if (viewError && error) {
+      return { data: [], error: error.message || viewError.message };
     }
-    rawList = (viewData || []) as VistaCandidatoEmpresa[];
   } else {
     rawList = (data || []) as VistaCandidatoEmpresa[];
   }
@@ -421,6 +465,43 @@ export async function rechazarCandidatoEmpresa(
     return { success: false, error: error.message };
   }
 
+    // Notificar al postulante (con motivo) y a la Oficina de Empleo
+  try {
+    const { data: postInfo } = await supabase
+      .from('postulaciones')
+      .select('postulante_id, oferta:ofertas(titulo, empresa:empresas(nombre_fantasia, razon_social))')
+      .eq('id', postulacionId)
+      .single();
+
+    if (postInfo?.postulante_id) {
+      const ofTitulo = (postInfo.oferta as any)?.titulo || 'la búsqueda laboral';
+      const empNombre = (postInfo.oferta as any)?.empresa?.nombre_fantasia || (postInfo.oferta as any)?.empresa?.razon_social || 'La empresa';
+
+      // Al postulante
+      await crearNotificacionDeduplicada({
+        userId: postInfo.postulante_id,
+        titulo: 'Postulación no seleccionada por la empresa',
+        mensaje: `${empNombre} ha concluido el proceso para "${ofTitulo}" y no avanzará con tu postulación en esta ocasión.`,
+        tipo: 'alerta',
+        link: '/postulante?tab=postulaciones',
+        metadata: { motivo: motivoRechazo.trim() },
+        agrupadorKey: 'rechazo_empresa_' + postulacionId,
+      });
+
+      // A la Oficina de Empleo (admin)
+      await notificarAdmins({
+        titulo: 'Candidato rechazado por empresa',
+        mensaje: `${empNombre} rechazó un candidato derivado para "${ofTitulo}". Motivo: ${motivoRechazo.trim()}`,
+        tipo: 'alerta',
+        link: '/admin?tab=ofertas',
+        metadata: { motivo: motivoRechazo.trim() },
+        agrupadorKey: 'admin_rechazo_candidato_' + postulacionId,
+      });
+    }
+  } catch (e) {
+    console.warn('Aviso: no se pudo notificar rechazo de candidato:', e);
+  }
+
   return { success: true };
 }
 
@@ -439,6 +520,41 @@ export async function contratarCandidatoEmpresa(
 
   if (error) {
     return { success: false, error: error.message };
+  }
+
+    // Notificar al postulante y a la Oficina de Empleo
+  try {
+    const { data: postInfo } = await supabase
+      .from('postulaciones')
+      .select('postulante_id, oferta:ofertas(titulo, empresa:empresas(nombre_fantasia, razon_social))')
+      .eq('id', postulacionId)
+      .single();
+
+    if (postInfo?.postulante_id) {
+      const ofTitulo = (postInfo.oferta as any)?.titulo || 'el puesto laboral';
+      const empNombre = (postInfo.oferta as any)?.empresa?.nombre_fantasia || (postInfo.oferta as any)?.empresa?.razon_social || 'La empresa';
+
+      // Al postulante
+      await crearNotificacionDeduplicada({
+        userId: postInfo.postulante_id,
+        titulo: '¡Felicitaciones! Has sido seleccionado/a',
+        mensaje: `${empNombre} confirmó tu contratación para la búsqueda "${ofTitulo}". ¡Muchos éxitos en tu nuevo empleo!`,
+        tipo: 'postulacion',
+        link: '/postulante?tab=postulaciones',
+        agrupadorKey: 'contratacion_postulante_' + postulacionId,
+      });
+
+      // A la Oficina de Empleo (admin)
+      await notificarAdmins({
+        titulo: '¡Postulante contratado por empresa!',
+        mensaje: `${empNombre} registró formalmente la contratación de un candidato derivado para "${ofTitulo}".`,
+        tipo: 'postulacion',
+        link: '/admin?tab=ofertas',
+        agrupadorKey: 'admin_contratacion_' + postulacionId,
+      });
+    }
+  } catch (e) {
+    console.warn('Aviso: no se pudo notificar contratación de candidato:', e);
   }
 
   return { success: true };
