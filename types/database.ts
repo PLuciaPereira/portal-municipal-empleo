@@ -295,6 +295,10 @@ export type VistaCandidatoEmpresa = {
   motivo_rechazo_empresa: string | null;
   fecha_rechazo_empresa: string | null;
   fecha_respuesta_empresa: string | null;
+  fecha_entrevista?: string | null;
+  modalidad_entrevista?: string | null;
+  lugar_entrevista?: string | null;
+  entrevistador?: string | null;
 };
 
 export type SchemaMigration = {

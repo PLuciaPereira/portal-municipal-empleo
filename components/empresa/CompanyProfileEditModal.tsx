@@ -3,7 +3,7 @@
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 import React, { useState } from 'react';
 import { Empresa } from '@/types/database';
-import { updateEmpresaProfile, subirLogoEmpresa } from '@/lib/empresa';
+import { updateEmpresaProfile, subirLogoEmpresa, reenviarSolicitudEmpresa } from '@/lib/empresa';
 import { Camera, Trash2, Upload, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -13,6 +13,7 @@ import { Lock } from 'lucide-react';
 export interface CompanyProfileEditModalProps {
   isOpen: boolean;
   empresa: Empresa;
+  isReenvio?: boolean;
   onClose: () => void;
   onSaved: () => void | Promise<void>;
 }
@@ -20,6 +21,7 @@ export interface CompanyProfileEditModalProps {
 export const CompanyProfileEditModal: React.FC<CompanyProfileEditModalProps> = ({
   isOpen,
   empresa,
+  isReenvio = false,
   onClose,
   onSaved,
 }) => {
@@ -99,7 +101,7 @@ export const CompanyProfileEditModal: React.FC<CompanyProfileEditModalProps> = (
         setUploadingLogo(false);
       }
 
-      const res = await updateEmpresaProfile({
+      const datosActualizados = {
         nombre_fantasia: nombreFantasia.trim(),
         persona_contacto: personaContacto.trim(),
         telefono: telefono.trim(),
@@ -109,7 +111,11 @@ export const CompanyProfileEditModal: React.FC<CompanyProfileEditModalProps> = (
         rubro: rubro.trim() || null,
         sitio_web: sitioWeb.trim() || null,
         descripcion: descripcion.trim() || null,
-      });
+      };
+
+      const res = isReenvio
+        ? await reenviarSolicitudEmpresa(empresa.id, datosActualizados)
+        : await updateEmpresaProfile(datosActualizados);
 
       if (!res.success) {
         setErrorMsg(res.error || 'Ocurrió un error al guardar los cambios.');
@@ -134,7 +140,7 @@ export const CompanyProfileEditModal: React.FC<CompanyProfileEditModalProps> = (
       aria-modal="true"
       aria-labelledby="company-profile-modal-title"
     >
-      <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[92vh] flex flex-col shadow-2xl border border-zinc-200 overflow-hidden">
+      <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[92vh] flex flex-col shadow-2xl border border-zinc-200 overflow-hidden">
         {/* Cabecera del Modal */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-zinc-100 bg-[#F8FAF8]">
           <div className="flex items-center gap-3">
@@ -146,10 +152,10 @@ export const CompanyProfileEditModal: React.FC<CompanyProfileEditModalProps> = (
                 id="company-profile-modal-title"
                 className="text-lg font-extrabold text-[#10231B] font-display"
               >
-                Editar Perfil de la Empresa
+                {isReenvio ? 'Corregir Datos y Reenviar Solicitud' : 'Editar Perfil de la Empresa'}
               </h2>
               <p className="text-xs text-[#4B6256]">
-                Actualizá tus datos comerciales y vías de contacto directo.
+                {isReenvio ? 'Modificá los datos observados por la Oficina de Empleo para volver a solicitar la habilitación municipal.' : 'Actualizá tus datos comerciales y vías de contacto directo.'}
               </p>
             </div>
           </div>
@@ -389,7 +395,7 @@ export const CompanyProfileEditModal: React.FC<CompanyProfileEditModalProps> = (
               disabled={isSaving}
               className="bg-[#0E4D36] hover:bg-[#06402B] text-white"
             >
-              {isSaving ? 'Guardando...' : 'Guardar Cambios'}
+              {isSaving ? 'Enviando...' : isReenvio ? 'Reenviar Solicitud de Habilitación' : 'Guardar Cambios'}
             </Button>
           </div>
         </form>

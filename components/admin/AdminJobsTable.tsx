@@ -72,9 +72,12 @@ export function AdminJobsTable({
       const isDeleted = Boolean(of.deleted_at);
 
       if (filterEstado === 'bajas') {
-        if (!isDeleted) return false;
+        if (!isDeleted || of.estado === 'borrador') return false;
       } else if (filterEstado !== 'todas') {
         if (isDeleted || of.estado !== filterEstado) return false;
+      } else {
+        // En "todas", tampoco mostrar borradores dados de baja que nunca llegaron al municipio
+        if (isDeleted && of.estado === 'borrador') return false;
       }
 
       if (searchTerm.trim()) {
@@ -105,7 +108,8 @@ export function AdminJobsTable({
       ).length,
       publicadas: ofertas.filter((o) => o.estado === 'publicada' && !o.deleted_at).length,
       rechazadas: ofertas.filter((o) => o.estado === 'rechazada' && !o.deleted_at).length,
-      bajas: ofertas.filter((o) => Boolean(o.deleted_at)).length,
+      // Las bajas en el panel municipal solo consideran ofertas que ya estuvieron en circuito (no borradores privados)
+      bajas: ofertas.filter((o) => Boolean(o.deleted_at) && o.estado !== 'borrador').length,
     };
   }, [ofertas]);
 
