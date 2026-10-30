@@ -302,10 +302,14 @@ export async function getOfertasAdmin(
     const filtro = params?.filtro || 'todas';
 
     if (filtro === 'bajas') {
-      query = query.not('deleted_at', 'is', null);
+      // Solo mostrar ofertas que hayan estado en circuito municipal (no borradores privados)
+      query = query.not('deleted_at', 'is', null).neq('estado', 'borrador');
     } else {
       if (filtro !== 'todas') {
         query = query.eq('estado', filtro).is('deleted_at', null);
+      } else {
+        // En vista "todas" del admin, tampoco mostrar borradores dados de baja que nunca llegaron a revisión
+        query = query.or('deleted_at.is.null,and(deleted_at.not.is.null,estado.neq.borrador)');
       }
     }
 
@@ -891,14 +895,14 @@ export async function cambiarEstadoPostulacionAdmin(
             agrupadorKey: 'derivado_postulante_' + postulacionId,
           });
 
-          // B) Notificar a la empresa sobre el nuevo candidato presentado
+          // B) Notificar a la empresa sobre el nuevo candidato presentado con link directo al candidato
           if (empresaUser) {
             await crearNotificacionDeduplicada({
               userId: empresaUser,
               titulo: 'Nuevos candidatos derivados',
               mensaje: 'La Oficina de Empleo presentó nuevos candidatos para tu búsqueda "' + ofertaTitulo + '".',
               tipo: 'postulacion',
-              link: '/empresa?tab=candidatos',
+              link: '/empresa?tab=candidatos&candidatoId=' + postulacionId,
               agrupadorKey: 'candidatos_derivados_' + ((postInfo.oferta as any)?.id || '') + '_' + new Date().toISOString().split('T')[0],
               diasVentana: 1,
             });

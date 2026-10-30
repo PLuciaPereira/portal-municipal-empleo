@@ -227,7 +227,12 @@ export async function getJobs(filters?: JobFilterParams): Promise<{ jobs: Job[];
     }
 
     const rows = (data ?? []) as unknown as OfertaQueryRow[];
-    const jobs: Job[] = rows.map((row) => mapOfertaToJob(row));
+    // Excluir ofertas de empresas no aprobadas
+    const validRows = rows.filter((r) => {
+      const emp = r.empresa ?? r.company;
+      return !emp || emp.estado === 'aprobada';
+    });
+    const jobs: Job[] = validRows.map((row) => mapOfertaToJob(row));
 
     return {
       jobs,
@@ -286,7 +291,12 @@ export async function getJobById(id: string): Promise<Job | null> {
       return null;
     }
 
-    return mapOfertaToJob(data as unknown as OfertaQueryRow);
+    const jobRow = data as unknown as OfertaQueryRow;
+    const emp = jobRow.empresa ?? jobRow.company;
+    if (emp && emp.estado !== 'aprobada') {
+      return null;
+    }
+    return mapOfertaToJob(jobRow);
   } catch (err) {
     console.error('Error inesperado obteniendo oferta por id:', err);
     return null;
@@ -527,7 +537,7 @@ export async function submitJobApplication(
     // 2b. Verificar que la oferta laboral exista, esté publicada y no tenga baja lógica
     const { data: ofertaVigencia, error: ofertaError } = await supabase
       .from('ofertas')
-      .select('id, estado, deleted_at')
+      .select('id, estado, deleted_at, empresa:empresas!ofertas_empresa_id_fkey(id, estado)')
       .eq('id', data.jobId)
       .eq('estado', 'publicada')
       .is('deleted_at', null)
@@ -537,6 +547,14 @@ export async function submitJobApplication(
       return {
         success: false,
         message: 'Esta oferta laboral ya no se encuentra disponible o su convocatoria fue cerrada.',
+      };
+    }
+
+    const empObj = (ofertaVigencia as any).empresa;
+    if (empObj && empObj.estado !== 'aprobada') {
+      return {
+        success: false,
+        message: 'Esta convocatoria no se encuentra abierta a postulaciones debido a la situación de habilitación de la empresa.',
       };
     }
 

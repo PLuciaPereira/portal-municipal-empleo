@@ -1,3 +1,4 @@
+import { agendarEntrevistaEmpresaAction, reprogramarEntrevistaEmpresaAction, cancelarEntrevistaEmpresaAction } from '@/app/empresa/actions';
 import {
   Database,
   Empresa,
@@ -766,58 +767,109 @@ export async function agendarEntrevistaEmpresa(params: {
   entrevistador?: string;
   notas?: string;
 }): Promise<{ success: boolean; error?: string }> {
+  try {
+    return await agendarEntrevistaEmpresaAction(params);
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Error al agendar entrevista';
+    return { success: false, error: msg };
+  }
+}
+
+/**
+ * Reenviar solicitud de habilitación para empresa en estado rechazada
+ */
+export async function reenviarSolicitudEmpresa(
+  empresaId: string,
+  datos: {
+    nombre_fantasia?: string;
+    persona_contacto?: string;
+    telefono?: string;
+    email_contacto?: string;
+    direccion?: string;
+    localidad?: string;
+    rubro?: string | null;
+    sitio_web?: string | null;
+    descripcion?: string | null;
+  }
+): Promise<{ success: boolean; error?: string }> {
   const supabase = createClient();
   try {
-    const fechaHora = `${params.fecha}T${params.hora}:00`;
-
-    // 1. Actualizar postulación
-    const { data: post, error: postError } = await supabase
-      .from('postulaciones')
-      .update({
-        estado: 'entrevista',
-        fecha_entrevista: fechaHora,
-        modalidad_entrevista: params.modalidad,
-        lugar_entrevista: params.lugar,
-        entrevistador: params.entrevistador || null,
-        observaciones_derivacion: params.notas || null,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', params.postulacionId)
-      .select('id, postulante_id, oferta:ofertas(titulo, empresa:empresas(nombre_fantasia, razon_social))')
-      .single();
-
-    if (postError) {
-      return { success: false, error: postError.message };
-    }
-
-    // 2. Registrar en historial de la postulación
-    await supabase.from('historial_postulacion').insert({
-      postulacion_id: params.postulacionId,
-      estado_anterior: 'presentado_a_empresa',
-      estado_nuevo: 'entrevista',
-      cambiado_por: null,
-      observaciones: `Entrevista agendada por la empresa para el ${params.fecha} a las ${params.hora} hs (${params.modalidad})`,
+    // Intentar invocar la RPC si la migración ya fue aplicada
+    const { data, error } = await (supabase.rpc as any)('reenviar_solicitud_empresa', {
+      p_empresa_id: empresaId,
+      p_datos: datos,
     });
 
-    // 3. Notificar al postulante
-    if (post?.postulante_id) {
-      const ofertaObj = post.oferta as any;
-      const empresaNombre = ofertaObj?.empresa?.nombre_fantasia || ofertaObj?.empresa?.razon_social || 'La empresa';
-      const ofertaTitulo = ofertaObj?.titulo || 'la búsqueda';
+    if (error) {
+      // Fallback directo si la función RPC aún no fue migrada en el backend remoto
+      const { error: updErr } = await supabase
+        .from('empresas')
+        .update({
+          ...datos,
+          estado: 'pendiente',
+          verificada: false,
+          motivo_rechazo: null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', empresaId);
 
-      await supabase.from('notificaciones').insert({
-        user_id: post.postulante_id,
-        titulo: 'Entrevista de trabajo agendada',
-        mensaje: `${empresaNombre} coordinó una entrevista para ${ofertaTitulo} el día ${params.fecha} a las ${params.hora} hs (${params.modalidad}). Lugar/Contacto: ${params.lugar}`,
-        tipo: 'entrevista',
-        link: '/postulante',
-        leida: false,
+      if (updErr) return { success: false, error: updErr.message };
+    } else if (data && !data.success) {
+      return { success: false, error: data.error };
+    }
+
+    // Notificar a la administración de Funes
+    try {
+      await notificarAdmins({
+        titulo: 'Solicitud de empresa reenviada',
+        mensaje: `La empresa ${datos.nombre_fantasia || 'registrada'} actualizó sus datos y reenvió la solicitud de habilitación para revisión.`,
+        tipo: 'empresa',
+        link: '/admin?tab=empresas',
+        metadata: { empresaId },
+        agrupadorKey: 'empresa_reenvio_' + empresaId,
       });
+    } catch (e) {
+      console.warn('No se pudo notificar a los administradores:', e);
     }
 
     return { success: true };
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : 'Error al agendar entrevista';
+    const msg = err instanceof Error ? err.message : 'Error al reenviar solicitud';
+    return { success: false, error: msg };
+  }
+}
+
+/**
+ * Reprogramar una entrevista existente con el postulante
+ */
+export async function reprogramarEntrevistaEmpresa(params: {
+  postulacionId: string;
+  fecha: string;
+  hora: string;
+  modalidad: 'presencial' | 'virtual' | 'telefonica';
+  lugar: string;
+  entrevistador?: string;
+  notas?: string;
+}): Promise<{ success: boolean; error?: string }> {
+  try {
+    return await reprogramarEntrevistaEmpresaAction(params);
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Error al reprogramar entrevista';
+    return { success: false, error: msg };
+  }
+}
+
+/**
+ * Cancelar una entrevista previamente coordinada
+ */
+export async function cancelarEntrevistaEmpresa(params: {
+  postulacionId: string;
+  motivo: string;
+}): Promise<{ success: boolean; error?: string }> {
+  try {
+    return await cancelarEntrevistaEmpresaAction(params);
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Error al cancelar entrevista';
     return { success: false, error: msg };
   }
 }

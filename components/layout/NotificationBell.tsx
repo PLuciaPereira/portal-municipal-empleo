@@ -233,12 +233,9 @@ export function NotificationBell() {
                         {n.link && (
                           <Link
                             href={n.link}
-                            onClick={(e) => {
+                            onClick={() => {
                               void handleMarcarLeida(n.id);
                               setIsOpen(false);
-                              if (n.link) {
-                                router.push(n.link);
-                              }
                             }}
                             className="inline-flex items-center gap-1 text-[11px] font-bold text-brand-800 hover:text-brand-950 hover:underline cursor-pointer"
                           >
