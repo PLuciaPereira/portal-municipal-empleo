@@ -238,18 +238,18 @@ export const CurriculumManager: React.FC<CurriculumManagerProps> = ({
   };
 
   return (
-    <section className="bg-white border border-[#E0E8E1] rounded-[24px] p-7 shadow-xs">
-      <div className="flex flex-wrap items-start justify-between gap-4">
+    <section className="space-y-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-zinc-200">
         <div className="flex-1 min-w-[280px]">
           <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-            <h2 className="text-2xl sm:text-[26px] font-extrabold tracking-tight text-zinc-900 font-display">
+            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-zinc-900 font-sans">
               Mis Currículums Vitae
             </h2>
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs sm:text-[13px] font-bold bg-[#E4F1E8] text-[#0A3D2A]">
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#E4F1E8] text-[#0A3D2A]">
               {activeCount} / {MAX_ACTIVE_CVS} activos
             </span>
           </div>
-          <p className="mt-1.5 text-sm sm:text-[15px] text-[#4B6256]">
+          <p className="mt-1 text-xs sm:text-sm text-[#4B6256]">
             Podés almacenar hasta {MAX_ACTIVE_CVS} versiones de tu CV orientadas a distintos rubros o puestos y elegir cuál adjuntar al postularte.
           </p>
         </div>
@@ -258,9 +258,9 @@ export const CurriculumManager: React.FC<CurriculumManagerProps> = ({
           <button
             type="button"
             onClick={handleOpenUpload}
-            className="min-h-[48px] px-5 sm:px-6 rounded-full bg-[#06402B] text-white font-bold text-sm sm:text-[15px] inline-flex items-center gap-2 hover:bg-[#08301F] transition-colors cursor-pointer shrink-0"
+            className="h-9 px-4 sm:px-4.5 rounded-xl bg-[#06402B] text-white font-bold text-xs inline-flex items-center gap-2 hover:bg-[#08301F] transition-colors cursor-pointer shrink-0 shadow-2xs"
           >
-            <Plus className="w-4 h-4 stroke-[2.4]" />
+            <Plus className="w-3.5 h-3.5 stroke-[2.4]" />
             Subir nuevo CV
           </button>
         )}
@@ -506,37 +506,37 @@ export const CurriculumManager: React.FC<CurriculumManagerProps> = ({
             return (
               <div
                 key={cv.id}
-                className="p-4 sm:p-5 rounded-[18px] bg-[#F1F8F3] border border-[#E0E8E1] flex flex-wrap items-center justify-between gap-3.5"
+                className="p-3.5 sm:p-4 rounded-xl bg-white border border-zinc-200/90 shadow-2xs flex flex-wrap items-center justify-between gap-3 hover:border-brand-300 transition-colors"
               >
-                <div className="flex items-center gap-3.5 min-w-0">
-                  <div className="w-12 h-12 rounded-[14px] bg-[#DDEFE3] text-[#0E4D36] flex items-center justify-center shrink-0">
-                    <FileText className="w-6 h-6" />
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-10 h-10 rounded-xl bg-brand-50 text-brand-800 flex items-center justify-center shrink-0">
+                    <FileText className="w-5 h-5" />
                   </div>
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                      <strong className="text-base sm:text-lg font-bold text-zinc-900 truncate font-display">
+                      <strong className="text-sm sm:text-base font-bold text-zinc-900 truncate font-sans">
                         {cv.nombre_cv}
                       </strong>
                       {cv.es_principal && (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#FCEBC4] text-[#5C3D00] text-xs font-bold">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold">
                           <Star className="w-3 h-3 fill-current" />
                           Principal
                         </span>
                       )}
                     </div>
-                    <div className="text-xs sm:text-sm text-[#4B6256] mt-0.5">
+                    <div className="text-[11.5px] text-zinc-500 mt-0.5">
                       Última actualización: {formattedDate}
                     </div>
                   </div>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2 text-xs">
                   {!cv.es_principal && (
                     <button
                       type="button"
                       disabled={isBusy}
                       onClick={() => handleSetPrincipal(cv)}
-                      className="min-h-[44px] px-3.5 rounded-full border border-[#C7D6CB] bg-white text-[#10231B] font-semibold text-sm inline-flex items-center gap-1.5 hover:bg-zinc-50 cursor-pointer disabled:opacity-50"
+                      className="h-8 px-3 rounded-lg border border-zinc-200 bg-white text-zinc-700 font-semibold inline-flex items-center gap-1.5 hover:bg-zinc-50 cursor-pointer disabled:opacity-50"
                     >
                       <Star className="w-3.5 h-3.5" />
                       Hacer principal
@@ -547,7 +547,7 @@ export const CurriculumManager: React.FC<CurriculumManagerProps> = ({
                     type="button"
                     disabled={isBusy}
                     onClick={() => handlePreviewCv(cv)}
-                    className="min-h-[44px] px-4 rounded-full border border-[#C7D6CB] bg-white text-[#10231B] font-semibold text-sm inline-flex items-center gap-1.5 hover:bg-zinc-50 cursor-pointer disabled:opacity-50"
+                    className="h-8 px-3 rounded-lg border border-zinc-200 bg-white text-zinc-700 font-semibold inline-flex items-center gap-1.5 hover:bg-zinc-50 cursor-pointer disabled:opacity-50"
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
                     Ver archivo
@@ -557,7 +557,7 @@ export const CurriculumManager: React.FC<CurriculumManagerProps> = ({
                     type="button"
                     disabled={isBusy}
                     onClick={() => handleStartEdit(cv)}
-                    className="min-h-[44px] px-4 rounded-full border border-[#C7D6CB] bg-white text-[#10231B] font-semibold text-sm inline-flex items-center gap-1.5 hover:bg-zinc-50 cursor-pointer disabled:opacity-50"
+                    className="h-8 px-3 rounded-lg border border-zinc-200 bg-white text-zinc-700 font-semibold inline-flex items-center gap-1.5 hover:bg-zinc-50 cursor-pointer disabled:opacity-50"
                   >
                     <RefreshCw className="w-3.5 h-3.5" />
                     Actualizar
@@ -567,7 +567,7 @@ export const CurriculumManager: React.FC<CurriculumManagerProps> = ({
                     type="button"
                     disabled={isBusy}
                     onClick={() => setCvToArchive(cv)}
-                    className="min-h-[44px] px-3.5 rounded-full text-[#A3193B] font-bold text-sm inline-flex items-center gap-1.5 hover:bg-rose-50 cursor-pointer disabled:opacity-50"
+                    className="h-8 px-2.5 rounded-lg text-rose-700 font-semibold inline-flex items-center gap-1.5 hover:bg-rose-50 cursor-pointer disabled:opacity-50"
                   >
                     <Archive className="w-3.5 h-3.5" />
                     Eliminar

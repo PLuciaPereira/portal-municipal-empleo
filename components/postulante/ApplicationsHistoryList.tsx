@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import {
   PostulacionConDetalle,
@@ -26,6 +26,9 @@ import {
   AlertTriangle,
   X,
   Check,
+  ArrowUpDown,
+  Search,
+  ShieldCheck,
 } from 'lucide-react';
 
 export interface ApplicationsHistoryListProps {
@@ -48,9 +51,29 @@ export const ApplicationsHistoryList: React.FC<ApplicationsHistoryListProps> = (
     text: string;
   } | null>(null);
 
+  const [sortOrder, setSortOrder] = useState<'recientes' | 'antiguas'>('recientes');
+  const [searchTerm, setSearchTerm] = useState('');
+
   const activeCount = applications.filter(
     (app) => app.estado !== 'retirado_por_postulante'
   ).length;
+
+  const sortedApplications = useMemo(() => {
+    return [...applications]
+      .filter((app) => {
+        if (!searchTerm.trim()) return true;
+        const q = searchTerm.toLowerCase();
+        const titulo = app.oferta?.titulo?.toLowerCase() || '';
+        const empresa = (app.oferta?.empresa?.nombre_fantasia || app.oferta?.empresa?.razon_social || '').toLowerCase();
+        const rubro = app.oferta?.rubro?.nombre?.toLowerCase() || '';
+        return titulo.includes(q) || empresa.includes(q) || rubro.includes(q);
+      })
+      .sort((a, b) => {
+        const timeA = new Date(a.created_at).getTime() || 0;
+        const timeB = new Date(b.created_at).getTime() || 0;
+        return sortOrder === 'recientes' ? timeB - timeA : timeA - timeB;
+      });
+  }, [applications, sortOrder, searchTerm]);
 
   const handleOpenCvSnapshot = async (app: PostulacionConDetalle) => {
     const fileUrl = app.cv_url_snapshot || app.cv?.archivo_url;
@@ -93,18 +116,79 @@ export const ApplicationsHistoryList: React.FC<ApplicationsHistoryListProps> = (
   };
 
   return (
-    <section className="bg-white border border-[#E0E8E1] rounded-[24px] p-7 shadow-xs">
-      <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-        <h2 className="text-2xl sm:text-[26px] font-extrabold tracking-tight text-zinc-900 font-display">
-          Mis Postulaciones e Historial de Seguimiento
-        </h2>
-        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs sm:text-[13px] font-bold bg-[#E4F1E8] text-[#0A3D2A]">
-          {activeCount} {activeCount === 1 ? 'activa' : 'activas'}
+    <section className="space-y-4">
+      {/* 1. Encabezado de la Sección con Buscador y Orden Integrados al Lienzo */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-zinc-200">
+        <div>
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-zinc-900 font-sans">
+              Mis Postulaciones e Historial de Seguimiento
+            </h2>
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#E4F1E8] text-[#0A3D2A]">
+              {activeCount} {activeCount === 1 ? 'activa' : 'activas'}
+            </span>
+          </div>
+          <p className="mt-1 text-xs sm:text-sm text-[#5A7064]">
+            Consultá el estado de intermediación municipal de cada postulación y su trazabilidad cronológica.
+          </p>
+        </div>
+
+        {applications.length > 0 && (
+          <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
+            {applications.length > 2 && (
+              <div className="relative">
+                <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder="Buscar por puesto o empresa..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="text-xs pl-8 pr-7 py-1.5 rounded-xl border border-zinc-200 bg-white w-48 sm:w-56 focus:outline-brand-800 shadow-2xs"
+                />
+                {searchTerm && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchTerm('')}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 p-0.5 cursor-pointer"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
+            )}
+
+            <div className="flex items-center gap-1.5 bg-white px-2.5 h-8.5 rounded-xl border border-zinc-200 text-xs shrink-0 shadow-2xs">
+              <ArrowUpDown className="w-3.5 h-3.5 text-zinc-500" />
+              <span className="text-zinc-500 font-medium hidden sm:inline">Orden:</span>
+              <select
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value as 'recientes' | 'antiguas')}
+                aria-label="Ordenar postulaciones por fecha"
+                className="bg-transparent text-zinc-800 font-semibold focus:outline-none cursor-pointer text-xs"
+              >
+                <option value="recientes">Más recientes</option>
+                <option value="antiguas">Más antiguas</option>
+              </select>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* 2. Tira Informativa Compacta de Intermediación Municipal (No invasiva) */}
+      <div className="px-3.5 py-2 rounded-xl bg-blue-50/70 border border-blue-200/80 flex items-center justify-between gap-3 text-xs text-blue-950 shadow-2xs">
+        <div className="flex items-center gap-2">
+          <ShieldCheck className="w-4 h-4 text-blue-700 shrink-0" />
+          <div className="leading-snug">
+            <span className="font-bold text-blue-900">Intermediación Municipal de Funes:</span>
+            <span className="text-blue-800/90 ml-1.5 hidden sm:inline">
+              Cada postulación es analizada técnicamente antes de su derivación a la empresa solicitante.
+            </span>
+          </div>
+        </div>
+        <span className="text-[11px] font-semibold text-blue-800/80 bg-white/60 px-2 py-0.5 rounded-md border border-blue-200/60 shrink-0">
+          Oficina de Empleo
         </span>
       </div>
-      <p className="mt-1 text-xs sm:text-[13px] text-[#5A7064]">
-        Consultá el estado de intermediación municipal de cada postulación y su trazabilidad cronológica.
-      </p>
 
       {feedback && (
         <div
@@ -151,9 +235,16 @@ export const ApplicationsHistoryList: React.FC<ApplicationsHistoryListProps> = (
             }}
           />
         </div>
+      ) : sortedApplications.length === 0 ? (
+        <div className="mt-6 p-8 text-center bg-zinc-50 rounded-2xl border border-dashed border-zinc-200">
+          <BriefcaseIcon className="w-8 h-8 text-zinc-400 mx-auto mb-2" />
+          <p className="text-sm font-semibold text-zinc-700">
+            No se encontraron postulaciones para el criterio de búsqueda ingresado.
+          </p>
+        </div>
       ) : (
         <div className="mt-5 space-y-4 sm:space-y-5">
-          {applications.map((app) => {
+          {sortedApplications.map((app) => {
             const oferta = app.oferta;
             const empresaNombre =
               oferta?.empresa?.nombre_fantasia ||
@@ -226,19 +317,22 @@ export const ApplicationsHistoryList: React.FC<ApplicationsHistoryListProps> = (
             return (
               <article
                 key={app.id}
-                className={`border border-[#E0E8E1] rounded-[20px] p-5 sm:p-6 transition-all ${
+                className={`border border-zinc-200/90 rounded-xl p-4 sm:p-4.5 shadow-2xs transition-all hover:border-brand-300 ${
                   isRetirado ? 'bg-zinc-50/70 opacity-80' : 'bg-white'
                 }`}
               >
-                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-3 border-b border-zinc-100">
                   <div className="min-w-0 flex-1">
-                    {oferta?.rubro?.nombre && (
-                      <span className="inline-block px-2.5 py-1 rounded-[8px] bg-[#F1F5F1] text-[#33493D] text-xs font-bold mb-2">
-                        {oferta.rubro.nombre}
-                      </span>
-                    )}
+                    <div className="flex items-center gap-2 mb-1">
+                      {oferta?.rubro?.nombre && (
+                        <span className="inline-block px-2 py-0.5 rounded-md bg-zinc-100 text-zinc-700 text-[11px] font-bold">
+                          {oferta.rubro.nombre}
+                        </span>
+                      )}
+                      <span className="text-xs text-zinc-400">• Postulado el {formattedCreated}</span>
+                    </div>
 
-                    <h3 className="text-xl sm:text-[22px] font-bold text-zinc-900 leading-snug">
+                    <h3 className="text-base sm:text-lg font-bold text-zinc-900 leading-snug">
                       {oferta ? (
                         <Link
                           href={`/ofertas/${app.oferta_id}`}
@@ -251,8 +345,8 @@ export const ApplicationsHistoryList: React.FC<ApplicationsHistoryListProps> = (
                       )}
                     </h3>
 
-                    <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-[#5A7064]">
-                      <span className="inline-flex items-center gap-1.5">
+                    <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-zinc-600">
+                      <span className="inline-flex items-center gap-1.5 font-semibold text-zinc-800">
                         <BuildingIcon className="w-3.5 h-3.5 text-zinc-400" />
                         {empresaNombre}
                       </span>
@@ -262,16 +356,12 @@ export const ApplicationsHistoryList: React.FC<ApplicationsHistoryListProps> = (
                           {oferta.ubicacion}
                         </span>
                       )}
-                      <span className="inline-flex items-center gap-1.5">
-                        <CalendarIcon className="w-3.5 h-3.5 text-zinc-400" />
-                        Postulado el {formattedCreated}
-                      </span>
                     </div>
                   </div>
 
-                  <div className="shrink-0">
+                  <div className="shrink-0 self-start sm:self-center">
                     <span
-                      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] sm:text-xs font-semibold ${badgeBg}`}
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${badgeBg}`}
                     >
                       {badgeIcon}
                       {badgeLabel}
@@ -279,24 +369,24 @@ export const ApplicationsHistoryList: React.FC<ApplicationsHistoryListProps> = (
                   </div>
                 </div>
 
-                {/* Línea de etapas visual (Stepper) */}
+                {/* Línea de etapas visual Compacta (Stepper) */}
                 <div
-                  className="grid grid-cols-4 gap-1 sm:gap-2 mt-5 sm:mt-6"
+                  className="grid grid-cols-4 gap-2 py-3 border-b border-zinc-100 text-xs"
                   role="list"
                   aria-label="Etapas de la postulación"
                 >
                   {/* Etapa 1: Postulado */}
                   <div role="listitem">
                     <div className="flex items-center">
-                      <span className="w-6 h-6 rounded-full bg-[#0E4D36] text-white flex items-center justify-center shrink-0">
-                        <Check className="w-3.5 h-3.5 stroke-[3]" />
+                      <span className="w-5 h-5 rounded-full bg-[#0E4D36] text-white flex items-center justify-center text-[10px] shrink-0 font-bold">
+                        <Check className="w-3 h-3 stroke-[3]" />
                       </span>
                       <span className="flex-1 h-0.5 bg-[#0E4D36]" />
                     </div>
-                    <div className="mt-2 text-xs sm:text-[13px] font-bold text-zinc-900">
+                    <div className="mt-1 text-[11.5px] font-bold text-zinc-900">
                       Postulado
                     </div>
-                    <div className="text-[11px] sm:text-xs text-[#5A7064]">
+                    <div className="text-[10px] text-zinc-400">
                       {formattedCreated}
                     </div>
                   </div>
@@ -304,21 +394,21 @@ export const ApplicationsHistoryList: React.FC<ApplicationsHistoryListProps> = (
                   {/* Etapa 2: Recibido */}
                   <div role="listitem">
                     <div className="flex items-center">
-                      <span className="w-6 h-6 rounded-full bg-[#0E4D36] text-white flex items-center justify-center shrink-0">
-                        <Check className="w-3.5 h-3.5 stroke-[3]" />
+                      <span className="w-5 h-5 rounded-full bg-[#0E4D36] text-white flex items-center justify-center text-[10px] shrink-0 font-bold">
+                        <Check className="w-3 h-3 stroke-[3]" />
                       </span>
                       <span
                         className={`flex-1 h-0.5 ${
                           isRechazadoEmpresa || isSeleccionado || app.estado === 'presentado_a_empresa'
                             ? 'bg-[#0E4D36]'
-                            : 'bg-[#D3DED5]'
+                            : 'bg-zinc-200'
                         }`}
                       />
                     </div>
-                    <div className="mt-2 text-xs sm:text-[13px] font-bold text-zinc-900">
+                    <div className="mt-1 text-[11.5px] font-bold text-zinc-900">
                       Recibido
                     </div>
-                    <div className="text-[11px] sm:text-xs text-[#5A7064]">
+                    <div className="text-[10px] text-zinc-400">
                       Oficina de Empleo
                     </div>
                   </div>
@@ -327,49 +417,49 @@ export const ApplicationsHistoryList: React.FC<ApplicationsHistoryListProps> = (
                   {isRechazadoEmpresa || isSeleccionado || app.estado === 'presentado_a_empresa' ? (
                     <div role="listitem">
                       <div className="flex items-center">
-                        <span className="w-6 h-6 rounded-full bg-[#0E4D36] text-white flex items-center justify-center shrink-0">
-                          <Check className="w-3.5 h-3.5 stroke-[3]" />
+                        <span className="w-5 h-5 rounded-full bg-[#0E4D36] text-white flex items-center justify-center text-[10px] shrink-0 font-bold">
+                          <Check className="w-3 h-3 stroke-[3]" />
                         </span>
                         <span
                           className={`flex-1 h-0.5 ${
-                            isRechazadoEmpresa || isSeleccionado ? 'bg-[#0E4D36]' : 'bg-[#D3DED5]'
+                            isRechazadoEmpresa || isSeleccionado ? 'bg-[#0E4D36]' : 'bg-zinc-200'
                           }`}
                         />
                       </div>
-                      <div className="mt-2 text-xs sm:text-[13px] font-bold text-zinc-900">
+                      <div className="mt-1 text-[11.5px] font-bold text-zinc-900">
                         Derivado
                       </div>
-                      <div className="text-[11px] sm:text-xs text-[#5A7064]">
+                      <div className="text-[10px] text-zinc-400">
                         A la empresa
                       </div>
                     </div>
                   ) : isNoDerivado ? (
                     <div role="listitem">
                       <div className="flex items-center">
-                        <span className="w-6 h-6 rounded-full bg-[#71717A] text-white flex items-center justify-center shrink-0">
-                          <X className="w-3.5 h-3.5 stroke-[2.4]" />
+                        <span className="w-5 h-5 rounded-full bg-[#71717A] text-white flex items-center justify-center text-[10px] shrink-0 font-bold">
+                          <X className="w-3 h-3 stroke-[2.4]" />
                         </span>
-                        <span className="flex-1 h-0.5 bg-[#D3DED5]" />
+                        <span className="flex-1 h-0.5 bg-zinc-200" />
                       </div>
-                      <div className="mt-2 text-xs sm:text-[13px] font-bold text-[#52525B]">
+                      <div className="mt-1 text-[11.5px] font-bold text-[#52525B]">
                         Revisión técnica
                       </div>
-                      <div className="text-[11px] sm:text-xs text-[#71717A]">
+                      <div className="text-[10px] text-[#71717A]">
                         No derivado
                       </div>
                     </div>
                   ) : (
                     <div role="listitem">
                       <div className="flex items-center">
-                        <span className="w-6 h-6 rounded-full bg-white border-2 border-[#E0A12B] flex items-center justify-center shrink-0">
-                          <span className="w-2 h-2 rounded-full bg-[#E0A12B]" />
+                        <span className="w-5 h-5 rounded-full bg-amber-50 border-2 border-[#E0A12B] text-amber-700 flex items-center justify-center text-[8px] shrink-0 font-bold">
+                          ●
                         </span>
-                        <span className="flex-1 h-0.5 bg-[#D3DED5]" />
+                        <span className="flex-1 h-0.5 bg-zinc-200" />
                       </div>
-                      <div className="mt-2 text-xs sm:text-[13px] font-bold text-zinc-900">
+                      <div className="mt-1 text-[11.5px] font-bold text-amber-800">
                         Revisión técnica
                       </div>
-                      <div className="text-[11px] sm:text-xs text-[#5A7064]">
+                      <div className="text-[10px] text-amber-600 font-medium">
                         En curso
                       </div>
                     </div>
@@ -379,59 +469,59 @@ export const ApplicationsHistoryList: React.FC<ApplicationsHistoryListProps> = (
                   {isRechazadoEmpresa ? (
                     <div role="listitem">
                       <div className="flex items-center">
-                        <span className="w-6 h-6 rounded-full bg-[#A3193B] text-white flex items-center justify-center shrink-0">
-                          <X className="w-3.5 h-3.5 stroke-[3]" />
+                        <span className="w-5 h-5 rounded-full bg-[#A3193B] text-white flex items-center justify-center text-[10px] shrink-0 font-bold">
+                          <X className="w-3 h-3 stroke-[3]" />
                         </span>
                       </div>
-                      <div className="mt-2 text-xs sm:text-[13px] font-bold text-[#A3193B]">
+                      <div className="mt-1 text-[11.5px] font-bold text-[#A3193B]">
                         Resultado
                       </div>
-                      <div className="text-[11px] sm:text-xs text-[#5A7064]">
+                      <div className="text-[10px] text-zinc-400">
                         No seleccionado
                       </div>
                     </div>
                   ) : isSeleccionado ? (
                     <div role="listitem">
                       <div className="flex items-center">
-                        <span className="w-6 h-6 rounded-full bg-[#0E4D36] text-white flex items-center justify-center shrink-0">
-                          <Check className="w-3.5 h-3.5 stroke-[3]" />
+                        <span className="w-5 h-5 rounded-full bg-[#0E4D36] text-white flex items-center justify-center text-[10px] shrink-0 font-bold">
+                          <Check className="w-3 h-3 stroke-[3]" />
                         </span>
                       </div>
-                      <div className="mt-2 text-xs sm:text-[13px] font-bold text-[#0E4D36]">
+                      <div className="mt-1 text-[11.5px] font-bold text-[#0E4D36]">
                         Resultado
                       </div>
-                      <div className="text-[11px] sm:text-xs text-[#5A7064]">
+                      <div className="text-[10px] text-zinc-400">
                         {app.estado === 'contratado' ? 'Contratado' : 'Seleccionado'}
                       </div>
                     </div>
                   ) : (
                     <div role="listitem">
                       <div className="flex items-center">
-                        <span className="w-6 h-6 rounded-full bg-white border-2 border-[#C3D1C7] shrink-0" />
+                        <span className="w-5 h-5 rounded-full bg-white border border-zinc-300 shrink-0" />
                       </div>
-                      <div className="mt-2 text-xs sm:text-[13px] font-semibold text-[#5A7064]">
+                      <div className="mt-1 text-[11.5px] font-semibold text-zinc-400">
                         {isNoDerivado ? 'Derivación' : 'Derivado'}
                       </div>
-                      <div className="text-[11px] sm:text-xs text-[#5A7064]">
+                      <div className="text-[10px] text-zinc-400">
                         {isNoDerivado ? 'Cancelada' : 'A la empresa'}
                       </div>
                     </div>
                   )}
                 </div>
 
-                {/* Caja de mensaje de estado actual */}
-                <div className="mt-4 p-3.5 sm:p-4 rounded-xl bg-[#F4F7F4] text-xs sm:text-sm text-[#33493D] border border-[#E0E8E1]/60">
+                {/* Caja de mensaje de estado actual compacta */}
+                <div className="mt-2.5 p-2.5 sm:p-3 rounded-lg bg-[#F4F7F4] text-xs text-[#33493D] border border-[#E0E8E1]/60">
                   {isNoDerivado ? (
-                    <div className="space-y-1.5">
+                    <div className="space-y-1">
                       <p className="font-semibold text-zinc-900">
                         La Oficina de Empleo no derivó esta postulación a la empresa.
                       </p>
                       {motivoNoDerivacion ? (
-                        <p className="text-zinc-700">
+                        <p className="text-zinc-700 text-[11.5px]">
                           <strong>Motivo informado:</strong> {motivoNoDerivacion}
                         </p>
                       ) : (
-                        <p className="text-zinc-500 italic text-xs">
+                        <p className="text-zinc-500 italic text-[11px]">
                           Motivo: Criterio de perfil o requisitos excluyentes de la vacante según evaluación técnica municipal.
                         </p>
                       )}
@@ -440,20 +530,20 @@ export const ApplicationsHistoryList: React.FC<ApplicationsHistoryListProps> = (
                     <div className="space-y-1">
                       <p>La empresa finalizó la revisión de candidatos derivados para esta búsqueda.</p>
                       {app.motivo_rechazo_empresa && (
-                        <p className="text-zinc-600 text-xs">
+                        <p className="text-zinc-600 text-[11.5px]">
                           <strong>Motivo de la empresa:</strong> {app.motivo_rechazo_empresa}
                         </p>
                       )}
                     </div>
                   ) : (
-                    <p>{getApplicationStatusConfig(app.estado).description}</p>
+                    <p className="text-[11.5px]">{getApplicationStatusConfig(app.estado).description}</p>
                   )}
                 </div>
 
-                {/* Pie: CV adjunto y acciones */}
-                <div className="mt-4 pt-4 border-t border-[#EEF2EE] flex flex-wrap items-center justify-between gap-3 text-sm">
-                  <div className="flex flex-wrap items-center gap-2 text-[#4B6256]">
-                    <FileText className="w-4 h-4 text-[#0E4D36]" />
+                {/* Pie Compacto: CV adjunto y acciones */}
+                <div className="mt-3 pt-2.5 border-t border-zinc-100 flex flex-wrap items-center justify-between gap-2.5 text-xs">
+                  <div className="flex flex-wrap items-center gap-1.5 text-zinc-600">
+                    <FileText className="w-3.5 h-3.5 text-[#0E4D36]" />
                     <span>CV presentado:</span>
                     <strong className="text-zinc-800">
                       {app.cv?.nombre_cv || (hasCvLink ? 'Copia histórica adjunta' : 'Perfil registrado')}
@@ -463,10 +553,10 @@ export const ApplicationsHistoryList: React.FC<ApplicationsHistoryListProps> = (
                         type="button"
                         onClick={() => handleOpenCvSnapshot(app)}
                         disabled={openingCvId === app.id}
-                        className="font-bold text-[#0E4D36] hover:text-[#08301F] inline-flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                        className="font-bold text-[#0E4D36] hover:text-[#08301F] inline-flex items-center gap-1 cursor-pointer disabled:opacity-50 text-[11px] ml-1"
                       >
-                        Ver copia enviada
-                        <ExternalLink className="w-3.5 h-3.5" />
+                        Ver copia
+                        <ExternalLink className="w-3 h-3" />
                       </button>
                     )}
                   </div>
@@ -475,24 +565,24 @@ export const ApplicationsHistoryList: React.FC<ApplicationsHistoryListProps> = (
                     <button
                       type="button"
                       onClick={() => setExpandedId(isExpanded ? null : app.id)}
-                      className="min-h-[44px] px-4 rounded-full border border-[#D3DED5] bg-white text-[#10231B] font-semibold text-sm inline-flex items-center gap-2 hover:bg-zinc-50 cursor-pointer"
+                      className="h-8 px-3 rounded-lg border border-zinc-200 bg-white text-zinc-700 font-semibold inline-flex items-center gap-1.5 hover:bg-zinc-50 cursor-pointer shadow-2xs"
                     >
-                      <History className="w-4 h-4" />
+                      <History className="w-3.5 h-3.5 text-zinc-400" />
                       Historial ({app.historial.length})
                       <ChevronDownIcon
-                        className={`w-3.5 h-3.5 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                        className={`w-3 h-3 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
                       />
                     </button>
 
                     {oferta && (
                       <Link
                         href={`/ofertas/${app.oferta_id}`}
-                        className="min-h-[44px] px-4 rounded-full border border-[#0E4D36] bg-white text-[#0E4D36] font-bold text-sm inline-flex items-center justify-center hover:bg-[#F1F8F3] transition-colors"
+                        className="h-8 px-3.5 rounded-lg border border-[#0E4D36] bg-white text-[#0E4D36] font-bold inline-flex items-center justify-center hover:bg-[#F1F8F3] transition-colors shadow-2xs"
                       >
                         {app.estado === 'retirado_por_postulante' &&
                         oferta.estado === 'publicada' &&
                         !oferta.deleted_at
-                          ? 'Ver oferta / Volver a postularme'
+                          ? 'Ver oferta / Re-postularme'
                           : 'Ver oferta'}
                       </Link>
                     )}
@@ -501,10 +591,10 @@ export const ApplicationsHistoryList: React.FC<ApplicationsHistoryListProps> = (
                       <button
                         type="button"
                         onClick={() => setAppToWithdraw(app)}
-                        className="min-h-[44px] px-3.5 rounded-full text-[#A3193B] font-bold text-sm inline-flex items-center gap-1.5 hover:bg-rose-50 cursor-pointer"
+                        className="h-8 px-2.5 rounded-lg text-[#A3193B] font-semibold inline-flex items-center gap-1 hover:bg-rose-50 cursor-pointer"
                       >
-                        <XCircle className="w-4 h-4" />
-                        Retirar postulación
+                        <XCircle className="w-3.5 h-3.5" />
+                        Retirar
                       </button>
                     )}
                   </div>

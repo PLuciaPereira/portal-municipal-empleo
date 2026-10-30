@@ -207,20 +207,20 @@ function EmpresaDashboardContent() {
   return (
     <div className="min-h-screen bg-page text-foreground flex flex-col font-sans">
       {/* 1. Banda Verde Superior Institucional Funes Compacta (~72px de alto en Desktop) */}
-      <section className="relative bg-gradient-to-r from-brand-950 via-brand-900 to-brand-800 text-white border-b border-brand-950/40 shadow-xs px-4 sm:px-6 lg:px-8 xl:px-10 py-3.5 flex items-center min-h-[72px]">
-        <div className="max-w-[1600px] mx-auto w-full flex flex-col md:flex-row md:items-center justify-between gap-3.5">
+      <section className="bg-gradient-to-r from-brand-950 via-brand-900 to-brand-800 text-white border-b border-brand-950/40 shadow-sm py-3 sm:py-3.5 min-h-[72px] flex items-center">
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 w-full flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
           {/* Lado Izquierdo: Avatar 44px + Info en 1-2 líneas compactas */}
-          <div className="flex items-center gap-3.5 min-w-0">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
             {/* Avatar Cuadrado 44px con botón de cámara integrado */}
             <div className="relative w-[44px] h-[44px] shrink-0 group">
               {displayEmpresa?.logo_url ? (
                 <img
                   src={displayEmpresa.logo_url}
                   alt={empresaNombre}
-                  className="w-[44px] h-[44px] rounded-xl object-contain bg-white p-1 border border-white/20 shadow-sm"
+                  className="w-[44px] h-[44px] rounded-xl object-contain bg-white p-1 border border-white/20 shadow-xs"
                 />
               ) : (
-                <div className="w-[44px] h-[44px] rounded-xl bg-white/10 border border-white/20 text-white flex items-center justify-center font-extrabold text-xl shrink-0 shadow-sm">
+                <div className="w-[44px] h-[44px] rounded-xl bg-white/10 border border-white/20 text-white flex items-center justify-center font-extrabold text-lg shrink-0 shadow-xs">
                   {initialLetter}
                 </div>
               )}
@@ -238,45 +238,45 @@ function EmpresaDashboardContent() {
               </label>
             </div>
 
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               {/* Chip pequeño (11.5px) */}
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5 mb-0.5">
                 {!isStateReady ? (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-white/10 border border-white/20 text-white/70 text-[11.5px] font-semibold leading-none animate-pulse">
+                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white/10 border border-white/15 text-white/70 text-[11.5px] font-semibold leading-none animate-pulse">
                     Comprobando estado...
                   </span>
                 ) : isAprobada ? (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-500/20 border border-emerald-400/30 text-emerald-200 text-[11.5px] font-semibold leading-none">
-                    <Check className="w-2.5 h-2.5 stroke-[3] text-emerald-300" />
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-500/20 border border-emerald-400/30 text-emerald-200 text-[11.5px] font-semibold leading-none">
+                    <Check className="w-3 h-3 stroke-[3] text-emerald-300" />
                     Empresa Habilitada por la Oficina de Empleo de Funes
                   </span>
                 ) : isRechazada ? (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-rose-500/25 border border-rose-400/40 text-rose-200 text-[11.5px] font-semibold leading-none">
-                    <XCircleIcon className="w-2.5 h-2.5 text-rose-300" />
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-500/25 border border-rose-400/40 text-rose-200 text-[11.5px] font-semibold leading-none">
+                    <XCircleIcon className="w-3 h-3 text-rose-300" />
                     Solicitud de Habilitación Observada
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-500/20 border border-amber-400/40 text-amber-200 text-[11.5px] font-semibold leading-none">
-                    <ClockIcon className="w-2.5 h-2.5 text-amber-300" />
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-500/20 border border-amber-400/40 text-amber-200 text-[11.5px] font-semibold leading-none">
+                    <ClockIcon className="w-3 h-3 text-amber-300" />
                     Pendiente de Aprobación Municipal
                   </span>
                 )}
               </div>
 
               {/* Nombre de empresa (22px bold en una línea) + descripción resumida integrada */}
-              <div className="flex flex-wrap items-baseline gap-2 mt-0.5 min-w-0">
-                <h1 className="text-[20px] sm:text-[22px] font-extrabold tracking-tight leading-none text-white truncate max-w-full">
+              <div className="flex items-baseline gap-2 truncate">
+                <h1 className="text-[20px] sm:text-[22px] font-bold tracking-tight leading-tight text-white font-sans truncate">
                   {empresaNombre}
                 </h1>
-                <span className="hidden sm:inline text-xs text-brand-100/75 font-normal truncate max-w-[580px]">
-                  &bull; Gestión de búsquedas laborales y seguimiento de candidatos derivados
+                <span className="hidden md:inline text-xs text-brand-100/80 truncate">
+                  • Gestión de búsquedas laborales y seguimiento de candidatos derivados.
                 </span>
               </div>
             </div>
           </div>
 
           {/* Lado Derecho: Botón de Acción Compacto (40px) */}
-          <div className="shrink-0 flex items-center gap-3 self-end md:self-center">
+          <div className="shrink-0 flex items-center gap-3 self-start sm:self-auto">
             {isAprobada ? (
               <Link
                 href="/empresa/ofertas/nueva"

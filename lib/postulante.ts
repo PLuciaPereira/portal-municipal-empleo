@@ -34,13 +34,13 @@ export interface PostulacionConDetalle extends Postulacion {
 }
 
 export interface UpdatePostulanteProfileInput {
-  nombre: string;
-  apellido: string;
-  dni: string;
-  telefono: string;
+  nombre?: string;
+  apellido?: string;
+  dni?: string;
+  telefono?: string;
   fecha_nacimiento?: string | null;
   direccion?: string | null;
-  localidad: string;
+  localidad?: string;
   nivel_educativo?: string | null;
   situacion_laboral_actual?: string | null;
   experiencia_resumen?: string | null;
@@ -202,82 +202,112 @@ export async function updatePostulanteProfile(
       };
     }
 
-    const cleanNombre = input.nombre.trim();
-    const cleanApellido = input.apellido.trim();
-    if (!cleanNombre || !cleanApellido) {
-      return {
-        success: false,
-        message: 'El nombre y el apellido son obligatorios.',
-      };
+    const updatePayload: Record<string, any> = {};
+
+    if (input.nombre !== undefined) {
+      const cleanNombre = input.nombre.trim();
+      if (!cleanNombre) {
+        return { success: false, message: 'El nombre es obligatorio.' };
+      }
+      updatePayload.nombre = cleanNombre;
     }
 
-    const cleanDni = input.dni.replace(/\D/g, '');
-    if (!cleanDni || cleanDni.length < 7 || cleanDni.length > 8) {
-      return {
-        success: false,
-        message: 'Ingresá un número de DNI válido (7 u 8 dígitos sin puntos).',
-      };
+    if (input.apellido !== undefined) {
+      const cleanApellido = input.apellido.trim();
+      if (!cleanApellido) {
+        return { success: false, message: 'El apellido es obligatorio.' };
+      }
+      updatePayload.apellido = cleanApellido;
     }
 
-    const cleanTelefono = input.telefono.trim();
-    const phoneDigits = cleanTelefono.replace(/\D/g, '');
-    if (!cleanTelefono || phoneDigits.length < 8) {
-      return {
-        success: false,
-        message: 'Ingresá un teléfono o WhatsApp válido (mínimo 8 dígitos).',
-      };
-    }
-
-    const cleanLocalidad = input.localidad.trim();
-    if (!cleanLocalidad) {
-      return {
-        success: false,
-        message: 'La localidad de residencia es obligatoria.',
-      };
-    }
-
-    const esResidenteFunes = cleanLocalidad.toLowerCase() === 'funes';
-
-    const cleanHabilidades = (input.habilidades || [])
-      .map((h) => h.trim())
-      .filter((h) => h.length > 0);
-
-    const { error: updateError } = await supabase
-      .from('perfil')
-      .update({
-        nombre: cleanNombre,
-        apellido: cleanApellido,
-        dni: cleanDni,
-        telefono: cleanTelefono,
-        fecha_nacimiento: input.fecha_nacimiento?.trim() || null,
-        direccion: input.direccion?.trim() || null,
-        localidad: cleanLocalidad,
-        es_residente_funes: esResidenteFunes,
-        nivel_educativo: input.nivel_educativo?.trim() || null,
-        situacion_laboral_actual: input.situacion_laboral_actual?.trim() || null,
-        experiencia_resumen: input.experiencia_resumen?.trim() || null,
-        habilidades: cleanHabilidades,
-        disponibilidad_horaria: input.disponibilidad_horaria?.trim() || null,
-        movilidad_propia: Boolean(input.movilidad_propia),
-      })
-      .eq('id', user.id);
-
-    if (updateError) {
-      const lowerMsg = updateError.message.toLowerCase();
-      if (
-        lowerMsg.includes('dni') ||
-        updateError.message.includes('idx_perfil_dni_numerico_unico') ||
-        updateError.message.includes('perfil_dni_key')
-      ) {
+    if (input.dni !== undefined) {
+      const cleanDni = input.dni.replace(/\D/g, '');
+      if (!cleanDni || cleanDni.length < 7 || cleanDni.length > 8) {
         return {
           success: false,
-          message: 'El DNI ingresado ya se encuentra registrado en otra cuenta del sistema.',
+          message: 'Ingresá un número de DNI válido (7 u 8 dígitos sin puntos).',
         };
       }
-      return {
-        success: false,
-        message: `No se pudo actualizar el perfil: ${updateError.message}`,
-      };
+      updatePayload.dni = cleanDni;
+    }
+
+    if (input.telefono !== undefined) {
+      const cleanTelefono = input.telefono.trim();
+      const phoneDigits = cleanTelefono.replace(/\D/g, '');
+      if (!cleanTelefono || phoneDigits.length < 8) {
+        return {
+          success: false,
+          message: 'Ingresá un teléfono o WhatsApp válido (mínimo 8 dígitos).',
+        };
+      }
+      updatePayload.telefono = cleanTelefono;
+    }
+
+    if (input.localidad !== undefined) {
+      const cleanLocalidad = input.localidad.trim();
+      if (!cleanLocalidad) {
+        return { success: false, message: 'La localidad de residencia es obligatoria.' };
+      }
+      updatePayload.localidad = cleanLocalidad;
+      updatePayload.es_residente_funes = cleanLocalidad.toLowerCase() === 'funes';
+    }
+
+    if (input.fecha_nacimiento !== undefined) {
+      updatePayload.fecha_nacimiento = input.fecha_nacimiento?.trim() || null;
+    }
+
+    if (input.direccion !== undefined) {
+      updatePayload.direccion = input.direccion?.trim() || null;
+    }
+
+    if (input.nivel_educativo !== undefined) {
+      updatePayload.nivel_educativo = input.nivel_educativo?.trim() || null;
+    }
+
+    if (input.situacion_laboral_actual !== undefined) {
+      updatePayload.situacion_laboral_actual = input.situacion_laboral_actual?.trim() || null;
+    }
+
+    if (input.experiencia_resumen !== undefined) {
+      updatePayload.experiencia_resumen = input.experiencia_resumen?.trim() || null;
+    }
+
+    if (input.habilidades !== undefined) {
+      updatePayload.habilidades = input.habilidades
+        .map((h) => h.trim())
+        .filter((h) => h.length > 0);
+    }
+
+    if (input.disponibilidad_horaria !== undefined) {
+      updatePayload.disponibilidad_horaria = input.disponibilidad_horaria?.trim() || null;
+    }
+
+    if (input.movilidad_propia !== undefined) {
+      updatePayload.movilidad_propia = Boolean(input.movilidad_propia);
+    }
+
+    if (Object.keys(updatePayload).length > 0) {
+      const { error: updateError } = await (supabase.from('perfil') as any)
+        .update(updatePayload)
+        .eq('id', user.id);
+
+      if (updateError) {
+        const lowerMsg = updateError.message.toLowerCase();
+        if (
+          lowerMsg.includes('dni') ||
+          updateError.message.includes('idx_perfil_dni_numerico_unico') ||
+          updateError.message.includes('perfil_dni_key')
+        ) {
+          return {
+            success: false,
+            message: 'El DNI ingresado ya se encuentra registrado en otra cuenta del sistema.',
+          };
+        }
+        return {
+          success: false,
+          message: `No se pudo actualizar el perfil: ${updateError.message}`,
+        };
+      }
     }
 
     // Sincronizar rubros de interés si se enviaron en el payload

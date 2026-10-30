@@ -167,117 +167,132 @@ function AdminDashboardContent() {
   return (
     <div className="min-h-screen bg-page text-foreground flex flex-col font-sans">
       {/* 1. Header Maestro Delgado: 72px de Alto con Indicadores Integrados */}
-      <section className="bg-gradient-to-r from-brand-950 via-brand-900 to-brand-800 text-white border-b border-brand-950/40 shadow-sm min-h-[72px] flex items-center">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 py-2.5 w-full">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+      <section className="bg-gradient-to-r from-brand-950 via-brand-900 to-brand-800 text-white border-b border-brand-950/40 shadow-sm py-3 sm:py-3.5 min-h-[72px] flex items-center">
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 w-full">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4">
             
-            {/* Lado Izquierdo: Chip y Título en 22px en 1 línea */}
-            <div className="flex flex-col justify-center shrink-0">
-              <div className="flex items-center gap-1.5 mb-0.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_#34d399]"></span>
-                <span className="text-[10px] font-semibold text-white/85 tracking-wider uppercase">
-                  Oficina de Empleo · Municipalidad de Funes
-                </span>
+            {/* Lado Izquierdo: Avatar 44px + Chip y Título en 22px */}
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              {/* Avatar cuadrado de 44 px institucional */}
+              <div className="w-[44px] h-[44px] rounded-xl bg-white/10 border border-white/20 text-white flex items-center justify-center shrink-0 shadow-xs p-1">
+                <Image
+                  src="/escudo-funes-blanco.png"
+                  alt="Municipalidad de Funes"
+                  width={28}
+                  height={28}
+                  className="w-7 h-7 object-contain opacity-95"
+                />
               </div>
-              <h1 className="text-[20px] sm:text-[22px] font-extrabold tracking-tight leading-none text-white font-sans whitespace-nowrap">
-                Panel de Gestión y Moderación Municipal
-              </h1>
+
+              <div className="min-w-0 flex-1">
+                {/* Chip identificador a 11.5 px */}
+                <div className="flex items-center gap-2 mb-0.5">
+                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white/10 border border-white/15 text-white/95 text-[11.5px] font-semibold backdrop-blur-xs leading-none">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_#34d399]"></span>
+                    Oficina de Empleo · Municipalidad de Funes
+                  </span>
+                </div>
+
+                {/* Título y descripción compacta */}
+                <div className="flex items-baseline gap-2 truncate">
+                  <h1 className="text-[20px] sm:text-[22px] font-bold tracking-tight leading-tight text-white font-sans truncate">
+                    Panel de Gestión y Moderación Municipal
+                  </h1>
+                  <span className="hidden xl:inline text-brand-100/80 text-xs truncate">
+                    • Intermediación laboral, moderación de vacantes y padrón general de Funes.
+                  </span>
+                </div>
+              </div>
             </div>
 
             {/* Lado Derecho: Indicadores discretos en fila + botón sincronizar de solo ícono */}
-            <div className="flex items-center gap-3 overflow-x-auto no-scrollbar py-1">
-              <div className="flex items-center bg-black/15 border border-white/10 rounded-xl px-2 py-1 shadow-2xs">
+            <div className="flex items-center gap-3 overflow-x-auto no-scrollbar py-0.5 shrink-0 self-start lg:self-auto">
+              <div className="flex items-center bg-black/15 border border-white/10 rounded-xl px-2 h-10 shadow-2xs">
                 
                 {/* 1. Ofertas por aprobar */}
                 <div
                   onClick={() => setActiveTab('ofertas')}
-                  className="flex flex-col justify-center px-3.5 cursor-pointer hover:opacity-90 transition-opacity relative border-r border-white/12"
+                  className="flex flex-col justify-center px-3 cursor-pointer hover:opacity-90 transition-opacity relative border-r border-white/12 h-full"
                   title="Ver ofertas pendientes de moderación"
                 >
                   <div className="flex items-baseline gap-1.5">
-                    <span className="text-[20px] font-extrabold text-white leading-none font-sans tabular-nums">
+                    <span className="text-[17px] sm:text-[18px] font-extrabold text-white leading-none font-sans tabular-nums">
                       {counts.ofertasPendientes}
                     </span>
                     <span className="text-[11px] font-medium text-emerald-200/90 whitespace-nowrap">
                       Ofertas por aprobar
                     </span>
                   </div>
-                  {counts.ofertasPendientes > 0 ? (
-                    <div className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-300 mt-0.5 h-3 leading-none">
+                  {counts.ofertasPendientes > 0 && (
+                    <div className="inline-flex items-center gap-1 text-[9.5px] font-bold text-amber-300 leading-none mt-0.5">
                       <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse shadow-[0_0_6px_#f59e0b]"></span>
-                      <span>Requiere acción</span>
+                      <span>Acción requerida</span>
                     </div>
-                  ) : (
-                    <div className="h-3 mt-0.5"></div>
                   )}
                 </div>
 
                 {/* 2. Empresas nuevas */}
                 <div
                   onClick={() => setActiveTab('empresas')}
-                  className="flex flex-col justify-center px-3.5 cursor-pointer hover:opacity-90 transition-opacity relative border-r border-white/12"
+                  className="flex flex-col justify-center px-3 cursor-pointer hover:opacity-90 transition-opacity relative border-r border-white/12 h-full"
                   title="Ver empresas pendientes de verificación"
                 >
                   <div className="flex items-baseline gap-1.5">
-                    <span className="text-[20px] font-extrabold text-white leading-none font-sans tabular-nums">
+                    <span className="text-[17px] sm:text-[18px] font-extrabold text-white leading-none font-sans tabular-nums">
                       {counts.empresasPendientes}
                     </span>
                     <span className="text-[11px] font-medium text-emerald-200/90 whitespace-nowrap">
                       Empresas nuevas
                     </span>
                   </div>
-                  {counts.empresasPendientes > 0 ? (
-                    <div className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-300 mt-0.5 h-3 leading-none">
+                  {counts.empresasPendientes > 0 && (
+                    <div className="inline-flex items-center gap-1 text-[9.5px] font-bold text-amber-300 leading-none mt-0.5">
                       <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse shadow-[0_0_6px_#f59e0b]"></span>
-                      <span>Requiere acción</span>
+                      <span>Acción requerida</span>
                     </div>
-                  ) : (
-                    <div className="h-3 mt-0.5"></div>
                   )}
                 </div>
 
                 {/* 3. Padrón de postulantes */}
                 <div
                   onClick={() => setActiveTab('postulantes')}
-                  className="flex flex-col justify-center px-3.5 cursor-pointer hover:opacity-90 transition-opacity relative border-r border-white/12"
+                  className="flex flex-col justify-center px-3 cursor-pointer hover:opacity-90 transition-opacity relative border-r border-white/12 h-full"
                   title="Ver padrón general de postulantes"
                 >
                   <div className="flex items-baseline gap-1.5">
-                    <span className="text-[20px] font-extrabold text-white leading-none font-sans tabular-nums">
+                    <span className="text-[17px] sm:text-[18px] font-extrabold text-white leading-none font-sans tabular-nums">
                       {counts.postulantesActivos}
                     </span>
                     <span className="text-[11px] font-medium text-emerald-200/90 whitespace-nowrap">
-                      Padrón de postulantes
+                      Postulantes
                     </span>
                   </div>
-                  <div className="h-3 mt-0.5"></div>
                 </div>
 
                 {/* 4. Intermediaciones activas */}
                 <div
                   onClick={() => setActiveTab('ofertas')}
-                  className="flex flex-col justify-center px-3.5 cursor-pointer hover:opacity-90 transition-opacity"
+                  className="flex flex-col justify-center px-3 cursor-pointer hover:opacity-90 transition-opacity h-full"
                   title="Candidatos en proceso de derivación o entrevista"
                 >
                   <div className="flex items-baseline gap-1.5">
-                    <span className="text-[20px] font-extrabold text-white leading-none font-sans tabular-nums">
+                    <span className="text-[17px] sm:text-[18px] font-extrabold text-white leading-none font-sans tabular-nums">
                       {counts.intermediacionesActivas}
                     </span>
                     <span className="text-[11px] font-medium text-emerald-200/90 whitespace-nowrap">
-                      Intermediaciones activas
+                      Intermediaciones
                     </span>
                   </div>
-                  <div className="h-3 mt-0.5"></div>
                 </div>
 
               </div>
 
-              {/* Botón Sincronizar solo con ícono */}
+              {/* Botón Sincronizar solo con ícono (40px) */}
               <button
                 type="button"
                 onClick={handleRefreshAll}
                 disabled={loadingEmpresas || loadingOfertas || loadingPostulantes || refreshingCounts}
-                className="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white flex items-center justify-center transition-all shadow-xs cursor-pointer disabled:opacity-50 shrink-0"
+                className="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white flex items-center justify-center transition-all shadow-xs cursor-pointer disabled:opacity-50 shrink-0"
                 title="Sincronizar Panel de Gestión"
                 aria-label="Sincronizar Panel de Gestión"
               >
