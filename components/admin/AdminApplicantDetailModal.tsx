@@ -1,17 +1,14 @@
 'use client';
 
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import {
   PostulanteAdminItem,
-  PostulanteHistorialAdminItem,
   getCurriculumSignedUrlAdmin,
-  getHistorialPostulanteAdmin,
 } from '@/lib/admin';
 import { Button } from '@/components/ui/Button';
 import { Perfil } from '@/types/database';
 import { Badge } from '@/components/ui/Badge';
-import { ApplicationStatusBadge } from '@/components/applications/ApplicationStatusBadge';
 import {
   X,
   MapPin,
@@ -20,46 +17,25 @@ import {
   FileText,
   Download,
   CheckCircle2,
-  Calendar,
   AlertCircle,
-  Clock,
-  Building2,
-  AlertTriangle,
 } from 'lucide-react';
 
 interface AdminApplicantDetailModalProps {
   postulante: (Partial<PostulanteAdminItem> & Pick<Perfil, 'id' | 'nombre'>) | null;
   isOpen: boolean;
   onClose: () => void;
+  onOpenHistory?: () => void;
 }
 
 export function AdminApplicantDetailModal({
   postulante,
   isOpen,
   onClose,
+  onOpenHistory,
 }: AdminApplicantDetailModalProps) {
   useBodyScrollLock(Boolean(isOpen));
   const [downloadingCvId, setDownloadingCvId] = useState<string | null>(null);
   const [cvError, setCvError] = useState<string | null>(null);
-
-  // Historial de postulaciones
-  const [historial, setHistorial] = useState<PostulanteHistorialAdminItem[]>([]);
-  const [loadingHistorial, setLoadingHistorial] = useState<boolean>(false);
-
-  const loadHistorial = useCallback(async (postulanteId: string) => {
-    setLoadingHistorial(true);
-    const res = await getHistorialPostulanteAdmin(postulanteId);
-    setHistorial(res.data || []);
-    setLoadingHistorial(false);
-  }, []);
-
-  useEffect(() => {
-    if (isOpen && postulante?.id) {
-      void loadHistorial(postulante.id);
-    } else {
-      setHistorial([]);
-    }
-  }, [isOpen, postulante?.id, loadHistorial]);
 
   if (!isOpen || !postulante) return null;
 
@@ -80,13 +56,6 @@ export function AdminApplicantDetailModal({
     }
   };
 
-  const totalPostulaciones = historial.length;
-  const rechazosEmpresa = historial.filter((h) => h.estado === 'rechazado_por_empresa').length;
-  const contrataciones = historial.filter((h) => h.estado === 'contratado').length;
-  const enDerivacion = historial.filter(
-    (h) => h.estado === 'presentado_a_empresa' || h.estado === 'preseleccionado' || h.estado === 'entrevista'
-  ).length;
-
   return (
     <div
       role="dialog"
@@ -98,24 +67,24 @@ export function AdminApplicantDetailModal({
         {/* Cabecera */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100 bg-zinc-50/70">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-brand-100 text-brand-900 flex items-center justify-center shrink-0 font-bold text-base">
+            <div className="w-12 h-12 rounded-2xl bg-brand-50 text-brand-900 border border-brand-200/50 flex items-center justify-center font-bold text-base shrink-0">
               {postulante.nombre.charAt(0)}
               {postulante.apellido ? postulante.apellido.charAt(0) : ''}
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 id="modal-postulante-title" className="text-base font-bold text-zinc-900 leading-tight">
+                <h2 id="modal-postulante-title" className="text-lg font-bold text-zinc-900 leading-tight">
                   {postulante.nombre} {postulante.apellido || ''}
                 </h2>
-                {postulante.localidad && (
-                  <Badge variant="zinc" className="text-[10px] py-0 px-1.5">
-                    {postulante.localidad}
+                {postulante.es_residente_funes && (
+                  <Badge variant="emerald" className="text-[10px]">
+                    Residente de Funes
                   </Badge>
                 )}
-                {rechazosEmpresa > 0 && (
-                  <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-rose-100 text-rose-900 border border-rose-200">
-                    {rechazosEmpresa} rechazo{rechazosEmpresa === 1 ? '' : 's'} empresa
-                  </span>
+                {postulante.registro_asistido && (
+                  <Badge variant="zinc" className="text-[10px]">
+                    Registro Asistido
+                  </Badge>
                 )}
               </div>
               <span className="text-xs text-zinc-500 font-medium">
@@ -143,160 +112,36 @@ export function AdminApplicantDetailModal({
             </div>
           )}
 
-          {/* ============================================================== */}
-          {/* SECCIÓN NUEVA: Historial y Métricas de Seguimiento             */}
-          {/* ============================================================== */}
-          <div className="p-5 rounded-2xl border border-brand-200/80 bg-brand-50/30 space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-              <div>
-                <h3 className="text-xs font-bold text-zinc-900 uppercase tracking-wider flex items-center gap-2">
-                  <Briefcase className="w-4 h-4 text-brand-800" />
-                  Seguimiento de Postulaciones y Derivaciones
-                </h3>
-                <p className="text-[11px] text-zinc-500">
-                  Historial de postulaciones del vecino, derivaciones a empresas y decisiones de intermediación.
-                </p>
-              </div>
-
-              {/* Badges de resumen rápido */}
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs px-2.5 py-1 rounded-lg bg-white border border-zinc-200 font-bold text-zinc-800 shadow-2xs">
-                  {totalPostulaciones} Postulaci{totalPostulaciones === 1 ? 'ón' : 'ones'}
-                </span>
-                <span className="text-xs px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200 font-bold text-emerald-900 shadow-2xs">
-                  {contrataciones} Contratado{contrataciones === 1 ? '' : 's'}
-                </span>
-                {rechazosEmpresa > 0 ? (
-                  <span className="text-xs px-2.5 py-1 rounded-lg bg-rose-100 border border-rose-200 font-extrabold text-rose-900 shadow-2xs">
-                    {rechazosEmpresa} Rechazo{rechazosEmpresa === 1 ? '' : 's'} por Empresa
-                  </span>
-                ) : (
-                  <span className="text-xs px-2.5 py-1 rounded-lg bg-white border border-zinc-200 text-zinc-500 font-medium shadow-2xs">
-                    0 rechazos
-                  </span>
-                )}
-              </div>
-            </div>
-
-            {/* Listado de postulaciones */}
-            {loadingHistorial ? (
-              <div className="p-6 text-center text-xs text-zinc-500 bg-white rounded-xl border border-zinc-200 space-y-2">
-                <Clock className="w-4 h-4 text-brand-800 animate-spin mx-auto" />
-                <p>Cargando historial de postulaciones...</p>
-              </div>
-            ) : historial.length === 0 ? (
-              <div className="p-6 text-center text-xs text-zinc-500 bg-white rounded-xl border border-zinc-200">
-                <p className="italic">El postulante aún no registra postulaciones en el sistema.</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {historial.map((item) => {
-                  const isRechazado = item.estado === 'rechazado_por_empresa';
-                  return (
-                    <div
-                      key={item.postulacion_id}
-                      className={`p-4 rounded-xl border transition-all ${
-                        isRechazado
-                          ? 'border-rose-200 bg-rose-50/40'
-                          : 'border-zinc-200 bg-white hover:border-zinc-300'
-                      }`}
-                    >
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-zinc-100">
-                        <div>
-                          <h4 className="text-xs font-bold text-zinc-900 leading-tight">
-                            {item.oferta_titulo}
-                          </h4>
-                          <span className="text-[11px] text-zinc-500 flex items-center gap-1 mt-0.5">
-                            <Building2 className="w-3 h-3 text-zinc-400" />
-                            <strong>{item.empresa_nombre}</strong>
-                            {item.empresa_localidad && ` · ${item.empresa_localidad}`}
-                          </span>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          <ApplicationStatusBadge status={item.estado} />
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-2 text-[11px] text-zinc-500">
-                        <span>
-                          Postulado:{' '}
-                          <strong className="text-zinc-700">
-                            {new Date(item.created_at).toLocaleDateString('es-AR')}
-                          </strong>
-                        </span>
-                        {item.fecha_derivacion && (
-                          <span>
-                            Derivado:{' '}
-                            <strong className="text-zinc-700">
-                              {new Date(item.fecha_derivacion).toLocaleDateString('es-AR')}
-                            </strong>
-                          </span>
-                        )}
-                        {item.fecha_entrevista && (
-                          <span className="text-indigo-800 font-semibold">
-                            Entrevista:{' '}
-                            {new Date(item.fecha_entrevista).toLocaleDateString('es-AR')}
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Motivo de rechazo de la empresa (Confidencial Oficina de Empleo) */}
-                      {isRechazado && item.motivo_rechazo_empresa && (
-                        <div className="mt-2.5 p-2.5 rounded-lg bg-white border border-rose-200 text-xs text-rose-900 flex items-start gap-2">
-                          <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
-                          <div>
-                            <span className="font-bold block text-[11px] uppercase tracking-wider text-rose-800">
-                              Motivo informado por la empresa (Confidencial Municipal):
-                            </span>
-                            <p className="mt-0.5 text-zinc-700 italic">
-                              &ldquo;{item.motivo_rechazo_empresa}&rdquo;
-                            </p>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* Datos Personales y de Contacto */}
+          {/* Datos Personales y Contacto */}
           <div className="p-4 rounded-xl border border-zinc-200 bg-zinc-50/50 space-y-3">
-            <span className="text-xs font-bold text-zinc-900 uppercase tracking-wider block">
-              Datos Personales y Contacto
+            <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500 block">
+              Datos Personales y de Residencia
             </span>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
               <div className="space-y-0.5">
-                <span className="text-zinc-500 flex items-center gap-1">
-                  <Phone className="w-3.5 h-3.5 text-zinc-400" /> Teléfono:
+                <span className="text-zinc-400 block text-[11px] font-medium flex items-center gap-1">
+                  <MapPin className="w-3.5 h-3.5 text-zinc-400" />
+                  Localidad y Dirección:
                 </span>
-                {postulante.telefono ? (
-                  <a
-                    href={`tel:${postulante.telefono}`}
-                    className="font-semibold text-brand-800 hover:underline block truncate"
-                  >
-                    {postulante.telefono}
-                  </a>
-                ) : (
-                  <span className="text-zinc-400">Sin teléfono</span>
-                )}
-              </div>
-
-              <div className="space-y-0.5">
-                <span className="text-zinc-500 flex items-center gap-1">
-                  <MapPin className="w-3.5 h-3.5 text-zinc-400" /> Domicilio y Localidad:
-                </span>
-                <span className="font-semibold text-zinc-800 block truncate">
-                  {postulante.direccion ? `${postulante.direccion}, ` : ''}
+                <span className="font-semibold text-zinc-800 block">
                   {postulante.localidad || 'Funes'}
+                  {postulante.direccion && ` · ${postulante.direccion}`}
                 </span>
               </div>
 
               <div className="space-y-0.5">
-                <span className="text-zinc-500 flex items-center gap-1">
-                  <Calendar className="w-3.5 h-3.5 text-zinc-400" /> Nacimiento:
+                <span className="text-zinc-400 block text-[11px] font-medium flex items-center gap-1">
+                  <Phone className="w-3.5 h-3.5 text-zinc-400" />
+                  Teléfono de Contacto:
+                </span>
+                <span className="font-semibold text-zinc-800 block">
+                  {postulante.telefono || 'Sin teléfono informado'}
+                </span>
+              </div>
+
+              <div className="space-y-0.5">
+                <span className="text-zinc-400 block text-[11px] font-medium">
+                  Fecha de Nacimiento:
                 </span>
                 <span className="font-semibold text-zinc-800 block">
                   {postulante.fecha_nacimiento
@@ -433,8 +278,23 @@ export function AdminApplicantDetailModal({
         </div>
 
         {/* Pie de Acciones */}
-        <div className="px-6 py-4 bg-zinc-50/80 border-t border-zinc-100 flex items-center justify-end">
-          <Button variant="primary" size="sm" onClick={onClose} className="bg-brand-800 hover:bg-brand-900">
+        <div className="px-6 py-4 bg-zinc-50/80 border-t border-zinc-100 flex items-center justify-between">
+          <div>
+            {onOpenHistory && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  onClose();
+                  onOpenHistory();
+                }}
+                className="text-xs text-brand-900 hover:bg-brand-50 border-brand-200"
+              >
+                Ver Historial de Postulaciones
+              </Button>
+            )}
+          </div>
+          <Button variant="primary" size="sm" onClick={onClose} className="bg-brand-800 hover:bg-brand-900 text-xs">
             Cerrar Legajo
           </Button>
         </div>

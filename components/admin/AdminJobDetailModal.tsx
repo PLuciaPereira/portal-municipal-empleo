@@ -87,17 +87,7 @@ if (!isOpen || !oferta) return null;
 
         {/* Contenido scrolleable */}
         <div className="p-6 space-y-6 max-h-[calc(85vh-130px)] overflow-y-auto">
-          {/* Banner de Prioridad Funes (Requerimiento legal) */}
-          <div className="p-3.5 rounded-xl border border-brand-200 bg-brand-50/60 flex items-start gap-3 text-xs text-brand-950">
-            <Info className="w-4 h-4 text-brand-800 shrink-0 mt-0.5" />
-            <div className="space-y-0.5">
-              <strong className="font-bold block">Aviso Institucional de Selección:</strong>
-              <p className="text-zinc-700">
-                Esta oferta informa formalmente que los postulantes residentes de la ciudad de Funes
-                tendrán prioridad en el proceso de intermediación cuando cumplan con los requisitos del puesto.
-              </p>
-            </div>
-          </div>
+
 
           {/* Estado de Moderación y Auditoría */}
           <div className="p-4 rounded-xl border border-zinc-200 bg-zinc-50/50 flex flex-wrap items-center justify-between gap-4">

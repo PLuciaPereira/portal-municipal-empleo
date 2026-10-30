@@ -296,6 +296,7 @@ export async function getOfertasAdmin(
         empresa:empresas!ofertas_empresa_id_fkey (${empresaFields}),
         rubro:rubros!jobs_rubro_id_fkey (*)
       `)
+      .neq('estado', 'borrador')
       .order('created_at', { ascending: false });
 
     const filtro = params?.filtro || 'todas';
@@ -352,7 +353,14 @@ export async function getOfertasAdmin(
       };
     });
 
-    return { data: formattedData, error: null };
+    const filteredByEmpresa = formattedData.filter((of) => {
+      if (of.estado === 'borrador') return false;
+      const empEstado = (of.empresa as any)?.estado;
+      if (empEstado === 'rechazada') return false;
+      return true;
+    });
+
+    return { data: filteredByEmpresa, error: null };
   } catch (err: unknown) {
     console.error('Error inesperado en getOfertasAdmin:', err);
     return {
@@ -1732,6 +1740,127 @@ export async function getHistorialPostulanteAdmin(
     return {
       data: [],
       error: err instanceof Error ? err.message : 'Error al obtener el historial.',
+    };
+  }
+}
+
+
+export interface UpdateEmpresaAdminInput {
+  id: string;
+  cuit: string;
+  razon_social: string;
+  nombre_fantasia: string;
+  persona_contacto: string;
+  telefono: string;
+  email_contacto: string;
+  direccion?: string;
+  localidad?: string;
+  rubro?: string | null;
+  sitio_web?: string | null;
+  descripcion?: string | null;
+}
+
+/**
+ * Actualiza la información fiscal y comercial de una empresa desde el panel administrativo.
+ * Permite modificar campos bloqueados para la propia empresa (CUIT, Razón Social)
+ * con validación de formato y unicidad de CUIT.
+ */
+export async function updateEmpresaAdmin(
+  input: UpdateEmpresaAdminInput
+): Promise<{ success: boolean; data?: Empresa; error?: string }> {
+  try {
+    const supabase = createClient();
+
+    // 1. Sanitizaciones básicas
+    const cleanCuit = input.cuit.trim().replace(/[-\s]/g, '');
+    const cleanRazonSocial = input.razon_social.trim();
+    const cleanNombreFantasia = input.nombre_fantasia.trim();
+    const cleanPersonaContacto = input.persona_contacto.trim();
+    const cleanTelefono = input.telefono.trim();
+    const cleanEmail = input.email_contacto.trim().toLowerCase();
+
+    if (!cleanCuit || !/^\d{11}$/.test(cleanCuit)) {
+      return {
+        success: false,
+        error: 'El CUIT debe contener exactamente 11 dígitos numéricos.',
+      };
+    }
+
+    if (!cleanRazonSocial) {
+      return { success: false, error: 'La Razón Social es obligatoria.' };
+    }
+
+    if (!cleanNombreFantasia) {
+      return { success: false, error: 'El Nombre de Fantasía o Comercial es obligatorio.' };
+    }
+
+    if (!cleanPersonaContacto) {
+      return { success: false, error: 'La persona de contacto es obligatoria.' };
+    }
+
+    if (!cleanTelefono) {
+      return { success: false, error: 'El teléfono de contacto es obligatorio.' };
+    }
+
+    if (!cleanEmail || !cleanEmail.includes('@')) {
+      return { success: false, error: 'Debe ingresar un correo electrónico de contacto válido.' };
+    }
+
+    // 2. Validar que el CUIT no pertenezca a otra empresa distinta
+    const { data: existingCuit, error: checkError } = await supabase
+      .from('empresas')
+      .select('id, cuit, razon_social')
+      .eq('cuit', cleanCuit)
+      .neq('id', input.id)
+      .maybeSingle();
+
+    if (checkError) {
+      console.error('Error al verificar unicidad de CUIT:', checkError);
+    } else if (existingCuit) {
+      return {
+        success: false,
+        error: `El CUIT ${cleanCuit} ya se encuentra registrado por la empresa "${existingCuit.razon_social}".`,
+      };
+    }
+
+    // 3. Ejecutar UPDATE sobre public.empresas
+    const { data: updated, error: updateError } = await supabase
+      .from('empresas')
+      .update({
+        cuit: cleanCuit,
+        razon_social: cleanRazonSocial,
+        nombre_fantasia: cleanNombreFantasia,
+        persona_contacto: cleanPersonaContacto,
+        telefono: cleanTelefono,
+        email_contacto: cleanEmail,
+        direccion: input.direccion?.trim() || 'Funes',
+        localidad: input.localidad?.trim() || 'Funes',
+        rubro: input.rubro?.trim() || null,
+        sitio_web: input.sitio_web?.trim() || null,
+        descripcion: input.descripcion?.trim() || null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', input.id)
+      .select()
+      .single();
+
+    if (updateError) {
+      console.error('Error al actualizar empresa desde admin:', updateError);
+      return {
+        success: false,
+        error: updateError.message || 'Error al actualizar los datos de la empresa.',
+      };
+    }
+
+    return {
+      success: true,
+      data: updated as Empresa,
+    };
+  } catch (err: unknown) {
+    console.error('Error inesperado en updateEmpresaAdmin:', err);
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : 'Error inesperado al guardar.',
     };
   }
 }
