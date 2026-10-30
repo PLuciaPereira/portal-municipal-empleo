@@ -1,3 +1,4 @@
+import { crearNotificacionDeduplicada, notificarAdmins, notificarPostulantesPorNuevaOferta } from '@/lib/notifications';
 import { createClient } from '@/lib/supabase/client';
 import {
   Empresa,
@@ -34,6 +35,29 @@ export interface GetPostulantesAdminParams {
 
 export type PostulanteAdminItem = Perfil & {
   curriculums?: Curriculum[];
+  total_postulaciones?: number;
+  total_rechazos?: number;
+};
+
+export type PostulanteHistorialAdminItem = {
+  postulacion_id: string;
+  oferta_id: string;
+  oferta_titulo: string;
+  empresa_id: string;
+  empresa_nombre: string;
+  empresa_localidad?: string | null;
+  estado: ApplicationStatus;
+  mensaje_postulante?: string | null;
+  notas_oficina_empleo?: string | null;
+  fecha_derivacion?: string | null;
+  fecha_entrevista?: string | null;
+  modalidad_entrevista?: string | null;
+  lugar_entrevista?: string | null;
+  motivo_rechazo_empresa?: string | null;
+  fecha_rechazo_empresa?: string | null;
+  fecha_respuesta_empresa?: string | null;
+  created_at: string;
+  updated_at: string;
 };
 
 export type PostulacionAdminItem = {
@@ -158,6 +182,23 @@ export async function aprobarEmpresa(
       return { success: false, error: error.message };
     }
 
+        // Notificar a la empresa
+    try {
+      const { data: emp } = await supabase.from('empresas').select('user_id').eq('id', empresaId).single();
+      if (emp?.user_id) {
+        await crearNotificacionDeduplicada({
+          userId: emp.user_id,
+          titulo: 'Empresa aprobada y verificada',
+          mensaje: 'Tu empresa ha sido verificada y aprobada por la Oficina de Empleo. Ya podés publicar búsquedas laborales.',
+          tipo: 'empresa',
+          link: '/empresa',
+          agrupadorKey: 'empresa_aprobada_' + empresaId,
+        });
+      }
+    } catch (e) {
+      console.warn('Aviso: no se pudo emitir notificación de empresa aprobada:', e);
+    }
+
     return { success: true, error: null };
   } catch (err: unknown) {
     console.error('Error inesperado en aprobarEmpresa:', err);
@@ -205,6 +246,24 @@ export async function rechazarEmpresa(
     if (error) {
       console.error('Error al rechazar empresa:', error);
       return { success: false, error: error.message };
+    }
+
+        // Notificar a la empresa con motivo
+    try {
+      const { data: emp } = await supabase.from('empresas').select('user_id').eq('id', empresaId).single();
+      if (emp?.user_id) {
+        await crearNotificacionDeduplicada({
+          userId: emp.user_id,
+          titulo: 'Solicitud de empresa observada / rechazada',
+          mensaje: 'La Oficina de Empleo revisó tu solicitud y requiere atención: ' + motivo.trim(),
+          tipo: 'alerta',
+          link: '/empresa',
+          metadata: { motivo: motivo.trim() },
+          agrupadorKey: 'empresa_rechazada_' + empresaId,
+        });
+      }
+    } catch (e) {
+      console.warn('Aviso: no se pudo emitir notificación de empresa rechazada:', e);
     }
 
     return { success: true, error: null };
@@ -336,6 +395,32 @@ export async function aprobarOfertaAdmin(
       return { success: false, error: error.message };
     }
 
+        // Notificar a la empresa y a postulantes
+    try {
+      const { data: ofData } = await supabase
+        .from('ofertas')
+        .select('titulo, empresa:empresas(user_id)')
+        .eq('id', ofertaId)
+        .single();
+
+      const empresaUserId = (ofData?.empresa as any)?.user_id;
+      if (empresaUserId) {
+        await crearNotificacionDeduplicada({
+          userId: empresaUserId,
+          titulo: 'Tu oferta laboral ha sido publicada',
+          mensaje: 'Tu búsqueda "' + (ofData?.titulo || '') + '" fue aprobada y ya se encuentra visible públicamente.',
+          tipo: 'postulacion',
+          link: '/empresa',
+          agrupadorKey: 'oferta_aprobada_' + ofertaId,
+        });
+      }
+
+      // Notificar a postulantes con rubros coincidentes
+      void notificarPostulantesPorNuevaOferta(ofertaId);
+    } catch (e) {
+      console.warn('Aviso: no se pudo emitir notificación de oferta aprobada:', e);
+    }
+
     return { success: true, error: null };
   } catch (err: unknown) {
     console.error('Error inesperado en aprobarOfertaAdmin:', err);
@@ -384,6 +469,30 @@ export async function rechazarOfertaAdmin(
       return { success: false, error: error.message };
     }
 
+        // Notificar a la empresa con motivo
+    try {
+      const { data: ofData } = await supabase
+        .from('ofertas')
+        .select('titulo, empresa:empresas(user_id)')
+        .eq('id', ofertaId)
+        .single();
+
+      const empresaUserId = (ofData?.empresa as any)?.user_id;
+      if (empresaUserId) {
+        await crearNotificacionDeduplicada({
+          userId: empresaUserId,
+          titulo: 'Oferta laboral observada / rechazada',
+          mensaje: 'La búsqueda "' + (ofData?.titulo || '') + '" requiere correcciones antes de publicarse.',
+          tipo: 'alerta',
+          link: '/empresa',
+          metadata: { motivo: motivo.trim() },
+          agrupadorKey: 'oferta_rechazada_' + ofertaId,
+        });
+      }
+    } catch (e) {
+      console.warn('Aviso: no se pudo emitir notificación de oferta rechazada:', e);
+    }
+
     return { success: true, error: null };
   } catch (err: unknown) {
     console.error('Error inesperado en rechazarOfertaAdmin:', err);
@@ -420,6 +529,30 @@ export async function darDeBajaOfertaAdmin(
     if (error) {
       console.error('Error al dar de baja oferta:', error);
       return { success: false, error: error.message };
+    }
+
+        // Notificar a la empresa con motivo
+    try {
+      const { data: ofData } = await supabase
+        .from('ofertas')
+        .select('titulo, empresa:empresas(user_id)')
+        .eq('id', ofertaId)
+        .single();
+
+      const empresaUserId = (ofData?.empresa as any)?.user_id;
+      if (empresaUserId) {
+        await crearNotificacionDeduplicada({
+          userId: empresaUserId,
+          titulo: 'Oferta dada de baja por administración',
+          mensaje: 'Tu búsqueda "' + (ofData?.titulo || '') + '" fue dada de baja por la Oficina de Empleo.',
+          tipo: 'alerta',
+          link: '/empresa',
+          metadata: { motivo: motivo.trim() },
+          agrupadorKey: 'oferta_baja_admin_' + ofertaId,
+        });
+      }
+    } catch (e) {
+      console.warn('Aviso: no se pudo emitir notificación de baja de oferta:', e);
     }
 
     return { success: true, error: null };
@@ -511,15 +644,40 @@ export async function getPostulantesAdmin(
       return { data: null, error: error.message };
     }
 
-    const formatted = ((data || []) as unknown[]).map((raw) => {
+    // Consultar estadísticas de postulaciones y rechazos para cada postulante
+    let statsMap: Record<string, { total: number; rechazos: number }> = {};
+    try {
+      const { data: postStats } = await supabase
+        .from('postulaciones')
+        .select('postulante_id, estado');
+      if (postStats) {
+        statsMap = postStats.reduce((acc, curr) => {
+          const pid = curr.postulante_id;
+          if (!acc[pid]) acc[pid] = { total: 0, rechazos: 0 };
+          acc[pid].total += 1;
+          if (curr.estado === 'rechazado_por_empresa') {
+            acc[pid].rechazos += 1;
+          }
+          return acc;
+        }, {} as Record<string, { total: number; rechazos: number }>);
+      }
+    } catch (e) {
+      console.warn('Aviso al calcular conteo de postulaciones:', e);
+    }
+
+    const formatted: PostulanteAdminItem[] = ((data || []) as unknown[]).map((raw) => {
       const item = raw as Record<string, unknown>;
       const rawCvs = item.curriculums;
       const cvs = Array.isArray(rawCvs)
         ? (rawCvs as Curriculum[]).filter((c) => c.activo && !c.deleted_at)
         : [];
+      const pid = String(item.id);
+      const s = statsMap[pid] || { total: 0, rechazos: 0 };
       return {
         ...(item as unknown as Perfil),
         curriculums: cvs,
+        total_postulaciones: s.total,
+        total_rechazos: s.rechazos,
       };
     });
 
@@ -698,6 +856,61 @@ export async function cambiarEstadoPostulacionAdmin(
       });
     } catch (histErr) {
       console.warn('Aviso: no se pudo registrar fila en historial_postulacion:', histErr);
+    }
+
+        // Notificaciones según cambio de estado
+    try {
+      const { data: postInfo } = await supabase
+        .from('postulaciones')
+        .select('postulante_id, oferta:ofertas(id, titulo, empresa:empresas(user_id, nombre_fantasia, razon_social))')
+        .eq('id', postulacionId)
+        .single();
+
+      if (postInfo) {
+        const postulanteId = postInfo.postulante_id;
+        const ofertaTitulo = (postInfo.oferta as any)?.titulo || 'la oferta laboral';
+        const empresaUser = (postInfo.oferta as any)?.empresa?.user_id;
+        const empresaNombre = (postInfo.oferta as any)?.empresa?.nombre_fantasia || (postInfo.oferta as any)?.empresa?.razon_social || 'la empresa';
+
+        if (nuevoEstado === 'presentado_a_empresa') {
+          // A) Notificar al postulante sobre su derivación
+          await crearNotificacionDeduplicada({
+            userId: postulanteId,
+            titulo: 'Tu postulación fue derivada a la empresa',
+            mensaje: 'La Oficina de Empleo derivó tu perfil a ' + empresaNombre + ' para el puesto "' + ofertaTitulo + '".',
+            tipo: 'postulacion',
+            link: '/postulante?tab=postulaciones',
+            agrupadorKey: 'derivado_postulante_' + postulacionId,
+          });
+
+          // B) Notificar a la empresa sobre el nuevo candidato presentado
+          if (empresaUser) {
+            await crearNotificacionDeduplicada({
+              userId: empresaUser,
+              titulo: 'Nuevos candidatos derivados',
+              mensaje: 'La Oficina de Empleo presentó nuevos candidatos para tu búsqueda "' + ofertaTitulo + '".',
+              tipo: 'postulacion',
+              link: '/empresa?tab=candidatos',
+              agrupadorKey: 'candidatos_derivados_' + ((postInfo.oferta as any)?.id || '') + '_' + new Date().toISOString().split('T')[0],
+              diasVentana: 1,
+            });
+          }
+        } else if (nuevoEstado === 'no_seleccionado') {
+          // Notificar al postulante con observaciones si existen
+          const detalleObs = payload?.notasOficina ? ': ' + payload.notasOficina : '.';
+          await crearNotificacionDeduplicada({
+            userId: postulanteId,
+            titulo: 'Novedad sobre tu postulación',
+            mensaje: 'Para la búsqueda "' + ofertaTitulo + '" tu perfil no fue seleccionado en esta oportunidad' + detalleObs,
+            tipo: 'info',
+            link: '/postulante?tab=postulaciones',
+            metadata: payload?.notasOficina ? { motivo: payload.notasOficina } : undefined,
+            agrupadorKey: 'no_seleccionado_' + postulacionId,
+          });
+        }
+      }
+    } catch (e) {
+      console.warn('Aviso: no se pudo emitir notificación en cambiarEstadoPostulacionAdmin:', e);
     }
 
     return { success: true, error: null };
@@ -1026,6 +1239,21 @@ export async function asignarPostulanteACursoAdmin(params: {
       return { success: false, error: error.message };
     }
 
+        // Notificar al postulante sobre el curso asignado
+    try {
+      const { data: curso } = await supabase.from('cursos').select('titulo').eq('id', params.curso_id).single();
+      await crearNotificacionDeduplicada({
+        userId: params.postulante_id,
+        titulo: 'Nueva capacitación asignada',
+        mensaje: 'La Oficina de Empleo te asignó al curso: "' + (curso?.titulo || 'Capacitación Municipal') + '". Consultá fechas y detalles en tu panel.',
+        tipo: 'curso',
+        link: '/postulante?tab=cursos',
+        agrupadorKey: 'curso_asignado_' + params.curso_id + '_' + params.postulante_id,
+      });
+    } catch (e) {
+      console.warn('Aviso: no se pudo notificar asignación de curso:', e);
+    }
+
     return { success: true, asignacion: data as PostulanteCurso };
   } catch (err) {
     console.error('Error inesperado al derivar a curso:', err);
@@ -1063,6 +1291,30 @@ export async function actualizarEstadoAsignacionCursoAdmin(
     if (error) {
       console.error('Error al actualizar estado de asignación de curso:', error);
       return { success: false, error: error.message };
+    }
+
+        // Notificar al postulante sobre actualización de curso
+    try {
+      const { data: asig } = await supabase
+        .from('postulante_cursos')
+        .select('postulante_id, curso:cursos(titulo)')
+        .eq('id', asignacionId)
+        .single();
+
+      if (asig?.postulante_id) {
+        const nomCurso = (asig.curso as any)?.titulo || 'la capacitación';
+        const msgEstado = nuevoEstado === 'en_curso' ? 'ha comenzado' : nuevoEstado === 'completado' ? 'fue marcada como completada con éxito' : 'cambió de estado a ' + nuevoEstado;
+        await crearNotificacionDeduplicada({
+          userId: asig.postulante_id,
+          titulo: 'Actualización en tu curso municipal',
+          mensaje: 'Tu inscripción en "' + nomCurso + '" ' + msgEstado + '.',
+          tipo: 'curso',
+          link: '/postulante?tab=cursos',
+          agrupadorKey: 'curso_update_' + asignacionId + '_' + nuevoEstado,
+        });
+      }
+    } catch (e) {
+      console.warn('Aviso: no se pudo notificar actualización de curso:', e);
     }
 
     return { success: true };
@@ -1390,5 +1642,96 @@ export async function invitarPostulanteAOferta(params: {
   } catch (err) {
     console.error('Error en invitarPostulanteAOferta:', err);
     return { success: false, message: 'Error al enviar la sugerencia.' };
+  }
+}
+
+/**
+ * Obtener historial detallado de todas las postulaciones de un postulante (exclusivo Admin)
+ */
+export async function getHistorialPostulanteAdmin(
+  postulanteId: string
+): Promise<{ data: PostulanteHistorialAdminItem[]; error: string | null }> {
+  try {
+    const supabase = createClient();
+
+    // 1. Intentar RPC de la migración 015 si existe
+    const { data: rpcData, error: rpcError } = await (supabase.rpc as any)(
+      'obtener_historial_postulante_admin',
+      { p_postulante_id: postulanteId }
+    );
+
+    if (!rpcError && rpcData) {
+      return { data: (rpcData as unknown) as PostulanteHistorialAdminItem[], error: null };
+    }
+
+    // 2. Fallback estándar mediante SELECT con JOIN
+    const { data, error } = await supabase
+      .from('postulaciones')
+      .select(`
+        id,
+        oferta_id,
+        estado,
+        mensaje_postulante,
+        notas_oficina_empleo,
+        fecha_derivacion,
+        fecha_entrevista,
+        modalidad_entrevista,
+        lugar_entrevista,
+        motivo_rechazo_empresa,
+        fecha_rechazo_empresa,
+        fecha_respuesta_empresa,
+        created_at,
+        updated_at,
+        oferta:ofertas!postulaciones_oferta_id_fkey (
+          id,
+          titulo,
+          empresa:empresas!ofertas_empresa_id_fkey (
+            id,
+            nombre_fantasia,
+            razon_social,
+            localidad
+          )
+        )
+      `)
+      .eq('postulante_id', postulanteId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error al obtener historial de postulaciones del admin:', error);
+      return { data: [], error: error.message };
+    }
+
+    const formatted: PostulanteHistorialAdminItem[] = ((data || []) as any[]).map((p) => {
+      const ofr = Array.isArray(p.oferta) ? p.oferta[0] : p.oferta;
+      const emp = ofr?.empresa ? (Array.isArray(ofr.empresa) ? ofr.empresa[0] : ofr.empresa) : null;
+      return {
+        postulacion_id: p.id,
+        oferta_id: p.oferta_id,
+        oferta_titulo: ofr?.titulo || 'Oferta laboral',
+        empresa_id: emp?.id || '',
+        empresa_nombre: emp?.nombre_fantasia || emp?.razon_social || 'Empresa Empleadora',
+        empresa_localidad: emp?.localidad || null,
+        estado: p.estado,
+        mensaje_postulante: p.mensaje_postulante,
+        notas_oficina_empleo: p.notas_oficina_empleo,
+        fecha_derivacion: p.fecha_derivacion,
+        fecha_entrevista: p.fecha_entrevista,
+        modalidad_entrevista: p.modalidad_entrevista,
+        lugar_entrevista: p.lugar_entrevista,
+        motivo_rechazo_empresa: p.motivo_rechazo_empresa,
+        fecha_rechazo_empresa: p.fecha_rechazo_empresa,
+        fecha_respuesta_empresa: p.fecha_respuesta_empresa,
+        created_at: p.created_at,
+        updated_at: p.updated_at,
+      };
+    });
+
+    return { data: formatted, error: null };
+  } catch (err: unknown) {
+    console.error('Error inesperado en getHistorialPostulanteAdmin:', err);
+    return {
+      data: [],
+      error: err instanceof Error ? err.message : 'Error al obtener el historial.',
+    };
   }
 }

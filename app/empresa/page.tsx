@@ -1,6 +1,7 @@
-﻿'use client';
+'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/Button';
 import {
@@ -37,9 +38,24 @@ import {
 type TabKey = 'perfil' | 'ofertas' | 'candidatos';
 
 export default function EmpresaDashboardPage() {
-  const { user, empresa: authEmpresa, refreshUser } = useAuth();
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-page flex items-center justify-center p-8 text-zinc-500 font-sans text-sm">Cargando panel...</div>}>
+      <EmpresaDashboardContent />
+    </Suspense>
+  );
+}
 
-  const [activeTab, setActiveTab] = useState<TabKey>('perfil');
+function EmpresaDashboardContent() {
+  const { user, empresa: authEmpresa, refreshUser } = useAuth();
+  const searchParams = useSearchParams();
+
+  const [activeTab, setActiveTab] = useState<TabKey>(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam === 'ofertas' || tabParam === 'candidatos' || tabParam === 'perfil') {
+      return tabParam;
+    }
+    return 'perfil';
+  });
   const [empresaData, setEmpresaData] = useState<Empresa | null>(authEmpresa);
   const [ofertas, setOfertas] = useState<
     (Oferta & {
@@ -58,6 +74,14 @@ export default function EmpresaDashboardPage() {
   const [loadingCandidatos, setLoadingCandidatos] = useState(() => isAprobada);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
+
+  // Reaccionar a cambios en query param ?tab= (ej. enlaces directos desde notificaciones)
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam === 'ofertas' || tabParam === 'candidatos' || tabParam === 'perfil') {
+      setActiveTab(tabParam);
+    }
+  }, [searchParams]);
 
   // Sincronizar datos de la empresa actual
   const loadEmpresaData = useCallback(async () => {
@@ -108,6 +132,11 @@ export default function EmpresaDashboardPage() {
   }, [isAprobada]);
 
   const handleSelectOfertaCandidates = (ofertaId: string) => {
+    // Protección adicional en frontend: verificar que la oferta no esté pendiente de revisión
+    const targetJob = ofertas.find((o) => o.id === ofertaId);
+    if (targetJob && targetJob.estado === 'pendiente_revision') {
+      return;
+    }
     setFilterOfertaId(ofertaId);
     setActiveTab('candidatos');
     loadCandidatos(ofertaId);

@@ -243,14 +243,27 @@ export type PostulanteCurso = {
 };
 
 
+export type TipoNotificacion =
+  | 'info'
+  | 'entrevista'
+  | 'invitacion'
+  | 'sistema'
+  | 'postulacion'
+  | 'empresa'
+  | 'alerta'
+  | 'curso'
+  | 'vencimiento';
+
 export type Notificacion = {
   id: string;
   user_id: string;
   titulo: string;
   mensaje: string;
-  tipo: 'info' | 'entrevista' | 'invitacion' | 'sistema';
+  tipo: TipoNotificacion;
   link: string | null;
   leida: boolean;
+  metadata?: Record<string, any> | null;
+  agrupador_key?: string | null;
   created_at: string;
 };
 

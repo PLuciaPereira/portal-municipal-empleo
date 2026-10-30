@@ -142,6 +142,7 @@ export const Navbar: React.FC = () => {
           <div className="hidden md:flex items-center gap-3">
             {isAuthenticated ? (
               <div className="flex items-center gap-3">
+                <NotificationBell />
                 <Link
                   href={dashboardHref}
                   className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-zinc-100 transition-colors text-left"
@@ -232,13 +233,16 @@ export const Navbar: React.FC = () => {
                 </Badge>
               </div>
               <div className="flex flex-col items-end gap-1.5">
-                <Link
-                  href={dashboardHref}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="text-xs text-brand-800 font-bold hover:underline"
-                >
-                  Ir a {dashboardLabel} &rarr;
-                </Link>
+                <div className="flex items-center gap-2">
+                  <NotificationBell />
+                  <Link
+                    href={dashboardHref}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="text-xs text-brand-800 font-bold hover:underline"
+                  >
+                    Ir a {dashboardLabel} &rarr;
+                  </Link>
+                </div>
                 <button
                   type="button"
                   onClick={() => {

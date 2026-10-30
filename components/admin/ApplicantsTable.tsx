@@ -245,6 +245,7 @@ export function ApplicantsTable({
                   <th className="py-3.5 px-4">Localidad y Contacto</th>
                   <th className="py-3.5 px-4">Nivel Educativo</th>
                   <th className="py-3.5 px-4">Situación Laboral</th>
+                  <th className="py-3.5 px-4">Postulaciones y Rechazos</th>
                   <th className="py-3.5 px-4">Currículums</th>
                   <th className="py-3.5 px-4 text-right">Acciones</th>
                 </tr>

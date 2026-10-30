@@ -1,5 +1,7 @@
 'use client';
 
+import { notificarAdmins } from '@/lib/notifications';
+
 import React, {
   createContext,
   useContext,
@@ -423,7 +425,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         if (signUpData.session && signUpData.user) {
           await loadUserData(signUpData.user.id, data.email);
           setIsLoading(false);
-          return { success: true, requiresEmailConfirmation: false };
+          // Notificar a los administradores sobre nuevo postulante registrado
+        try {
+          const hoy = new Date().toISOString().split('T')[0];
+          await notificarAdmins({
+            titulo: 'Nuevos postulantes en el portal',
+            mensaje: 'Nuevos vecinos se han registrado en el Portal de Empleo Funes.',
+            tipo: 'info',
+            link: '/admin?tab=postulantes',
+            agrupadorKey: 'resumen_postulantes_' + hoy,
+          });
+        } catch (e) {
+          console.warn('Aviso: no se pudo notificar nuevo postulante:', e);
+        }
+
+        return { success: true, requiresEmailConfirmation: false };
         }
 
         setIsLoading(false);
@@ -499,7 +515,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         if (signUpData.session && signUpData.user) {
           await loadUserData(signUpData.user.id, data.email);
           setIsLoading(false);
-          return { success: true, requiresEmailConfirmation: false };
+          // Notificar a los administradores sobre nueva empresa para revisión
+        try {
+          const nombreEmpresa = data.nombre_fantasia?.trim() || data.razon_social.trim();
+          await notificarAdmins({
+            titulo: 'Nueva empresa para revisión',
+            mensaje: `La empresa "${nombreEmpresa}" se ha registrado en el portal y espera verificación.`,
+            tipo: 'empresa',
+            link: '/admin?tab=empresas&estado=pendiente',
+            agrupadorKey: 'empresa_revision_' + (signUpData.user ? signUpData.user.id : data.cuit.trim()),
+          });
+        } catch (e) {
+          console.warn('Aviso: no se pudo notificar nueva empresa:', e);
+        }
+
+        return { success: true, requiresEmailConfirmation: false };
         }
 
         setIsLoading(false);

@@ -185,14 +185,34 @@ export function CompanyJobsTable({
 
                 <div className="flex items-center gap-2 flex-wrap">
                   {onViewCandidates && !isDeleted && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => onViewCandidates(o.id)}
-                    >
-                      <UsersIcon className="w-4 h-4 mr-1 text-zinc-600" />
-                      Ver Candidatos
-                    </Button>
+                    isPendiente ? (
+                      <div className="relative group inline-block">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled
+                          className="opacity-50 cursor-not-allowed text-zinc-400 border-zinc-200"
+                        >
+                          <UsersIcon className="w-4 h-4 mr-1 text-zinc-400" />
+                          Ver Candidatos
+                        </Button>
+                        <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:flex flex-col items-center z-30 w-56">
+                          <div className="bg-zinc-900 text-white text-[11px] font-medium rounded-lg px-2.5 py-1.5 text-center shadow-lg leading-snug">
+                            Estará disponible cuando la oferta sea aprobada por la Oficina de Empleo.
+                          </div>
+                          <div className="w-2 h-2 bg-zinc-900 rotate-45 -mt-1" />
+                        </div>
+                      </div>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => onViewCandidates(o.id)}
+                      >
+                        <UsersIcon className="w-4 h-4 mr-1 text-zinc-600" />
+                        Ver Candidatos
+                      </Button>
+                    )
                   )}
 
                   {isBorrador && !isDeleted && (
@@ -246,7 +266,7 @@ export function CompanyJobsTable({
                       Renovar por 30 días
                     </Button>
                   )}
-                  {!isDeleted && !isPendiente && (
+                  {!isDeleted && (
                     <Button
                       size="sm"
                       variant="ghost"

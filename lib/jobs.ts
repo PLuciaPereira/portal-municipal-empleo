@@ -1,3 +1,4 @@
+import { notificarAdmins, crearNotificacionDeduplicada } from '@/lib/notifications';
 import { Job, Rubro, Oferta, EmpresaPublica, Empresa } from '@/types/database';
 import { validatePhone } from '@/lib/validators';
 
@@ -774,6 +775,39 @@ export async function submitJobApplication(
         success: false,
         message: `No se pudo registrar la postulación: ${error.message}`,
       };
+    }
+
+    // Notificar al equipo de la Oficina de Empleo y confirmar al postulante
+    try {
+      const { data: ofData } = await supabase
+        .from('ofertas')
+        .select('titulo')
+        .eq('id', data.jobId)
+        .single();
+
+      const ofTitulo = ofData?.titulo || 'Oferta laboral';
+
+      // 1. Aviso deduplicado para administradores (agrupado por oferta y fecha)
+      const fechaHoy = new Date().toISOString().split('T')[0];
+      await notificarAdmins({
+        titulo: 'Ofertas con postulantes pendientes de revisión',
+        mensaje: `Nuevas postulaciones recibidas para la búsqueda "${ofTitulo}".`,
+        tipo: 'postulacion',
+        link: '/admin?tab=ofertas',
+        agrupadorKey: `nuevos_postulantes_oferta_${data.jobId}_${fechaHoy}`,
+      });
+
+      // 2. Confirmación inmediata al postulante
+      await crearNotificacionDeduplicada({
+        userId: user.id,
+        titulo: 'Postulación registrada con éxito',
+        mensaje: `Tu postulación a "${ofTitulo}" fue enviada a la Oficina de Empleo. Evaluaremos tu perfil para la intermediación laboral.`,
+        tipo: 'postulacion',
+        link: '/postulante?tab=postulaciones',
+        agrupadorKey: `postulacion_confirmada_${postulacion.id}`,
+      });
+    } catch (e) {
+      console.warn('Aviso: no se pudo notificar la nueva postulación:', e);
     }
 
     return {

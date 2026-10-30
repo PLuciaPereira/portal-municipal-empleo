@@ -1,6 +1,7 @@
-﻿'use client';
+'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import {
@@ -47,9 +48,24 @@ const CURSO_STATUS_BADGE: Record<
 };
 
 export default function PostulanteDashboardPage() {
-  const { user, refreshUser } = useAuth();
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-page flex items-center justify-center p-8 text-zinc-500 font-sans text-sm">Cargando panel de postulante...</div>}>
+      <PostulanteDashboardContent />
+    </Suspense>
+  );
+}
 
-  const [activeTab, setActiveTab] = useState<TabKey>('perfil');
+function PostulanteDashboardContent() {
+  const { user, refreshUser } = useAuth();
+  const searchParams = useSearchParams();
+
+  const [activeTab, setActiveTab] = useState<TabKey>(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam === 'postulaciones' || tabParam === 'cursos' || tabParam === 'perfil') {
+      return tabParam;
+    }
+    return 'perfil';
+  });
   const [profileFull, setProfileFull] = useState<PostulanteProfileFull | null>(null);
   const [applications, setApplications] = useState<PostulacionConDetalle[]>([]);
   const [courses, setCourses] = useState<PostulanteCurso[]>([]);
@@ -57,6 +73,14 @@ export default function PostulanteDashboardPage() {
   const [ofertasSugeridas, setOfertasSugeridas] = useState<any[]>([]);
   const [isLoadingData, setIsLoadingData] = useState<boolean>(true);
   const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
+
+  // Sincronizar tab cuando cambian los searchParams (ej. notificación "Ver detalle")
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam === 'postulaciones' || tabParam === 'cursos' || tabParam === 'perfil') {
+      setActiveTab(tabParam);
+    }
+  }, [searchParams]);
 
   const handleDirectAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
