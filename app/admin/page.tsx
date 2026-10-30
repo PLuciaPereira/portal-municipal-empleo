@@ -166,49 +166,131 @@ function AdminDashboardContent() {
 
   return (
     <div className="min-h-screen bg-page text-foreground flex flex-col font-sans">
-      {/* 1. Header Maestro Institucional Full-Width */}
-      <section className="bg-gradient-to-r from-brand-950 via-brand-900 to-brand-800 text-white border-b border-brand-950/40 shadow-sm">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 py-7">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-            <div className="flex-1 max-w-[860px]">
-              <div className="flex flex-wrap items-center gap-2.5 mb-2">
-                <span className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-white/10 border border-white/15 text-white/95 text-xs font-semibold backdrop-blur-xs">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+      {/* 1. Header Maestro Delgado: 72px de Alto con Indicadores Integrados */}
+      <section className="bg-gradient-to-r from-brand-950 via-brand-900 to-brand-800 text-white border-b border-brand-950/40 shadow-sm min-h-[72px] flex items-center">
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 py-2.5 w-full">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            
+            {/* Lado Izquierdo: Chip y Título en 22px en 1 línea */}
+            <div className="flex flex-col justify-center shrink-0">
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_#34d399]"></span>
+                <span className="text-[10px] font-semibold text-white/85 tracking-wider uppercase">
                   Oficina de Empleo · Municipalidad de Funes
                 </span>
-                <span className="hidden sm:inline-flex items-center gap-1.5 text-xs text-brand-200">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-300" />
-                  Intermediación Pública y Gratuita
-                </span>
               </div>
-
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight leading-tight text-white font-sans">
+              <h1 className="text-[20px] sm:text-[22px] font-extrabold tracking-tight leading-none text-white font-sans whitespace-nowrap">
                 Panel de Gestión y Moderación Municipal
               </h1>
-
-              <p className="mt-2 text-brand-100/90 text-xs sm:text-sm lg:text-base leading-relaxed">
-                Supervisión centralizada de ofertas de empleo, validación comercial de empresas y derivación directa de postulantes idóneos con prioridad comunitaria para residentes de Funes.
-              </p>
             </div>
 
-            <div className="shrink-0 flex items-center gap-3">
+            {/* Lado Derecho: Indicadores discretos en fila + botón sincronizar de solo ícono */}
+            <div className="flex items-center gap-3 overflow-x-auto no-scrollbar py-1">
+              <div className="flex items-center bg-black/15 border border-white/10 rounded-xl px-2 py-1 shadow-2xs">
+                
+                {/* 1. Ofertas por aprobar */}
+                <div
+                  onClick={() => setActiveTab('ofertas')}
+                  className="flex flex-col justify-center px-3.5 cursor-pointer hover:opacity-90 transition-opacity relative border-r border-white/12"
+                  title="Ver ofertas pendientes de moderación"
+                >
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-[20px] font-extrabold text-white leading-none font-sans tabular-nums">
+                      {counts.ofertasPendientes}
+                    </span>
+                    <span className="text-[11px] font-medium text-emerald-200/90 whitespace-nowrap">
+                      Ofertas por aprobar
+                    </span>
+                  </div>
+                  {counts.ofertasPendientes > 0 ? (
+                    <div className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-300 mt-0.5 h-3 leading-none">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse shadow-[0_0_6px_#f59e0b]"></span>
+                      <span>Requiere acción</span>
+                    </div>
+                  ) : (
+                    <div className="h-3 mt-0.5"></div>
+                  )}
+                </div>
+
+                {/* 2. Empresas nuevas */}
+                <div
+                  onClick={() => setActiveTab('empresas')}
+                  className="flex flex-col justify-center px-3.5 cursor-pointer hover:opacity-90 transition-opacity relative border-r border-white/12"
+                  title="Ver empresas pendientes de verificación"
+                >
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-[20px] font-extrabold text-white leading-none font-sans tabular-nums">
+                      {counts.empresasPendientes}
+                    </span>
+                    <span className="text-[11px] font-medium text-emerald-200/90 whitespace-nowrap">
+                      Empresas nuevas
+                    </span>
+                  </div>
+                  {counts.empresasPendientes > 0 ? (
+                    <div className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-300 mt-0.5 h-3 leading-none">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse shadow-[0_0_6px_#f59e0b]"></span>
+                      <span>Requiere acción</span>
+                    </div>
+                  ) : (
+                    <div className="h-3 mt-0.5"></div>
+                  )}
+                </div>
+
+                {/* 3. Padrón de postulantes */}
+                <div
+                  onClick={() => setActiveTab('postulantes')}
+                  className="flex flex-col justify-center px-3.5 cursor-pointer hover:opacity-90 transition-opacity relative border-r border-white/12"
+                  title="Ver padrón general de postulantes"
+                >
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-[20px] font-extrabold text-white leading-none font-sans tabular-nums">
+                      {counts.postulantesActivos}
+                    </span>
+                    <span className="text-[11px] font-medium text-emerald-200/90 whitespace-nowrap">
+                      Padrón de postulantes
+                    </span>
+                  </div>
+                  <div className="h-3 mt-0.5"></div>
+                </div>
+
+                {/* 4. Intermediaciones activas */}
+                <div
+                  onClick={() => setActiveTab('ofertas')}
+                  className="flex flex-col justify-center px-3.5 cursor-pointer hover:opacity-90 transition-opacity"
+                  title="Candidatos en proceso de derivación o entrevista"
+                >
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-[20px] font-extrabold text-white leading-none font-sans tabular-nums">
+                      {counts.intermediacionesActivas}
+                    </span>
+                    <span className="text-[11px] font-medium text-emerald-200/90 whitespace-nowrap">
+                      Intermediaciones activas
+                    </span>
+                  </div>
+                  <div className="h-3 mt-0.5"></div>
+                </div>
+
+              </div>
+
+              {/* Botón Sincronizar solo con ícono */}
               <button
                 type="button"
                 onClick={handleRefreshAll}
                 disabled={loadingEmpresas || loadingOfertas || loadingPostulantes || refreshingCounts}
-                className="min-h-[42px] px-4.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/20 text-white font-bold text-xs inline-flex items-center gap-2 transition-all shadow-xs cursor-pointer disabled:opacity-50"
-                title="Actualizar datos y métricas en tiempo real"
+                className="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white flex items-center justify-center transition-all shadow-xs cursor-pointer disabled:opacity-50 shrink-0"
+                title="Sincronizar Panel de Gestión"
+                aria-label="Sincronizar Panel de Gestión"
               >
                 <RefreshCw
-                  className={`w-3.5 h-3.5 text-brand-200 ${
+                  className={`w-4 h-4 text-emerald-100 ${
                     loadingEmpresas || loadingOfertas || loadingPostulantes || refreshingCounts
                       ? 'animate-spin'
                       : ''
                   }`}
                 />
-                <span>Sincronizar Panel</span>
               </button>
             </div>
+
           </div>
         </div>
       </section>
@@ -232,15 +314,6 @@ function AdminDashboardContent() {
             >
               <Briefcase className="w-4 h-4 text-brand-800" />
               <span>Ofertas Laborales</span>
-              {counts.ofertasPendientes > 0 ? (
-                <span className="text-[10px] px-2 py-0.5 rounded-full font-extrabold bg-amber-100 text-amber-900 border border-amber-200/80">
-                  {counts.ofertasPendientes} por revisar
-                </span>
-              ) : (
-                <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-zinc-100 text-zinc-700">
-                  {ofertas.length}
-                </span>
-              )}
             </button>
 
             {/* Empresas */}
@@ -257,15 +330,6 @@ function AdminDashboardContent() {
             >
               <Building2 className="w-4 h-4 text-brand-800" />
               <span>Validación de Empresas</span>
-              {counts.empresasPendientes > 0 ? (
-                <span className="text-[10px] px-2 py-0.5 rounded-full font-extrabold bg-amber-100 text-amber-900 border border-amber-200/80">
-                  {counts.empresasPendientes} pendientes
-                </span>
-              ) : (
-                <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-zinc-100 text-zinc-700">
-                  {empresas.length}
-                </span>
-              )}
             </button>
 
             {/* Postulantes */}
@@ -282,9 +346,6 @@ function AdminDashboardContent() {
             >
               <Users className="w-4 h-4 text-brand-800" />
               <span>Padrón de Postulantes</span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-brand-100 text-brand-900">
-                {counts.postulantesActivos}
-              </span>
             </button>
 
             {/* Registro Asistido */}
@@ -293,13 +354,13 @@ function AdminDashboardContent() {
               role="tab"
               aria-selected={activeTab === 'registro_asistido'}
               onClick={() => setActiveTab('registro_asistido')}
-              className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+              className={`inline-flex items-center gap-2 px-4 py-2.5 border-b-2 font-bold transition-all whitespace-nowrap cursor-pointer ${
                 activeTab === 'registro_asistido'
-                  ? 'bg-[#0E4D36] text-white shadow-xs'
-                  : 'text-[#4B6256] hover:text-[#10231B] hover:bg-[#F4F8F4]'
+                  ? 'border-emerald-700 text-emerald-900 font-extrabold bg-emerald-50/60'
+                  : 'border-transparent text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50'
               }`}
             >
-              <UserPlus className="w-4 h-4" />
+              <UserPlus className="w-4 h-4 text-emerald-700" />
               <span>Registro Asistido</span>
             </button>
             {/* Capacitaciones */}
@@ -395,134 +456,7 @@ function AdminDashboardContent() {
               })()
             ) : (
               <>
-                {/* Resumen Operativo de Métricas Clave (Solo en Vista Principal de Ofertas) */}
-                <div className="space-y-2.5">
-                  <div className="flex items-center justify-between px-1">
-                    <span className="text-xs font-bold uppercase tracking-wider text-zinc-500">
-                      Resumen Operativo Municipal
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setActiveTab('estadisticas')}
-                      className="inline-flex items-center gap-1.5 text-xs font-bold text-brand-800 hover:text-brand-950 transition-colors cursor-pointer group"
-                    >
-                      <span>Ver estadísticas completas</span>
-                      <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
-                    </button>
-                  </div>
 
-{/* Ribbon Unificado de KPIs Operativos (Superficie continua sin tarjetas flotantes separadas) */}
-        <div className="bg-surface border border-zinc-200/90 rounded-2xl shadow-xs overflow-hidden">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-zinc-200/80">
-            
-            {/* KPI 1: Ofertas por Aprobar */}
-            <div
-              onClick={() => setActiveTab('ofertas')}
-              className="p-5 flex items-center justify-between hover:bg-zinc-50/80 transition-colors cursor-pointer group"
-            >
-              <div>
-                <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider block">
-                  Ofertas por Aprobar
-                </span>
-                <div className="flex items-baseline gap-2 mt-1">
-                  <span className="text-3xl font-extrabold text-zinc-900 tracking-tight tabular-nums font-sans">
-                    {counts.ofertasPendientes}
-                  </span>
-                  {counts.ofertasPendientes > 0 ? (
-                    <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-amber-100 text-amber-900">
-                      Requiere acción
-                    </span>
-                  ) : (
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-brand-100 text-brand-900">
-                      Al día
-                    </span>
-                  )}
-                </div>
-                <p className="text-xs text-zinc-500 mt-1">Búsquedas creadas esperando publicación</p>
-              </div>
-              <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center border border-amber-200/60 group-hover:scale-105 transition-transform shrink-0">
-                <Briefcase className="w-5 h-5" />
-              </div>
-            </div>
-
-            {/* KPI 2: Empresas Nuevas */}
-            <div
-              onClick={() => setActiveTab('empresas')}
-              className="p-5 flex items-center justify-between hover:bg-zinc-50/80 transition-colors cursor-pointer group"
-            >
-              <div>
-                <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider block">
-                  Empresas Nuevas
-                </span>
-                <div className="flex items-baseline gap-2 mt-1">
-                  <span className="text-3xl font-extrabold text-zinc-900 tracking-tight tabular-nums font-sans">
-                    {counts.empresasPendientes}
-                  </span>
-                  {counts.empresasPendientes > 0 ? (
-                    <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-sky-100 text-sky-900">
-                      Validar CUIT
-                    </span>
-                  ) : (
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-brand-100 text-brand-900">
-                      Al día
-                    </span>
-                  )}
-                </div>
-                <p className="text-xs text-zinc-500 mt-1">Registros comerciales por habilitar</p>
-              </div>
-              <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-700 flex items-center justify-center border border-sky-200/60 group-hover:scale-105 transition-transform shrink-0">
-                <Building2 className="w-5 h-5" />
-              </div>
-            </div>
-
-            {/* KPI 3: Padrón de Postulantes */}
-            <div
-              onClick={() => setActiveTab('postulantes')}
-              className="p-5 flex items-center justify-between hover:bg-zinc-50/80 transition-colors cursor-pointer group"
-            >
-              <div>
-                <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider block">
-                  Padrón de Postulantes
-                </span>
-                <div className="flex items-baseline gap-2 mt-1">
-                  <span className="text-3xl font-extrabold text-zinc-900 tracking-tight tabular-nums font-sans">
-                    {counts.postulantesActivos}
-                  </span>
-                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-brand-100 text-brand-900">
-                    Prioridad Funes
-                  </span>
-                </div>
-                <p className="text-xs text-zinc-500 mt-1">Vecinos con legajo laboral activo</p>
-              </div>
-              <div className="w-10 h-10 rounded-xl bg-brand-50 text-brand-800 flex items-center justify-center border border-brand-200/60 group-hover:scale-105 transition-transform shrink-0">
-                <Users className="w-5 h-5" />
-              </div>
-            </div>
-
-            {/* KPI 4: Intermediaciones Activas */}
-            <div className="p-5 flex items-center justify-between">
-              <div>
-                <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider block">
-                  Intermediaciones Activas
-                </span>
-                <div className="flex items-baseline gap-2 mt-1">
-                  <span className="text-3xl font-extrabold text-zinc-900 tracking-tight tabular-nums font-sans">
-                    {counts.intermediacionesActivas}
-                  </span>
-                  <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-emerald-100 text-emerald-900">
-                    En derivación
-                  </span>
-                </div>
-                <p className="text-xs text-zinc-500 mt-1">Candidatos presentados formalmente</p>
-              </div>
-              <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-800 flex items-center justify-center border border-emerald-200/60 shrink-0">
-                <ShieldCheck className="w-5 h-5 text-emerald-800" />
-              </div>
-            </div>
-
-          </div>
-                </div>
-              </div>
 
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-1">
                   <div>
@@ -537,6 +471,7 @@ function AdminDashboardContent() {
 
                 <AdminJobsTable
                   ofertas={ofertas}
+                  postulantesDisponibles={postulantes}
                   loading={loadingOfertas}
                   onRefresh={() => {
                     void loadOfertas();
@@ -589,13 +524,14 @@ function AdminDashboardContent() {
                   Padrón General de Postulantes de Funes
                 </h2>
                 <p className="text-xs text-zinc-500">
-                  Consulte la base de datos municipal, filtre por localidad o estudios y acceda a los legajos laborales y currículums digitales.
+                  Explore la base de datos municipal, encuentre perfiles según sus características y consulte sus legajos laborales y currículums digitales.
                 </p>
               </div>
             </div>
 
             <ApplicantsTable
               postulantes={postulantes}
+              ofertasDisponibles={ofertas}
               loading={loadingPostulantes}
               onRefresh={loadPostulantes}
             />
@@ -606,12 +542,14 @@ function AdminDashboardContent() {
         {/* SECCIÓN 4: REGISTRO ASISTIDO (Presencial en Oficina)           */}
         {/* ============================================================== */}
         {activeTab === 'registro_asistido' && (
-          <ManualProfileRegister
-            onCreated={() => {
-              void loadPostulantes();
-              void loadCounts();
-            }}
-          />
+          <div className="-mt-2 sm:-mt-4">
+            <ManualProfileRegister
+              onCreated={() => {
+                void loadPostulantes();
+                void loadCounts();
+              }}
+            />
+          </div>
         )}
 
         {/* ============================================================== */}

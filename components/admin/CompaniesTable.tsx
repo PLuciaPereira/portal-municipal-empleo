@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react';
 import { Empresa, EstadoEmpresa } from '@/types/database';
 import { CompanyStatusBadge } from './CompanyStatusBadge';
 import { CompanyDetailModal } from './CompanyDetailModal';
+import { AdminCompanyEditModal } from './AdminCompanyEditModal';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -19,6 +20,7 @@ import {
   AlertCircle,
   Check,
   Building,
+  Pencil,
 } from 'lucide-react';
 import { aprobarEmpresa, rechazarEmpresa } from '@/lib/admin';
 
@@ -44,6 +46,9 @@ export function CompaniesTable({ empresas, loading, onRefresh }: CompaniesTableP
   const [empresaToReject, setEmpresaToReject] = useState<Empresa | null>(null);
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
 
+  const [empresaToEdit, setEmpresaToEdit] = useState<Empresa | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
   // Estados de acción
   const [actionLoading, setActionLoading] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(
@@ -57,15 +62,33 @@ export function CompaniesTable({ empresas, loading, onRefresh }: CompaniesTableP
       if (filterEstado !== 'todas' && emp.estado !== filterEstado) {
         return false;
       }
-      // Filtro de texto
+      // Filtro de texto exhaustivo (nombre, razón social, CUIT, localidad, dirección, rubro, contacto, teléfono, email, sitio web)
       if (searchTerm.trim()) {
         const q = searchTerm.toLowerCase();
         const matchesName = (emp.nombre_fantasia || '').toLowerCase().includes(q);
         const matchesRazon = (emp.razon_social || '').toLowerCase().includes(q);
         const matchesCuit = (emp.cuit || '').toLowerCase().includes(q);
         const matchesLocalidad = (emp.localidad || '').toLowerCase().includes(q);
+        const matchesDireccion = (emp.direccion || '').toLowerCase().includes(q);
         const matchesRubro = (emp.rubro || '').toLowerCase().includes(q);
-        return matchesName || matchesRazon || matchesCuit || matchesLocalidad || matchesRubro;
+        const matchesContacto = (emp.persona_contacto || '').toLowerCase().includes(q);
+        const matchesTelefono = (emp.telefono || '').toLowerCase().includes(q);
+        const matchesEmail = (emp.email_contacto || '').toLowerCase().includes(q);
+        const matchesSitio = (emp.sitio_web || '').toLowerCase().includes(q);
+        const matchesDesc = (emp.descripcion || '').toLowerCase().includes(q);
+        return (
+          matchesName ||
+          matchesRazon ||
+          matchesCuit ||
+          matchesLocalidad ||
+          matchesDireccion ||
+          matchesRubro ||
+          matchesContacto ||
+          matchesTelefono ||
+          matchesEmail ||
+          matchesSitio ||
+          matchesDesc
+        );
       }
       return true;
     });
@@ -82,6 +105,12 @@ export function CompaniesTable({ empresas, loading, onRefresh }: CompaniesTableP
   }, [empresas]);
 
   // Manejar apertura de modal de detalle
+    // Abrir modal de edición de datos de la empresa (Admin)
+  const handleOpenEdit = (empresa: Empresa) => {
+    setEmpresaToEdit(empresa);
+    setIsEditModalOpen(true);
+  };
+
   const handleOpenDetail = (empresa: Empresa) => {
     setSelectedEmpresa(empresa);
     setIsDetailModalOpen(true);
@@ -242,7 +271,7 @@ export function CompaniesTable({ empresas, loading, onRefresh }: CompaniesTableP
           <Input
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Buscar por razón social, CUIT, rubro..."
+            placeholder="Buscar por empresa, CUIT, contacto, email, teléfono, rubro o localidad..."
             className="pl-9 h-10 text-xs w-full bg-zinc-50 border-zinc-200"
           />
         </div>
@@ -366,6 +395,16 @@ export function CompaniesTable({ empresas, loading, onRefresh }: CompaniesTableP
                           <Eye className="w-3.5 h-3.5" />
                           <span className="hidden sm:inline">Ficha</span>
                         </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleOpenEdit(emp)}
+                          className="h-8 px-2 text-emerald-800 hover:text-emerald-900 hover:bg-emerald-50 gap-1 text-xs"
+                          title="Editar datos de la empresa"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                          <span className="hidden sm:inline">Editar</span>
+                        </Button>
 
                         {/* Si está pendiente: opciones de Aprobar o Rechazar */
                         emp.estado === 'pendiente' && (
@@ -421,7 +460,7 @@ export function CompaniesTable({ empresas, loading, onRefresh }: CompaniesTableP
         )}
       </div>
 
-      {/* Modal de Detalle Completo de la Empresa */}
+            {/* Modal de Detalle Completo de la Empresa */}
       <CompanyDetailModal
         empresa={selectedEmpresa}
         isOpen={isDetailModalOpen}
@@ -433,6 +472,27 @@ export function CompaniesTable({ empresas, loading, onRefresh }: CompaniesTableP
         onReject={(emp) => {
           setIsDetailModalOpen(false);
           handleInitiateReject(emp);
+        }}
+        onEdit={(emp) => {
+          setIsDetailModalOpen(false);
+          handleOpenEdit(emp);
+        }}
+      />
+
+      {/* Modal de Edición Administrativa de la Empresa */}
+      <AdminCompanyEditModal
+        isOpen={isEditModalOpen}
+        empresa={empresaToEdit}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setEmpresaToEdit(null);
+        }}
+        onSuccess={(updated) => {
+          setFeedback({
+            type: 'success',
+            message: "Los datos de la empresa fueron actualizados exitosamente.",
+          });
+          onRefresh();
         }}
       />
 

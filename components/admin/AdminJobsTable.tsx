@@ -5,6 +5,8 @@ import { OfertaAdminItem } from '@/lib/admin';
 import { JobStatus } from '@/types/database';
 import { JobStatusBadge } from '@/components/empresa/JobStatusBadge';
 import { AdminJobDetailModal } from './AdminJobDetailModal';
+import { InviteCandidateToJobModal } from './InviteCandidateToJobModal';
+import { PostulanteAdminItem } from '@/lib/admin';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -21,6 +23,8 @@ import {
   Star,
   BadgeAlert,
   Users,
+  UserPlus,
+  ArrowUpDown,
 } from 'lucide-react';
 import {
   aprobarOfertaAdmin,
@@ -31,6 +35,7 @@ import {
 
 interface AdminJobsTableProps {
   ofertas: OfertaAdminItem[];
+  postulantesDisponibles?: PostulanteAdminItem[];
   loading?: boolean;
   onRefresh: () => void;
   onSelectOfertaPostulaciones?: (ofertaId: string) => void;
@@ -40,16 +45,20 @@ type FilterEstado = JobStatus | 'todas' | 'bajas';
 
 export function AdminJobsTable({
   ofertas,
+  postulantesDisponibles = [],
   loading,
   onRefresh,
   onSelectOfertaPostulaciones,
 }: AdminJobsTableProps) {
   const [filterEstado, setFilterEstado] = useState<FilterEstado>('todas');
   const [searchTerm, setSearchTerm] = useState('');
+  const [sortOrder, setSortOrder] = useState<'recientes' | 'antiguas'>('recientes');
 
   // Modales
   const [selectedOferta, setSelectedOferta] = useState<OfertaAdminItem | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [ofertaToInvitePostulante, setOfertaToInvitePostulante] = useState<OfertaAdminItem | null>(null);
+  const [isInviteCandidateModalOpen, setIsInviteCandidateModalOpen] = useState(false);
 
   const [ofertaToApprove, setOfertaToApprove] = useState<OfertaAdminItem | null>(null);
   const [isApproveDialogOpen, setIsApproveDialogOpen] = useState(false);
@@ -89,12 +98,31 @@ export function AdminJobsTable({
           .includes(q);
         const matchesRubro = (of.rubro?.nombre || '').toLowerCase().includes(q);
         const matchesUbicacion = (of.ubicacion || '').toLowerCase().includes(q);
-        return matchesTitulo || matchesEmpresa || matchesRubro || matchesUbicacion;
+        const matchesJornada = (of.tipo_jornada || '').toLowerCase().includes(q);
+        const matchesContrato = (of.tipo_contrato || '').toLowerCase().includes(q);
+        const matchesRequisitos = (of.requisitos || '').toLowerCase().includes(q);
+        const matchesDescripcion = (of.descripcion || '').toLowerCase().includes(q);
+        const matchesExp = (of.experiencia_requerida || '').toLowerCase().includes(q);
+        return (
+          matchesTitulo ||
+          matchesEmpresa ||
+          matchesRubro ||
+          matchesUbicacion ||
+          matchesJornada ||
+          matchesContrato ||
+          matchesRequisitos ||
+          matchesDescripcion ||
+          matchesExp
+        );
       }
 
       return true;
+    }).sort((a, b) => {
+      const timeA = new Date(a.created_at).getTime() || 0;
+      const timeB = new Date(b.created_at).getTime() || 0;
+      return sortOrder === 'recientes' ? timeB - timeA : timeA - timeB;
     });
-  }, [ofertas, filterEstado, searchTerm]);
+  }, [ofertas, filterEstado, searchTerm, sortOrder]);
 
   // Contadores por filtro
   const counts = useMemo(() => {
@@ -335,15 +363,30 @@ export function AdminJobsTable({
           </button>
         </div>
 
-        {/* Buscador */}
-        <div className="relative flex-1 max-w-md">
-          <Search className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
-          <Input
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Buscar por puesto, empresa, rubro o localidad..."
-            className="pl-9 h-10 text-xs w-full bg-zinc-50 border-zinc-200"
-          />
+        {/* Buscador y Selector Compacto de Orden */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 flex-1 max-w-xl">
+          <div className="relative flex-1">
+            <Search className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Input
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Buscar por puesto, empresa, rubro, requisitos o localidad..."
+              className="pl-9 h-10 text-xs w-full bg-zinc-50 border-zinc-200"
+            />
+          </div>
+
+          <div className="flex items-center gap-1.5 bg-zinc-50 px-2.5 h-10 rounded-xl border border-zinc-200 text-xs shrink-0">
+            <ArrowUpDown className="w-3.5 h-3.5 text-zinc-500" />
+            <span className="text-zinc-500 font-medium hidden sm:inline">Orden:</span>
+            <select
+              value={sortOrder}
+              onChange={(e) => setSortOrder(e.target.value as 'recientes' | 'antiguas')}
+              className="bg-transparent text-zinc-800 font-semibold focus:outline-none cursor-pointer text-xs"
+            >
+              <option value="recientes">Más recientes</option>
+              <option value="antiguas">Más antiguas</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -542,6 +585,19 @@ export function AdminJobsTable({
       </div>
 
       {/* Modal de Detalle Completo de la Oferta */}
+            <InviteCandidateToJobModal
+        isOpen={isInviteCandidateModalOpen}
+        oferta={ofertaToInvitePostulante}
+        postulantesDisponibles={postulantesDisponibles}
+        onClose={() => {
+          setIsInviteCandidateModalOpen(false);
+          setOfertaToInvitePostulante(null);
+        }}
+        onSuccess={() => {
+          onRefresh();
+        }}
+      />
+
       <AdminJobDetailModal
         oferta={selectedOferta}
         isOpen={isDetailModalOpen}

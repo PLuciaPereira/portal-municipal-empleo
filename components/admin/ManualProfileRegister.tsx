@@ -196,19 +196,16 @@ export function ManualProfileRegister({ onCreated }: { onCreated?: () => void })
   };
 
   return (
-    <div className="w-full space-y-6">
-      {/* Banner de Cabecera Integrado */}
-      <div className="bg-emerald-900 text-white rounded-2xl p-6 sm:p-7 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-800 text-emerald-100 text-xs font-bold mb-2">
-            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-            Inclusión Digital y Atención Municipal
-          </div>
-          <h2 className="text-xl sm:text-2xl font-bold tracking-tight">Carga Manual Asistida de Perfil</h2>
-          <p className="text-xs sm:text-sm text-emerald-100 mt-1 max-w-3xl leading-relaxed">
-            Formulario institucional para registrar legajos de personas mayores o vecinos sin conectividad/dispositivos. Este registro ingresa de forma oficial al Padrón de Postulantes con todas sus competencias laborales.
-          </p>
-        </div>
+    <div className="w-full space-y-3">
+      {/* Banner Compacto de Una Sola Línea */}
+      <div className="h-[44px] bg-gradient-to-r from-emerald-900 to-emerald-800 text-white rounded-[12px] px-4 shadow-xs flex items-center gap-3 overflow-hidden">
+        <h2 className="text-[15px] font-bold text-white shrink-0 tracking-tight">
+          Carga Manual Asistida de Perfil
+        </h2>
+        <span className="w-1 h-1 rounded-full bg-white/50 shrink-0" aria-hidden="true" />
+        <p className="text-[13px] text-emerald-100/90 truncate font-normal">
+          Registro oficial para vecinos que se acercan a la Oficina de Empleo.
+        </p>
       </div>
 
       {successMsg && (

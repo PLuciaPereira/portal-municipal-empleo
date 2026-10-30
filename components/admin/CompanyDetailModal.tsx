@@ -16,6 +16,7 @@ import {
   AlertTriangle,
   CheckCircle2,
   ShieldAlert,
+  Pencil,
 } from 'lucide-react';
 
 interface CompanyDetailModalProps {
@@ -24,6 +25,7 @@ interface CompanyDetailModalProps {
   onClose: () => void;
   onApprove: (empresa: Empresa) => void;
   onReject: (empresa: Empresa) => void;
+  onEdit?: (empresa: Empresa) => void;
 }
 
 export function CompanyDetailModal({
@@ -32,9 +34,10 @@ export function CompanyDetailModal({
   onClose,
   onApprove,
   onReject,
+  onEdit,
 }: CompanyDetailModalProps) {
-    useBodyScrollLock(Boolean(isOpen));
-if (!isOpen || !empresa) return null;
+  useBodyScrollLock(Boolean(isOpen));
+  if (!isOpen || !empresa) return null;
 
   return (
     <div
@@ -121,9 +124,10 @@ if (!isOpen || !empresa) return null;
               </span>
               <p className="text-sm font-bold text-zinc-900 font-mono">{empresa.cuit}</p>
             </div>
+
             <div className="p-3.5 rounded-xl border border-zinc-200 bg-white space-y-1">
               <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500 block">
-                Rubro o Actividad
+                Rubro Principal
               </span>
               <p className="text-sm font-semibold text-zinc-900">
                 {empresa.rubro || 'No especificado'}
@@ -132,25 +136,25 @@ if (!isOpen || !empresa) return null;
           </div>
 
           {/* Ubicación y Domicilio */}
-          <div className="p-4 rounded-xl border border-zinc-200 bg-white space-y-2">
-            <div className="flex items-center gap-2 text-xs font-bold text-zinc-700 uppercase tracking-wider">
+          <div className="p-3.5 rounded-xl border border-zinc-200 bg-white space-y-2">
+            <div className="flex items-center gap-1.5 text-xs font-bold text-zinc-700 uppercase tracking-wider">
               <MapPin className="w-4 h-4 text-brand-800" />
-              Ubicación y Domicilio
+              Ubicación y Domicilio Legal / Operativo
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-zinc-600 pt-1">
+            <div className="text-xs text-zinc-600 grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
               <div>
-                <span className="text-zinc-500">Localidad:</span>{' '}
-                <strong className="text-zinc-900">{empresa.localidad}</strong>
+                <span className="text-zinc-500 block">Dirección:</span>
+                <span className="font-semibold text-zinc-900">{empresa.direccion}</span>
               </div>
               <div>
-                <span className="text-zinc-500">Dirección:</span>{' '}
-                <strong className="text-zinc-900">{empresa.direccion}</strong>
+                <span className="text-zinc-500 block">Localidad:</span>
+                <span className="font-semibold text-zinc-900">{empresa.localidad}</span>
               </div>
             </div>
           </div>
 
-          {/* Contacto Institucional */}
-          <div className="p-4 rounded-xl border border-zinc-200 bg-white space-y-3">
+          {/* Contacto Directo */}
+          <div className="p-3.5 rounded-xl border border-zinc-200 bg-white space-y-3">
             <div className="flex items-center gap-2 text-xs font-bold text-zinc-700 uppercase tracking-wider">
               <User className="w-4 h-4 text-brand-800" />
               Datos de Contacto
@@ -224,9 +228,22 @@ if (!isOpen || !empresa) return null;
 
         {/* Pie de Acciones */}
         <div className="px-6 py-4 bg-zinc-50/80 border-t border-zinc-100 flex flex-wrap items-center justify-between gap-3">
-          <Button variant="outline" size="sm" onClick={onClose}>
-            Cerrar Ficha
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={onClose}>
+              Cerrar Ficha
+            </Button>
+            {onEdit && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => onEdit(empresa)}
+                className="gap-1.5"
+              >
+                <Pencil className="w-3.5 h-3.5" />
+                Editar Perfil
+              </Button>
+            )}
+          </div>
 
           <div className="flex items-center gap-2">
             {empresa.estado === 'pendiente' && (

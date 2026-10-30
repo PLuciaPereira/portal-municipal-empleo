@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import { PostulanteAdminItem } from '@/lib/admin';
 import { AdminApplicantDetailModal } from './AdminApplicantDetailModal';
+import { AdminApplicantHistoryModal } from './AdminApplicantHistoryModal';
 import { InviteToJobModal } from './InviteToJobModal';
 import { OfertaAdminItem, invitarPostulanteAOferta } from '@/lib/admin';
 import { Button } from '@/components/ui/Button';
@@ -17,6 +18,8 @@ import {
   FileText,
   Phone,
   Send,
+  Clock,
+  AlertTriangle,
 } from 'lucide-react';
 
 interface ApplicantsTableProps {
@@ -43,6 +46,8 @@ export function ApplicantsTable({
   const [filterHabilidad, setFilterHabilidad] = useState('');
   const [selectedPostulante, setSelectedPostulante] = useState<PostulanteAdminItem | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [postulanteHistory, setPostulanteHistory] = useState<PostulanteAdminItem | null>(null);
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
 
   // Obtener lista dinámica de localidades únicas registradas
   const localidadesDisponibles = useMemo(() => {
@@ -94,13 +99,17 @@ export function ApplicantsTable({
         if (!hasSkill && !inExp) return false;
       }
 
-      // Filtro de texto (nombre, apellido, DNI, habilidades o resumen laboral)
+      // Filtro de texto exhaustivo (nombre, apellido, DNI, nivel educativo, localidad, situación laboral, teléfono, email, habilidades o resumen laboral)
       if (searchTerm.trim()) {
         const q = searchTerm.toLowerCase();
         const matchesNombre = (p.nombre || '').toLowerCase().includes(q);
         const matchesApellido = (p.apellido || '').toLowerCase().includes(q);
         const matchesDni = (p.dni || '').toLowerCase().includes(q);
-        const matchesResumen = (p.experiencia_resumen || '').toLowerCase().includes(q);
+        const matchesNivelEducativo = (p.nivel_educativo || '').toLowerCase().includes(q);
+        const matchesLocalidad = (p.localidad || '').toLowerCase().includes(q);
+        const matchesSituacion = (p.situacion_laboral_actual || '').toLowerCase().includes(q);
+        const matchesTelefono = (p.telefono || '').toLowerCase().includes(q);
+                const matchesResumen = (p.experiencia_resumen || '').toLowerCase().includes(q);
         const matchesHabilidades = (p.habilidades || []).some((h) =>
           h.toLowerCase().includes(q)
         );
@@ -108,7 +117,11 @@ export function ApplicantsTable({
           matchesNombre ||
           matchesApellido ||
           matchesDni ||
-          matchesResumen ||
+          matchesNivelEducativo ||
+          matchesLocalidad ||
+          matchesSituacion ||
+          matchesTelefono ||
+                    matchesResumen ||
           matchesHabilidades
         );
       }
@@ -143,7 +156,7 @@ export function ApplicantsTable({
             <Input
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Buscar por nombre, apellido, DNI o habilidad..."
+              placeholder="Buscar por DNI, nombre, nivel educativo, localidad, oficio..."
               className="pl-9 h-10 text-xs w-full bg-zinc-50 border-zinc-200"
             />
           </div>
@@ -303,6 +316,31 @@ export function ApplicantsTable({
                         </Badge>
                       </td>
 
+                      {/* Postulaciones y Rechazos (Interactiva y con rechazos en rojo) */}
+                      <td className="py-3.5 px-4">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPostulanteHistory(postulante);
+                            setIsHistoryModalOpen(true);
+                          }}
+                          className="flex flex-col items-start gap-1 group/history text-left cursor-pointer transition-transform hover:scale-[1.02]"
+                          title="Ver historial de postulaciones y motivos de rechazo"
+                        >
+                          <span className="text-xs font-semibold text-zinc-800 group-hover/history:text-brand-900 group-hover/history:underline flex items-center gap-1">
+                            {postulante.total_postulaciones || 0} postulaci{(postulante.total_postulaciones || 0) === 1 ? 'ón' : 'ones'}
+                          </span>
+                          {(postulante.total_rechazos || 0) > 0 ? (
+                            <span className="inline-flex items-center gap-1 text-[11px] font-extrabold px-2 py-0.5 rounded-md bg-rose-100 text-rose-800 border border-rose-200">
+                              <AlertTriangle className="w-3 h-3 text-rose-600 shrink-0" />
+                              {postulante.total_rechazos} rechazo{(postulante.total_rechazos || 0) === 1 ? '' : 's'}
+                            </span>
+                          ) : (
+                            <span className="text-[11px] text-zinc-400">0 rechazos</span>
+                          )}
+                        </button>
+                      </td>
+
                       {/* Currículums */}
                       <td className="py-3.5 px-4">
                         <div className="flex items-center gap-1.5">
@@ -315,16 +353,44 @@ export function ApplicantsTable({
 
                       {/* Acciones */}
                       <td className="py-3.5 px-4 text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleOpenDetail(postulante)}
-                          className="h-8 px-2 text-zinc-600 hover:text-zinc-900 gap-1 text-xs"
-                          title="Ver legajo completo del postulante"
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                          <span className="hidden sm:inline">Legajo</span>
-                        </Button>
+                        <div className="flex items-center justify-end gap-1.5">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setPostulanteToInvite(postulante);
+                              setIsInviteModalOpen(true);
+                            }}
+                            className="h-8 px-2 text-brand-900 hover:bg-brand-50 gap-1 text-xs font-semibold"
+                            title="Invitar a una búsqueda laboral activa"
+                          >
+                            <Send className="w-3.5 h-3.5 text-brand-800" />
+                            <span className="hidden sm:inline">Invitar</span>
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setPostulanteHistory(postulante);
+                              setIsHistoryModalOpen(true);
+                            }}
+                            className="h-8 px-2 text-zinc-700 hover:text-zinc-900 hover:bg-zinc-100 gap-1 text-xs"
+                            title="Ver historial de postulaciones y rechazos"
+                          >
+                            <Clock className="w-3.5 h-3.5 text-zinc-500" />
+                            <span className="hidden lg:inline">Historial</span>
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleOpenDetail(postulante)}
+                            className="h-8 px-2 text-zinc-600 hover:text-zinc-900 gap-1 text-xs"
+                            title="Ver legajo completo del postulante"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                            <span className="hidden sm:inline">Legajo</span>
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -363,6 +429,20 @@ export function ApplicantsTable({
         postulante={selectedPostulante}
         isOpen={isDetailModalOpen}
         onClose={() => setIsDetailModalOpen(false)}
+        onOpenHistory={() => {
+          setPostulanteHistory(selectedPostulante);
+          setIsHistoryModalOpen(true);
+        }}
+      />
+
+      {/* Modal Exclusivo de Historial y Derivaciones */}
+      <AdminApplicantHistoryModal
+        postulante={postulanteHistory}
+        isOpen={isHistoryModalOpen}
+        onClose={() => {
+          setIsHistoryModalOpen(false);
+          setPostulanteHistory(null);
+        }}
       />
     </div>
   );
