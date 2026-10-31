@@ -312,7 +312,7 @@ function RegisterPostulanteForm() {
       if (res.requiresEmailConfirmation) {
         setSuccessConfirmation(true);
       } else {
-        router.push('/postulante');
+        router.replace('/postulante');
       }
     } else {
       const errorMsg = res.error || 'No se pudo crear la cuenta.';

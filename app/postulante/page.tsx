@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import {
@@ -60,7 +60,15 @@ export default function PostulanteDashboardPage() {
 }
 
 function PostulanteDashboardContent() {
-  const { user, refreshUser } = useAuth();
+  const { user, refreshUser, isLoading: isAuthLoading } = useAuth();
+  const router = useRouter();
+
+  // Guardia de coherencia de sesión en el cliente
+  useEffect(() => {
+    if (!isAuthLoading && !user) {
+      router.replace("/login?redirect=/postulante");
+    }
+  }, [isAuthLoading, user, router]);
   const searchParams = useSearchParams();
 
   const [activeTab, setActiveTab] = useState<TabKey>(() => {

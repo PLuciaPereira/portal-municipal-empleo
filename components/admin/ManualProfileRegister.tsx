@@ -16,7 +16,7 @@ import { Button } from '@/components/ui/Button';
 import { Checkbox } from '@/components/ui/Checkbox';
 import { Rubro } from '@/types/database';
 import { createClient } from '@/lib/supabase/client';
-import { registrarPostulanteAsistido } from '@/lib/admin';
+import { registrarPostulanteAsistidoAction } from '@/app/admin/actions';
 import { validateDni, validatePhone } from '@/lib/validators';
 
 const NIVELES_EDUCATIVOS = [
@@ -147,7 +147,7 @@ export function ManualProfileRegister({ onCreated }: { onCreated?: () => void })
     const esResidenteFunes = localidad.trim().toLowerCase() === 'funes';
 
     try {
-      const res = await registrarPostulanteAsistido({
+      const res = await registrarPostulanteAsistidoAction({
         nombre,
         apellido,
         dni,
@@ -165,11 +165,41 @@ export function ManualProfileRegister({ onCreated }: { onCreated?: () => void })
         habilidades,
         rubroIds: selectedRubroIds,
         avatar_url: avatarUrl || null,
-        cvFile: cvFile || undefined,
       });
 
-      if (res.success) {
-        setSuccessMsg(`Legajo laboral de ${nombre} ${apellido} registrado correctamente en el sistema.`);
+      if (res.success && res.perfilId) {
+        // Si se adjuntó CV, subirlo a storage vinculado al perfil
+        if (cvFile) {
+          try {
+            const supabase = createClient();
+            const fileExt = cvFile.name.split('.').pop();
+            const filePath = `${res.perfilId}/cv_asistido_${Date.now()}.${fileExt}`;
+            const { error: uploadErr } = await supabase.storage
+              .from('postulantes-cvs')
+              .upload(filePath, cvFile, { upsert: true });
+
+            if (!uploadErr) {
+              const { data: publicUrlData } = supabase.storage
+                .from('postulantes-cvs')
+                .getPublicUrl(filePath);
+
+              await supabase.from('curriculums').insert({
+                postulante_id: res.perfilId,
+                nombre_cv: 'CV Legajo Asistido',
+                archivo_url: publicUrlData.publicUrl,
+                es_principal: true,
+                activo: true,
+              });
+            }
+          } catch (cvErr) {
+            console.warn('Advertencia al subir CV asistido:', cvErr);
+          }
+        }
+
+        const msgClave = res.claveAsignada
+          ? ` Clave asignada de acceso: ${res.claveAsignada}`
+          : '';
+        setSuccessMsg(`Legajo laboral de ${nombre} ${apellido} registrado correctamente. Podrá ingresar con su DNI.${msgClave}`);
         // Reset form
         setNombre('');
         setApellido('');
@@ -186,7 +216,7 @@ export function ManualProfileRegister({ onCreated }: { onCreated?: () => void })
         setAvatarUrl('');
         if (onCreated) onCreated();
       } else {
-        setErrorMsg(res.message);
+        setErrorMsg(res.error || 'No se pudo registrar el legajo.');
       }
     } catch {
       setErrorMsg('Error de red al procesar el registro asistido.');

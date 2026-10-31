@@ -15,6 +15,8 @@ import { Perfil, Empresa, UserRole } from '@/types/database';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 
+import { resolverEmailParaLoginAction } from '@/app/auth/actions';
+
 export interface AuthUser extends Perfil {
   email?: string;
   empresa?: Empresa | null;
@@ -266,14 +268,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
   }, [isSupabaseConfigured, loadUserData]);
 
-  // Iniciar sesión real contra Supabase Auth
+  // Iniciar sesión real contra Supabase Auth (admite Correo o DNI)
   const login = useCallback(
     async (
-      email: string,
+      identifier: string,
       password?: string
     ): Promise<{ success: boolean; error?: string; role?: UserRole }> => {
       setIsLoading(true);
-      const cleanEmail = email.trim();
+      const cleanIdentifier = identifier.trim();
+
+      if (!cleanIdentifier) {
+        setIsLoading(false);
+        return { success: false, error: 'Por favor ingresá tu correo electrónico o número de DNI.' };
+      }
 
       if (!password) {
         setIsLoading(false);
@@ -289,9 +296,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
 
       try {
+        // Resolver email si el usuario ingresó DNI
+        const resolution = await resolverEmailParaLoginAction(cleanIdentifier);
+        if (!resolution.success || !resolution.email) {
+          setIsLoading(false);
+          return {
+            success: false,
+            error: resolution.error || 'No se pudo verificar la cuenta asociada a los datos ingresados.',
+          };
+        }
+
+        const emailParaAuth = resolution.email;
         const supabase = createClient();
         const { data, error } = await supabase.auth.signInWithPassword({
-          email: cleanEmail,
+          email: emailParaAuth,
           password,
         });
 
@@ -299,7 +317,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           setIsLoading(false);
           let errorMsg = 'Error al iniciar sesión.';
           if (error.message.includes('Invalid login credentials')) {
-            errorMsg = 'Correo electrónico o contraseña incorrectos.';
+            errorMsg = cleanIdentifier.includes('@')
+              ? 'Correo electrónico o contraseña incorrectos.'
+              : 'DNI o contraseña incorrectos.';
           } else if (error.message.includes('Email not confirmed')) {
             errorMsg = 'Debés confirmar tu correo electrónico antes de ingresar.';
           } else if (error.message.includes('Too many requests')) {
@@ -357,7 +377,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setAppliedJobIds([]);
       window.dispatchEvent(new Event('portal_funes_auth_changed'));
       setIsLoading(false);
-      router.push('/login');
+      router.replace('/login');
       router.refresh();
     }
   }, [isSupabaseConfigured, router]);
