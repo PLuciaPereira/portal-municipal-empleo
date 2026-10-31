@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { useAuth } from '@/context/AuthContext';
 import {
   ShieldCheck,
   Building2,
@@ -48,6 +49,15 @@ export default function AdminDashboardPage() {
 
 function AdminDashboardContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const { user, isLoading: isAuthLoading } = useAuth();
+
+  // Guardia de coherencia de sesión en el cliente
+  useEffect(() => {
+    if (!isAuthLoading && !user) {
+      router.replace('/login?redirect=/admin');
+    }
+  }, [isAuthLoading, user, router]);
 
   const [activeTab, setActiveTab] = useState<AdminTab>(() => {
     const tabParam = searchParams.get('tab');

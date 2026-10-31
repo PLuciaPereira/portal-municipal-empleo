@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/Button';
 import {
@@ -49,6 +49,14 @@ export default function EmpresaDashboardPage() {
 
 function EmpresaDashboardContent() {
   const { user, empresa: authEmpresa, refreshUser, isLoading: authLoading } = useAuth();
+  const router = useRouter();
+
+  // Guardia de coherencia de sesión en el cliente
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.replace("/login?redirect=/empresa");
+    }
+  }, [authLoading, user, router]);
   const searchParams = useSearchParams();
 
   const [activeTab, setActiveTab] = useState<TabKey>(() => {

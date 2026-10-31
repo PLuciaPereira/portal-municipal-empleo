@@ -454,7 +454,7 @@ function RegisterEmpresaForm() {
       if (res.requiresEmailConfirmation) {
         setSuccessConfirmation(true);
       } else {
-        router.push('/empresa');
+        router.replace('/empresa');
       }
     } else {
       const errorMsg = res.error || 'No se pudo registrar la empresa.';
