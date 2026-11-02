@@ -462,7 +462,7 @@ export function ManualProfileRegister({ onCreated }: { onCreated?: () => void })
         <section className="p-6 bg-surface border border-zinc-200/90 rounded-2xl shadow-xs space-y-5">
           <h3 className="text-sm font-bold uppercase tracking-wider text-[var(--color-brand-800)] border-b border-zinc-100 pb-3 flex items-center gap-2">
             <ImageIcon className="w-4 h-4" />
-            4. Foto de Perfil y Documentación Adjunta
+            4. Foto de perfil y documentación adjunta
           </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -478,7 +478,7 @@ export function ManualProfileRegister({ onCreated }: { onCreated?: () => void })
 
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                CV o Documento Escaneado (PDF/DOCX/JPG)
+                CV o Documento escaneado (PDF/DOCX/JPG)
               </label>
               <div className="border-2 border-dashed border-slate-200 hover:border-emerald-700/40 rounded-xl p-4 text-center transition-colors">
                 <input
@@ -518,7 +518,7 @@ export function ManualProfileRegister({ onCreated }: { onCreated?: () => void })
             className="w-full sm:w-auto px-8 gap-2 shadow-xs"
           >
             <UserPlus className="w-5 h-5" />
-            {saving ? 'Registrando Legajo...' : 'Guardar y Dar de Alta en Padrón'}
+            {saving ? 'Registrando Legajo...' : 'Guardar y dar de alta en padrón'}
           </Button>
         </div>
       </form>
