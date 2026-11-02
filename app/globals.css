@@ -219,3 +219,69 @@
     flex-direction: column;
   }
 }
+
+
+/* ==========================================================================
+   MICROINTERACCIONES SUTILES Y ACCESIBILIDAD (Gobierno de Funes)
+   ========================================================================== */
+@layer utilities {
+  /* Feedback elástico táctil para botones y elementos clickeables */
+  .interactive-press {
+    transition: transform 120ms cubic-bezier(0.4, 0, 0.2, 1), background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+  }
+  .interactive-press:active {
+    transform: scale(0.98);
+  }
+
+  /* Elevación y borde suave en tarjetas interactivas */
+  .interactive-card {
+    transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1), border-color 180ms ease, box-shadow 180ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .interactive-card:hover {
+    transform: translateY(-2px);
+  }
+}
+
+/* Transición suave para cambio de pestañas en paneles */
+@keyframes tabFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tab-panel-enter {
+  animation: tabFadeIn 180ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Transición suave para modales */
+@keyframes modalScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.modal-enter {
+  animation: modalScaleIn 180ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Accesibilidad: respeta la preferencia de reducción de movimiento */
+@media (prefers-reduced-motion: reduce) {
+  .interactive-press,
+  .interactive-card,
+  .tab-panel-enter,
+  .modal-enter {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+}

@@ -138,7 +138,7 @@ export const HomeHero: React.FC<HomeHeroProps> = ({ latestJobs = [] }) => {
                 <Link
                   key={chip.query}
                   href={`/ofertas?q=${encodeURIComponent(chip.query)}`}
-                  className="px-2.5 py-1 rounded-lg bg-surface hover:bg-brand-50 text-foreground hover:text-brand-900 border border-border hover:border-brand-300 transition-colors shadow-2xs font-medium inline-flex items-center text-xs"
+                  className="px-2.5 py-1 rounded-lg bg-surface hover:bg-brand-50 text-foreground hover:text-brand-900 border border-border hover:border-brand-300 transition-all duration-150 active:scale-[0.98] hover:-translate-y-0.5 shadow-2xs font-medium inline-flex items-center text-xs"
                 >
                   {chip.label}
                 </Link>
@@ -187,7 +187,7 @@ export const HomeHero: React.FC<HomeHeroProps> = ({ latestJobs = [] }) => {
                     <Link
                       key={job.id}
                       href={`/ofertas/${job.id}`}
-                      className="block p-2.5 sm:p-3 rounded-xl bg-surface text-foreground border border-border shadow-xs hover:border-brand-600 hover:shadow-sm transition-all group"
+                      className="block p-2.5 sm:p-3 rounded-xl bg-surface text-foreground border border-border shadow-xs hover:border-brand-600 hover:shadow-sm hover:-translate-y-0.5 transition-all group"
                     >
                       <div className="flex items-center justify-between gap-2.5">
                         <div className="space-y-0.5 min-w-0">
