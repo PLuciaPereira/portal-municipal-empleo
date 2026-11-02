@@ -11,15 +11,45 @@ import {
   MenuIcon,
   XMarkIcon,
   ShieldCheckIcon,
+  ChevronDownIcon,
+  ArrowRightIcon,
 } from '@/components/ui/Icons';
+import { LogIn, PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { NotificationBell } from '@/components/layout/NotificationBell';
 
 export const Navbar: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [empresaDropdownOpen, setEmpresaDropdownOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const lastScrollY = useRef(0);
+  const empresaDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Cerrar dropdown de empresa con click outside o escape
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        empresaDropdownRef.current &&
+        !empresaDropdownRef.current.contains(event.target as Node)
+      ) {
+        setEmpresaDropdownOpen(false);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setEmpresaDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -179,22 +209,93 @@ export const Navbar: React.FC = () => {
               </div>
             ) : (
               <>
+                {/* Desplegable interactivo para Empresas */}
+                <div className="relative" ref={empresaDropdownRef}>
+                  <button
+                    type="button"
+                    onClick={() => setEmpresaDropdownOpen(!empresaDropdownOpen)}
+                    aria-expanded={empresaDropdownOpen}
+                    aria-haspopup="true"
+                    className={`text-xs sm:text-sm font-medium px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer ${
+                      empresaDropdownOpen
+                        ? 'bg-zinc-100 text-brand-900'
+                        : 'text-zinc-700 hover:text-brand-900 hover:bg-zinc-100'
+                    }`}
+                  >
+                    <BuildingIcon className="w-4 h-4 text-zinc-500" />
+                    <span>Empresas</span>
+                    <ChevronDownIcon
+                      className={`w-3.5 h-3.5 text-zinc-400 transition-transform duration-200 ${
+                        empresaDropdownOpen ? 'rotate-180 text-brand-800' : ''
+                      }`}
+                    />
+                  </button>
+
+                  {empresaDropdownOpen && (
+                    <div className="absolute right-0 mt-2 w-72 bg-surface rounded-2xl shadow-xl border border-border p-2 z-50 animate-in fade-in-0 zoom-in-95 duration-150">
+                      <div className="px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-muted-foreground border-b border-border/60 mb-1">
+                        Espacio empresas y comercios
+                      </div>
+                      <Link
+                        href="/login?redirect=/empresa"
+                        onClick={() => setEmpresaDropdownOpen(false)}
+                        className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-brand-50/70 transition-colors group"
+                      >
+                        <div className="w-8 h-8 rounded-lg bg-brand-100 text-brand-800 flex items-center justify-center shrink-0 mt-0.5 group-hover:bg-brand-800 group-hover:text-white transition-colors">
+                          <LogIn className="w-4 h-4" />
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-sm font-semibold text-foreground group-hover:text-brand-900 leading-tight">
+                            Iniciar sesión
+                          </span>
+                          <span className="text-xs text-muted-foreground leading-normal mt-0.5">
+                            Ingresá al panel de tu empresa
+                          </span>
+                        </div>
+                      </Link>
+
+                      <Link
+                        href="/registro/empresa"
+                        onClick={() => setEmpresaDropdownOpen(false)}
+                        className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-brand-50/70 transition-colors group"
+                      >
+                        <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0 mt-0.5 group-hover:bg-brand-800 group-hover:text-white transition-colors">
+                          <PlusCircle className="w-4 h-4" />
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-sm font-semibold text-foreground group-hover:text-brand-900 leading-tight">
+                            Registrar mi empresa
+                          </span>
+                          <span className="text-xs text-muted-foreground leading-normal mt-0.5">
+                            Creá tu cuenta para publicar vacantes
+                          </span>
+                        </div>
+                      </Link>
+
+                      <div className="mt-1 pt-2 border-t border-border/60 px-3 py-1 text-[11px] text-muted-foreground">
+                        Servicio 100% público y gratuito
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Iniciar sesión general */}
                 <Link
-                  href="/registro/empresa"
-                  className="text-xs sm:text-sm font-medium text-zinc-700 hover:text-emerald-800 px-3 py-1.5 rounded-lg hover:bg-zinc-100 transition-colors flex items-center gap-1.5"
+                  href="/login"
+                  className="text-xs sm:text-sm font-medium text-zinc-700 hover:text-brand-900 px-3 py-1.5 rounded-lg hover:bg-zinc-100 transition-colors"
                 >
-                  <BuildingIcon className="w-4 h-4 text-zinc-500" />
-                  Empresas
+                  Iniciar sesión
                 </Link>
 
+                {/* Registrarme (Postulantes) */}
                 <Button
-                  href="/login"
+                  href="/registro"
                   size="sm"
                   variant="primary"
-                  className="flex items-center gap-1.5"
+                  className="flex items-center gap-1.5 shadow-xs"
                 >
                   <UserIcon className="w-4 h-4" />
-                  Ingresar / Registrarme
+                  Registrarme
                 </Button>
               </>
             )}
@@ -271,40 +372,68 @@ export const Navbar: React.FC = () => {
           </nav>
 
           {!isAuthenticated && (
-            <div className="pt-3 border-t border-border/60 flex flex-col gap-2.5">
-              <Button
-                href="/login"
-                variant="primary"
-                size="md"
-                className="w-full justify-center"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <UserIcon className="w-4 h-4 mr-2" />
-                Iniciar sesión / ingresar
-              </Button>
-              <Button
-                href="/registro"
-                variant="outline"
-                size="md"
-                className="w-full justify-center"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Registrarme como postulante
-              </Button>
-              <Button
-                href="/registro/empresa"
-                variant="ghost"
-                size="md"
-                className="w-full justify-center text-foreground border border-border"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <BuildingIcon className="w-4 h-4 mr-2" />
-                Registrar empresa o comercio
-              </Button>
+            <div className="pt-3 border-t border-border/60 flex flex-col gap-4">
+              {/* Sección Postulantes */}
+              <div className="flex flex-col gap-2">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground px-1">
+                  Vecinos y Postulantes
+                </span>
+                <Button
+                  href="/registro"
+                  variant="primary"
+                  size="md"
+                  className="w-full justify-center"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <UserIcon className="w-4 h-4 mr-2" />
+                  Registrarme como postulante
+                </Button>
+                <Button
+                  href="/login"
+                  variant="outline"
+                  size="md"
+                  className="w-full justify-center"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <LogIn className="w-4 h-4 mr-2" />
+                  Iniciar sesión
+                </Button>
+              </div>
+
+              {/* Sección Empresas */}
+              <div className="flex flex-col gap-2 pt-2 border-t border-border/40">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground px-1">
+                  Empresas y Comercios
+                </span>
+                <Link
+                  href="/login?redirect=/empresa"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full py-2.5 px-3 rounded-xl border border-border bg-surface hover:bg-brand-50 flex items-center justify-between text-sm font-semibold text-foreground transition-colors"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <LogIn className="w-4 h-4 text-brand-800" />
+                    <span>Iniciar sesión empresa</span>
+                  </div>
+                  <ArrowRightIcon className="w-4 h-4 text-muted-foreground" />
+                </Link>
+                <Link
+                  href="/registro/empresa"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full py-2.5 px-3 rounded-xl border border-brand-200 bg-brand-50/50 hover:bg-brand-50 flex items-center justify-between text-sm font-semibold text-brand-900 transition-colors"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <BuildingIcon className="w-4 h-4 text-brand-800" />
+                    <span>Registrar mi empresa</span>
+                  </div>
+                  <ArrowRightIcon className="w-4 h-4 text-brand-700" />
+                </Link>
+              </div>
+
+              {/* Acceso Institucional */}
               <Link
                 href="/login?redirect=/admin"
                 onClick={() => setMobileMenuOpen(false)}
-                className="text-center text-xs text-muted-foreground hover:text-foreground pt-2 flex items-center justify-center gap-1"
+                className="text-center text-xs text-muted-foreground hover:text-foreground pt-1 pb-1 flex items-center justify-center gap-1.5"
               >
                 <ShieldCheckIcon className="w-3.5 h-3.5 text-brand-700" />
                 Acceso Oficina de Empleo

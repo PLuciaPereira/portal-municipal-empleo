@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, Suspense } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
@@ -127,7 +127,20 @@ interface FormErrors {
 
 function RegisterPostulanteForm() {
   const router = useRouter();
-  const { register, isLoading } = useAuth();
+  const { user, register, isLoading } = useAuth();
+
+  // Redirigir si el usuario ya se encuentra autenticado
+  useEffect(() => {
+    if (!isLoading && user) {
+      if (user.rol === 'empresa') {
+        router.replace('/empresa');
+      } else if (user.rol === 'admin') {
+        router.replace('/admin');
+      } else {
+        router.replace('/postulante');
+      }
+    }
+  }, [user, isLoading, router]);
 
   const [formData, setFormData] = useState({
     nombre: '',

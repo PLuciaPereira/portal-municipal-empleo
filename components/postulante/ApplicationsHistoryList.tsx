@@ -333,6 +333,7 @@ export const ApplicationsHistoryList: React.FC<ApplicationsHistoryListProps> = (
             return (
               <article
                 key={app.id}
+                id={`postulacion-${app.id}`}
                 className={`border border-zinc-200/90 rounded-xl p-4 sm:p-4.5 shadow-2xs transition-all hover:border-brand-300 ${
                   isRetirado ? 'bg-zinc-50/70 opacity-80' : 'bg-white'
                 }`}

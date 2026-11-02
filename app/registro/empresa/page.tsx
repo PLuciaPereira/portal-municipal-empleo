@@ -141,7 +141,20 @@ const sectionGridStyle: React.CSSProperties = {
 
 function RegisterEmpresaForm() {
   const router = useRouter();
-  const { registerEmpresa, isLoading } = useAuth();
+  const { user, registerEmpresa, isLoading } = useAuth();
+
+  // Redirigir si el usuario ya se encuentra autenticado
+  useEffect(() => {
+    if (!isLoading && user) {
+      if (user.rol === 'empresa') {
+        router.replace('/empresa');
+      } else if (user.rol === 'admin') {
+        router.replace('/admin');
+      } else {
+        router.replace('/postulante');
+      }
+    }
+  }, [user, isLoading, router]);
 
   // Lista de rubros cargada dinámicamente desde base de datos / mock
   

@@ -89,6 +89,14 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL(target, request.url));
   }
 
+  if (pathname === '/postulante/postulaciones') {
+    const targetUrl = new URL('/postulante?tab=postulaciones', request.url);
+    request.nextUrl.searchParams.forEach((val, key) => {
+      if (key !== 'tab') targetUrl.searchParams.set(key, val);
+    });
+    return NextResponse.redirect(targetUrl);
+  }
+
   // 4. Rutas públicas de autenticación (Login / Registro):
   // Si el usuario ya está autenticado, redirigir directamente a su panel correspondiente.
   // Rutas como /recuperar-password, /recuperar-password/cambiar y /auth/callback no redirigen automáticamente
