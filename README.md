@@ -95,44 +95,6 @@ Para la evaluación del sistema se han dispuesto cuentas de prueba precargadas c
 
 ---
 
-## 💻 Instrucciones para Ejecución Local
-
-Si desea clonar y ejecutar el entorno de desarrollo en su equipo local:
-
-### Requisitos Previos
-- **Node.js** (versión 20.x o superior recomendada)
-- Gestor de paquetes **npm** (incluido con Node.js)
-- Un proyecto configurado en **Supabase** con las tablas y esquemas correspondientes
-
-### Pasos de Instalación
-
-1. **Clonar el repositorio:**
-   ```bash
-   git clone https://github.com/PLuciaPereira/portal-municipal-empleo.git
-   cd portal-municipal-empleo
-   ```
-
-2. **Instalar dependencias:**
-   ```bash
-   npm install
-   ```
-
-3. **Configurar las variables de entorno:**  
-   Cree un archivo `.env.local` en la raíz del proyecto tomando como plantilla `.env.example`:
-   ```env
-   NEXT_PUBLIC_SUPABASE_URL=https://tu-proyecto.supabase.co
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-clave-anonima-publica
-   SUPABASE_SERVICE_ROLE_KEY=tu-clave-service-role-privada
-   ```
-
-4. **Iniciar el servidor local:**
-   ```bash
-   npm run dev
-   ```
-   Abra su navegador en [http://localhost:3000](http://localhost:3000) para acceder a la aplicación.
-
----
-
 ## 👥 Equipo de Desarrollo y Contexto Institucional
 
 - **Institución / Organismo:** Funes Tech Lab- Beex
