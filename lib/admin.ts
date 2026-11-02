@@ -329,8 +329,8 @@ export async function getOfertasAdmin(
     }
 
     // Intentar obtener conteo de postulaciones de forma segura sin romper la consulta de ofertas
-    let postulacionesCounts: Record<string, number> = {};
-    let postulacionesNuevasCounts: Record<string, number> = {};
+    const postulacionesCounts: Record<string, number> = {};
+    const postulacionesNuevasCounts: Record<string, number> = {};
     try {
       const { data: postData } = await supabase
         .from('postulaciones')

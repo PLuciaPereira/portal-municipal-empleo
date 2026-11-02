@@ -1,7 +1,7 @@
 -- ==============================================================================
 -- ESQUEMA CONSOLIDADO DE BASE DE DATOS — PORTAL DE EMPLEO MUNICIPALIDAD DE FUNES
 -- ==============================================================================
--- Estado consolidado resultante de las migraciones 000 a 006 sobre PostgreSQL / Supabase.
+-- Estado consolidado resultante de las migraciones 000 a 021 sobre PostgreSQL / Supabase.
 -- Propósito: Referencia técnica fidedigna del esquema real (tablas, tipos ENUM,
 -- claves foráneas con sus nombres reales en el catálogo, vistas, funciones RPC,
 -- triggers, políticas RLS, configuración de Storage y privilegios SQL GRANT).
@@ -1809,3 +1809,38 @@ GRANT EXECUTE ON FUNCTION public.registrar_contratacion_empresa(UUID) TO authent
 
 REVOKE ALL ON FUNCTION public.obtener_candidatos_empresa(UUID) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.obtener_candidatos_empresa(UUID) TO authenticated;
+
+-- ==============================================================================
+-- 3.13 NOTIFICACIONES DEL SISTEMA (Migración 015 y 018)
+-- ==============================================================================
+CREATE TABLE IF NOT EXISTS public.notificaciones (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    titulo TEXT NOT NULL,
+    mensaje TEXT NOT NULL,
+    tipo TEXT NOT NULL DEFAULT 'sistema' CHECK (tipo IN ('sistema', 'postulacion', 'entrevista', 'curso', 'empresa', 'oferta')),
+    link TEXT,
+    leida BOOLEAN NOT NULL DEFAULT false,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
+);
+
+CREATE INDEX IF NOT EXISTS idx_notificaciones_user_leida ON public.notificaciones(user_id, leida);
+CREATE INDEX IF NOT EXISTS idx_notificaciones_created_at ON public.notificaciones(created_at DESC);
+
+ALTER TABLE public.notificaciones ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Usuarios ven sus propias notificaciones"
+    ON public.notificaciones FOR SELECT
+    TO authenticated
+    USING (auth.uid() = user_id);
+
+CREATE POLICY "Usuarios marcan como leidas sus notificaciones"
+    ON public.notificaciones FOR UPDATE
+    TO authenticated
+    USING (auth.uid() = user_id)
+    WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Insercion autorizada de notificaciones"
+    ON public.notificaciones FOR INSERT
+    TO authenticated, service_role
+    WITH CHECK (true);
