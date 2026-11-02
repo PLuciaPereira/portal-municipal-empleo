@@ -398,9 +398,9 @@ export function CandidatesTable({
                           Nuevo derivado
                         </span>
                       )}
-                      {isEntrevista && <Badge variant="brand">En Entrevista</Badge>}
+                      {isEntrevista && <Badge variant="brand">En entrevista</Badge>}
                       {isContratado && <Badge variant="emerald">Contratado</Badge>}
-                      {isRechazado && <Badge variant="rose">Rechazado por Empresa</Badge>}
+                      {isRechazado && <Badge variant="rose">Rechazado por empresa</Badge>}
                     </div>
                     <p className="text-xs text-zinc-500 mt-0.5">
                       Postulado a: <strong>{cand.oferta_titulo}</strong> • Derivado:{' '}
@@ -516,7 +516,7 @@ export function CandidatesTable({
                   </div>
                   <div className="flex items-center gap-1.5">
                     <GraduationCapIcon className="w-4 h-4 text-zinc-400 shrink-0" />
-                    <span>Nivel Educativo: {cand.nivel_educativo || 'No especificado'}</span>
+                    <span>Nivel educativo: {cand.nivel_educativo || 'No especificado'}</span>
                   </div>
                   {cand.resumen_laboral && (
                     <div className="sm:col-span-2 md:col-span-3 text-zinc-700 bg-zinc-50 p-2.5 rounded-xl border border-zinc-150">

@@ -49,7 +49,7 @@ if (!isOpen || !oferta) return null;
       aria-labelledby="modal-oferta-title"
       className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
     >
-      <div className="relative w-full max-w-3xl bg-white rounded-2xl shadow-2xl border border-zinc-200 overflow-hidden my-8">
+      <div className="relative w-full max-w-3xl max-h-[92dvh] flex flex-col bg-white rounded-2xl shadow-2xl border border-zinc-200 overflow-hidden my-auto">
         {/* Cabecera */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100 bg-zinc-50/70">
           <div className="flex items-center gap-3">
@@ -86,14 +86,14 @@ if (!isOpen || !oferta) return null;
         </div>
 
         {/* Contenido scrolleable */}
-        <div className="p-6 space-y-6 max-h-[calc(85vh-130px)] overflow-y-auto">
+        <div className="p-4 sm:p-6 space-y-5 overflow-y-auto flex-1 scroll-smooth">
 
 
           {/* Estado de Moderación y Auditoría */}
           <div className="p-4 rounded-xl border border-zinc-200 bg-zinc-50/50 flex flex-wrap items-center justify-between gap-4">
             <div>
               <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500 block">
-                Estado Operativo
+                Estado operativo
               </span>
               <div className="mt-1 flex items-center gap-2">
                 <JobStatusBadge estado={oferta.estado} isDeleted={isBaja} />
@@ -182,7 +182,7 @@ if (!isOpen || !oferta) return null;
             </div>
             <div className="p-3 rounded-xl border border-zinc-200 bg-white space-y-1">
               <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 block">
-                Fecha Límite
+                Fecha límite
               </span>
               <p className="font-semibold text-zinc-800">
                 {oferta.fecha_limite
@@ -207,7 +207,7 @@ if (!isOpen || !oferta) return null;
           <div className="p-4 rounded-xl border border-zinc-200 bg-white space-y-3">
             <h3 className="text-xs font-bold text-zinc-900 uppercase tracking-wider flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4 text-brand-800" />
-              Requisitos y Competencias Exigidas
+              Requisitos y competencias exigidas
             </h3>
             <p className="text-xs text-zinc-700 whitespace-pre-wrap leading-relaxed">
               {oferta.requisitos}
@@ -224,7 +224,7 @@ if (!isOpen || !oferta) return null;
         {/* Pie de Acciones */}
         <div className="px-6 py-4 bg-zinc-50/80 border-t border-zinc-100 flex flex-wrap items-center justify-between gap-3">
           <Button variant="outline" size="sm" onClick={onClose}>
-            Cerrar Ficha
+            Cerrar ficha
           </Button>
 
           <div className="flex items-center gap-2">
@@ -254,7 +254,7 @@ if (!isOpen || !oferta) return null;
                 className="gap-1.5"
               >
                 <BadgeAlert className="w-4 h-4" />
-                Dar de Baja
+                Dar de baja
               </Button>
             )}
 
@@ -267,7 +267,7 @@ if (!isOpen || !oferta) return null;
                 className="gap-1.5"
               >
                 <XCircle className="w-4 h-4" />
-                Rechazar Oferta
+                Rechazar oferta
               </Button>
             )}
 
@@ -280,7 +280,7 @@ if (!isOpen || !oferta) return null;
                 className="gap-1.5 bg-brand-800 hover:bg-brand-900"
               >
                 <CheckCircle2 className="w-4 h-4" />
-                Aprobar y Publicar
+                Aprobar y publicar
               </Button>
             )}
           </div>

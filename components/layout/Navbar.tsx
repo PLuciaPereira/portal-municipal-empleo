@@ -52,9 +52,9 @@ export const Navbar: React.FC = () => {
   const { user, empresa, isAuthenticated, logout } = useAuth();
 
   const navLinks = [
-    { label: 'Ofertas Laborales', href: '/ofertas' },
+    { label: 'Ofertas laborales', href: '/ofertas' },
     { label: 'Rubros', href: '/#rubros' },
-    { label: 'Cómo Funciona', href: '/#como-funciona' },
+    { label: 'Cómo funciona', href: '/#como-funciona' },
     { label: 'Cursos', href: '/#capacitaciones' },
     { label: 'Oficina de Empleo', href: '/#contacto' },
   ];
@@ -280,7 +280,7 @@ export const Navbar: React.FC = () => {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <UserIcon className="w-4 h-4 mr-2" />
-                Iniciar Sesión / Ingresar
+                Iniciar sesión / ingresar
               </Button>
               <Button
                 href="/registro"
@@ -289,7 +289,7 @@ export const Navbar: React.FC = () => {
                 className="w-full justify-center"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Registrarme como Postulante
+                Registrarme como postulante
               </Button>
               <Button
                 href="/registro/empresa"
@@ -299,7 +299,7 @@ export const Navbar: React.FC = () => {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <BuildingIcon className="w-4 h-4 mr-2" />
-                Registrar Empresa o Comercio
+                Registrar empresa o comercio
               </Button>
               <Link
                 href="/login?redirect=/admin"

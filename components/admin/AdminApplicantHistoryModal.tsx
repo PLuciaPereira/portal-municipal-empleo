@@ -93,7 +93,7 @@ export function AdminApplicantHistoryModal({
             <div>
               <div className="flex items-center gap-2">
                 <h2 id="modal-history-title" className="text-base sm:text-lg font-bold text-zinc-900 leading-tight">
-                  Historial de Postulaciones y Derivaciones
+                  Historial de postulaciones y derivaciones
                 </h2>
               </div>
               <span className="text-xs text-zinc-500 font-medium">
@@ -132,7 +132,7 @@ export function AdminApplicantHistoryModal({
 
             <div className="p-3 rounded-xl border border-blue-200/80 bg-blue-50/50">
               <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700 block">
-                En Derivación
+                En derivación
               </span>
               <span className="text-lg font-extrabold text-blue-900 block mt-0.5">
                 {enDerivacion}
@@ -156,7 +156,7 @@ export function AdminApplicantHistoryModal({
               }`}
             >
               <span className="text-[10px] font-bold uppercase tracking-wider block">
-                Rechazos Empresa
+                Rechazos empresa
               </span>
               <span
                 className={`text-lg font-extrabold block mt-0.5 ${
@@ -260,7 +260,7 @@ export function AdminApplicantHistoryModal({
         {/* Pie de Acciones */}
         <div className="px-6 py-4 bg-zinc-50/80 border-t border-zinc-100 flex items-center justify-end">
           <Button variant="primary" size="sm" onClick={onClose} className="bg-brand-800 hover:bg-brand-900 text-xs">
-            Cerrar Historial
+            Cerrar historial
           </Button>
         </div>
       </div>

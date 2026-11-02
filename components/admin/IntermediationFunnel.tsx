@@ -175,8 +175,10 @@ export function IntermediationFunnel({
     }
   };
 
-  // Marcar como Recibido / En revisión técnica
+  // Marcar como Recibido / En revisión técnica y abrir legajo de inmediato
   const handleMarcarRevision = async (post: PostulacionAdminItem) => {
+    // Abrir inmediatamente el modal de legajo para optimizar el flujo del orientador
+    handleOpenApplicantModal(post);
     setActionLoading(true);
     setFeedback(null);
     const res = await cambiarEstadoPostulacionAdmin(post.id, 'en_revision');
@@ -184,7 +186,7 @@ export function IntermediationFunnel({
     if (res.success) {
       setFeedback({
         type: 'success',
-        message: `La postulación de ${post.postulante?.nombre} fue marcada como "Recibida / En revisión técnica".`,
+        message: `La postulación de ${post.postulante?.nombre} pasó a "En revisión" y se abrió su legajo.`,
       });
       void loadData();
       onUpdated?.();
@@ -237,7 +239,7 @@ export function IntermediationFunnel({
     if (res.success) {
       setFeedback({
         type: 'success',
-        message: `El candidato ${targetPostulacion.postulante?.nombre} fue formalmente derivado a ${oferta.empresa?.nombre_fantasia || 'la empresa'}. Ya tiene acceso a sus datos de contacto y CV.`,
+        message: `El candidato ${targetPostulacion.postulante?.nombre} fue formalmente derivado a ${oferta.empresa?.nombre_fantasia || 'la empresa'}. `,
       });
       void loadData();
       onUpdated?.();
@@ -409,7 +411,7 @@ export function IntermediationFunnel({
             }`}
           >
             <Clock className="w-3.5 h-3.5 text-amber-600" />
-            En Revisión Técnica ({counts.en_revision})
+            En revisión técnica ({counts.en_revision})
           </button>
 
           <button
@@ -537,15 +539,15 @@ export function IntermediationFunnel({
             />
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+          <div className="overflow-x-auto scroll-smooth">
+            <table className="w-full min-w-[750px] text-left text-xs">
               <thead className="bg-zinc-50/80 text-zinc-600 border-b border-zinc-200 uppercase tracking-wider font-semibold text-[11px]">
                 <tr>
                   <th className="py-3.5 px-4">Postulante</th>
                   <th className="py-3.5 px-4">Localidad & Contacto</th>
                   <th className="py-3.5 px-4">CV Utilizado</th>
-                  <th className="py-3.5 px-4">Estado Actual</th>
-                  <th className="py-3.5 px-4">Fecha Postulación</th>
+                  <th className="py-3.5 px-4">Estado actual</th>
+                  <th className="py-3.5 px-4">Fecha postulación</th>
                   <th className="py-3.5 px-4 text-right">Intermediación / Acciones</th>
                 </tr>
               </thead>
@@ -661,23 +663,23 @@ export function IntermediationFunnel({
                             <span className="hidden sm:inline">Legajo</span>
                           </Button>
 
-                          {/* 1. Paso a En Revisión si está en Postulado */}
+                          {/* 1. Paso a En Revisión con apertura de Legajo */}
                           {isPostulado && (
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={() => handleMarcarRevision(post)}
                               disabled={actionLoading}
-                              className="h-8 px-2.5 text-xs text-amber-800 hover:bg-amber-50 gap-1 border-amber-200"
-                              title="Marcar como recibido y en revisión técnica"
+                              className="h-8 px-2.5 text-xs text-amber-800 hover:bg-amber-50 gap-1.5 border-amber-300 font-bold bg-amber-50/50 shadow-2xs"
+                              title="Revisar legajo y marcar en revisión técnica"
                             >
                               <Clock className="w-3.5 h-3.5 text-amber-600" />
                               <span>Revisar</span>
                             </Button>
                           )}
 
-                          {/* 2. Registrar Entrevista Previa (Opcional, si está en revisión) */}
-                          {(isEnRevision || isPostulado) && (
+                          {/* 2. Registrar Entrevista Previa (si está en revisión) */}
+                          {isEnRevision && (
                             <Button
                               variant="ghost"
                               size="sm"
@@ -693,31 +695,39 @@ export function IntermediationFunnel({
                             </Button>
                           )}
 
-                          {/* 3. Derivar formalmente a la Empresa si está en revisión o entrevista */}
-                          {(isEnRevision || isEntrevista || isPostulado) && (
+                          {/* 3. Derivar formalmente a la Empresa si está en revisión o ya completó entrevista */}
+                          {(isEnRevision || isEntrevista) && (
                             <Button
                               variant="primary"
                               size="sm"
                               onClick={() => handleInitiateDerive(post)}
-                              className="h-8 px-2.5 bg-brand-800 hover:bg-brand-900 text-xs gap-1"
-                              title="Derivar formalmente a la empresa"
+                              className="h-8 px-2.5 bg-brand-800 hover:bg-brand-900 text-xs gap-1 shadow-2xs"
+                              title="Derivar formalmente a la empresa para que acceda al CV y contacto"
                             >
                               <Send className="w-3.5 h-3.5" />
                               <span>Derivar</span>
                             </Button>
                           )}
 
-                          {/* 4. No Derivar (Cierre con aviso exclusivo para el postulante) */}
-                          {!isNoDerivado && !isResueltoEmpresa && (
+                          {/* 4. Indicador de derivado activo */}
+                          {isDerivado && (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 text-[11px] font-bold border border-emerald-200">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                              <span>Presentado a empresa</span>
+                            </span>
+                          )}
+
+                          {/* 5. No Derivar (Disponible durante la preselección municipal: postulado, en revisión o entrevista) */}
+                          {(isPostulado || isEnRevision || isEntrevista) && (
                             <Button
                               variant="destructive"
                               size="sm"
                               onClick={() => handleInitiateReject(post)}
                               className="h-8 px-2 text-xs gap-1"
-                              title="No derivar a empresa y cerrar postulación con aviso al postulante"
+                              title="No derivar a empresa y cerrar postulación con devolución al postulante"
                             >
                               <XCircle className="w-3.5 h-3.5" />
-                              <span className="hidden sm:inline">No Derivar</span>
+                              <span className="hidden sm:inline">No derivar</span>
                             </Button>
                           )}
                         </div>

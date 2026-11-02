@@ -41,7 +41,7 @@ function RegistroPostulanteAside() {
           </div>
           <div className="space-y-2">
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white tracking-tight">
-              Registro de Postulantes
+              Registro de postulantes
             </h1>
             <p className="text-sm text-brand-200 leading-relaxed">
               Creá tu cuenta para acceder a las búsquedas laborales vigentes y recibir acompañamiento de la Oficina de Empleo.
@@ -105,7 +105,7 @@ function RegistroPostulanteFooterLinks() {
           href="/registro/empresa"
           className="font-semibold text-brand-800 hover:text-brand-900 underline underline-offset-2 focus:outline-none focus:ring-1 focus:ring-brand-800 rounded-xs"
         >
-          Registrate como Empresa
+          Registrate como empresa
         </Link>
       </div>
     </div>
@@ -370,7 +370,7 @@ function RegisterPostulanteForm() {
 
             <div className="pt-2 w-full sm:w-auto">
               <Button href="/login" variant="primary" size="lg" className="w-full sm:w-auto px-8 justify-center">
-                Ir a Iniciar Sesión
+                Ir a iniciar sesión
               </Button>
             </div>
           </div>

@@ -142,7 +142,7 @@ export const ProfilePersonalModal: React.FC<ProfilePersonalModalProps> = ({
 
         <div className="mb-5">
           <h3 id="edit-personal-modal-title" className="text-xl font-bold text-zinc-900 font-sans">
-            Datos Personales y Contacto
+            Datos personales y contacto
           </h3>
           <p className="text-xs text-zinc-500 mt-0.5">
             Información de identidad y vías de contacto directo resguardadas por la Oficina de Empleo.
@@ -156,7 +156,7 @@ export const ProfilePersonalModal: React.FC<ProfilePersonalModalProps> = ({
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Foto de Perfil */}
+          {/* Foto de perfil */}
           <div className="p-3.5 bg-brand-50/60 rounded-xl border border-brand-100 flex flex-col sm:flex-row items-center gap-3.5">
             <div className="relative shrink-0">
               {avatarPreview ? (
@@ -173,7 +173,7 @@ export const ProfilePersonalModal: React.FC<ProfilePersonalModalProps> = ({
             </div>
 
             <div className="space-y-1 text-center sm:text-left flex-1">
-              <span className="text-xs font-bold text-zinc-900 block">Foto de Perfil</span>
+              <span className="text-xs font-bold text-zinc-900 block">Foto de perfil</span>
               <p className="text-[11px] text-zinc-500 leading-tight">
                 JPG, PNG o WebP (máx. 2MB).
               </p>
@@ -276,7 +276,7 @@ export const ProfilePersonalModal: React.FC<ProfilePersonalModalProps> = ({
               size="sm"
               isLoading={isSaving}
             >
-              Guardar Datos Personales
+              Guardar datos personales
             </Button>
           </div>
         </form>

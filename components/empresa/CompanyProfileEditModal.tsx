@@ -152,7 +152,7 @@ export const CompanyProfileEditModal: React.FC<CompanyProfileEditModalProps> = (
                 id="company-profile-modal-title"
                 className="text-lg font-extrabold text-[#10231B] font-display"
               >
-                {isReenvio ? 'Corregir Datos y Reenviar Solicitud' : 'Editar Perfil de la Empresa'}
+                {isReenvio ? 'Corregir datos y reenviar solicitud' : 'Editar perfil de la empresa'}
               </h2>
               <p className="text-xs text-[#4B6256]">
                 {isReenvio ? 'Modificá los datos observados por la Oficina de Empleo para volver a solicitar la habilitación municipal.' : 'Actualizá tus datos comerciales y vías de contacto directo.'}
@@ -187,7 +187,7 @@ export const CompanyProfileEditModal: React.FC<CompanyProfileEditModalProps> = (
                   Datos de validez legal y fiscal registrados ante el Municipio
                 </span>
                 <span className="text-[11px] text-zinc-600 leading-relaxed block mt-0.5">
-                  El CUIT y la Razón Social están validados por la Oficina de Empleo de Funes. Si necesitás rectificarlos, contactá al equipo municipal de intermediación.
+                  El CUIT y la razón social están validados por la Oficina de Empleo de Funes. Si necesitás rectificarlos, contactá al equipo municipal de intermediación.
                 </span>
               </div>
             </div>
@@ -203,7 +203,7 @@ export const CompanyProfileEditModal: React.FC<CompanyProfileEditModalProps> = (
               </div>
               <div className="bg-white px-3.5 py-2.5 rounded-xl border border-zinc-200">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-600 block">
-                  Razón Social Legal
+                  Razón social legal
                 </span>
                 <span className="text-xs font-bold text-zinc-800 truncate block">
                   {empresa.razon_social || 'Sin especificar'}
@@ -224,13 +224,13 @@ export const CompanyProfileEditModal: React.FC<CompanyProfileEditModalProps> = (
               ) : (
                 <div className="w-20 h-20 rounded-2xl bg-white border-2 border-emerald-200 flex flex-col items-center justify-center text-emerald-800 shadow-sm">
                   <Building2 className="w-8 h-8" />
-                  <span className="text-[10px] font-semibold mt-1">Sin Logo</span>
+                  <span className="text-[10px] font-semibold mt-1">Sin logo</span>
                 </div>
               )}
             </div>
 
             <div className="space-y-1.5 text-center sm:text-left flex-1">
-              <h4 className="text-xs font-bold text-zinc-900">Logotipo Institucional</h4>
+              <h4 className="text-xs font-bold text-zinc-900">Logotipo institucional</h4>
               <p className="text-[11px] text-zinc-500 leading-relaxed">
                 Aparecerá en el encabezado de tu panel y en tus publicaciones laborales en el portal. Formatos JPG o PNG hasta 2MB.
               </p>
@@ -328,7 +328,7 @@ export const CompanyProfileEditModal: React.FC<CompanyProfileEditModalProps> = (
 
               <div>
                 <label className="block text-xs font-bold text-zinc-700 mb-1">
-                  Sitio Web o Red Social
+                  Sitio web o red social
                 </label>
                 <Input
                   type="url"
@@ -395,7 +395,7 @@ export const CompanyProfileEditModal: React.FC<CompanyProfileEditModalProps> = (
               disabled={isSaving}
               className="bg-[#0E4D36] hover:bg-[#06402B] text-white"
             >
-              {isSaving ? 'Enviando...' : isReenvio ? 'Reenviar Solicitud de Habilitación' : 'Guardar Cambios'}
+              {isSaving ? 'Enviando...' : isReenvio ? 'Reenviar solicitud de habilitación' : 'Guardar cambios'}
             </Button>
           </div>
         </form>

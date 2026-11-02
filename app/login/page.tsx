@@ -204,7 +204,7 @@ function LoginForm() {
               href="/registro"
               className="font-semibold text-brand-800 hover:text-brand-900 hover:underline transition-colors"
             >
-              Registrate como Postulante
+              Registrate como postulante
             </Link>
           </p>
           <p className="m-0 leading-normal">
@@ -213,7 +213,7 @@ function LoginForm() {
               href="/registro/empresa"
               className="font-semibold text-brand-800 hover:text-brand-900 hover:underline transition-colors"
             >
-              Registrá tu Empresa acá
+              Registrá tu empresa acá
             </Link>
           </p>
         </div>

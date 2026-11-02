@@ -118,7 +118,7 @@ const PublicFooter: React.FC = () => {
             <ul className="space-y-1.5 text-xs text-zinc-400">
               <li>
                 <Link href="/ofertas" className="hover:text-brand-300 transition-colors">
-                  Ofertas Laborales Activas
+                  Ofertas laborales activas
                 </Link>
               </li>
               <li>
@@ -128,12 +128,12 @@ const PublicFooter: React.FC = () => {
               </li>
               <li>
                 <Link href="/registro" className="hover:text-brand-300 transition-colors">
-                  Registro para Postulantes
+                  Registro para postulantes
                 </Link>
               </li>
               <li>
                 <Link href="/registro/empresa" className="hover:text-brand-300 transition-colors">
-                  Espacio para Empresas
+                  Espacio para empresas
                 </Link>
               </li>
             </ul>
@@ -171,7 +171,7 @@ const PublicFooter: React.FC = () => {
               <div className="flex items-center gap-1.5 mb-1 text-brand-400">
                 <ShieldCheckIcon className="w-3.5 h-3.5 shrink-0" />
                 <span className="text-[11px] font-semibold uppercase tracking-wide">
-                  Intermediación Segura
+                  Intermediación segura
                 </span>
               </div>
               <p className="text-[11px] text-zinc-300 leading-snug">

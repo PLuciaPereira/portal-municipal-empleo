@@ -51,7 +51,7 @@ function RegistroEmpresaAside() {
           </div>
           <div className="space-y-2">
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white tracking-tight">
-              Registro de Empresas y Comercios
+              Registro de empresas y comercios
             </h1>
             <p className="text-sm text-brand-200 leading-relaxed">
               Completá los datos comerciales y de acceso para comenzar a publicar búsquedas laborales en la ciudad de Funes.
@@ -125,7 +125,7 @@ function RegistroEmpresaFooterLinks() {
           href="/registro"
           className="font-semibold text-brand-800 hover:text-brand-900 underline underline-offset-2 focus:outline-none focus:ring-1 focus:ring-brand-800 rounded-xs"
         >
-          Registrate como Postulante
+          Registrate como postulante
         </Link>
       </div>
     </div>
@@ -302,7 +302,7 @@ function RegisterEmpresaForm() {
 
     // 1. Datos de la empresa
     if (!formData.razonSocial.trim()) {
-      newErrors.razonSocial = 'Por favor ingresá la Razón Social.';
+      newErrors.razonSocial = 'Por favor ingresá la razón social.';
     }
 
     const cuitResult = validateCuitModulo11(formData.cuit);
@@ -512,7 +512,7 @@ function RegisterEmpresaForm() {
 
             <div className="pt-2 w-full sm:w-auto">
               <Button href="/login" variant="primary" size="lg" className="w-full sm:w-auto px-8 justify-center">
-                Ir a Iniciar Sesión
+                Ir a iniciar sesión
               </Button>
             </div>
           </div>
@@ -581,7 +581,7 @@ function RegisterEmpresaForm() {
                 required
                 label={
                   <span>
-                    Razón Social <span className="text-destructive" aria-hidden="true">*</span>
+                    Razón social <span className="text-destructive" aria-hidden="true">*</span>
                   </span>
                 }
                 placeholder="Ej: Funes Retail S.R.L."
@@ -629,7 +629,7 @@ function RegisterEmpresaForm() {
                 name="nombreFantasia"
                 label={
                   <span className="flex items-center gap-1.5">
-                    <span>Nombre de Fantasía</span>
+                    <span>Nombre de fantasía</span>
                     <span className="text-xs font-normal text-muted-foreground">(opcional)</span>
                   </span>
                 }

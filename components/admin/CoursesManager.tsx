@@ -255,7 +255,7 @@ export function CoursesManager() {
             }`}
           >
             <Users className="w-4 h-4" />
-            <span>Postulantes Derivados ({totalDerivaciones})</span>
+            <span>Postulantes derivados ({totalDerivaciones})</span>
           </button>
         </div>
 
@@ -271,7 +271,7 @@ export function CoursesManager() {
               className="bg-brand-800 hover:bg-brand-900 text-white gap-1.5 shadow-2xs"
             >
               <Plus className="w-4 h-4" />
-              <span>Nuevo Curso</span>
+              <span>Nuevo curso</span>
             </Button>
           ) : (
             <Button
@@ -285,7 +285,7 @@ export function CoursesManager() {
               className="bg-brand-800 hover:bg-brand-900 text-white gap-1.5 shadow-2xs"
             >
               <UserPlus className="w-4 h-4" />
-              <span>Derivar Postulante</span>
+              <span>Derivar postulante</span>
             </Button>
           )}
 
@@ -334,7 +334,7 @@ export function CoursesManager() {
                 className="w-full h-9 text-xs rounded-xl border border-zinc-200 bg-white px-2.5 text-zinc-700 focus:outline-hidden focus:border-brand-500 font-medium"
               >
                 <option value="todos">Todos los cursos</option>
-                <option value="activos">Sólo Activos ({totalActivos})</option>
+                <option value="activos">Solo activos ({totalActivos})</option>
                 <option value="inactivos">Inactivos / Desactivados</option>
               </select>
             </div>
@@ -536,11 +536,11 @@ export function CoursesManager() {
                   <thead className="bg-zinc-50 border-b border-zinc-200 text-zinc-500 font-bold uppercase tracking-wider text-[10px]">
                     <tr>
                       <th className="py-3 px-4">Postulante / Residencia</th>
-                      <th className="py-3 px-4">Curso Asignado</th>
-                      <th className="py-3 px-4">Fecha Asignación</th>
+                      <th className="py-3 px-4">Curso asignado</th>
+                      <th className="py-3 px-4">Fecha asignación</th>
                       <th className="py-3 px-4">Estado</th>
                       <th className="py-3 px-4">Observaciones OE</th>
-                      <th className="py-3 px-4 text-right">Actualizar Estado</th>
+                      <th className="py-3 px-4 text-right">Actualizar estado</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-zinc-100">

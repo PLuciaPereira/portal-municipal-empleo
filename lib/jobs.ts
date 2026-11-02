@@ -202,7 +202,6 @@ export async function getJobs(filters?: JobFilterParams): Promise<{ jobs: Job[];
       }
 
       return qBuilder
-        .order('destacada', { ascending: false })
         .order('created_at', { ascending: false });
     };
 

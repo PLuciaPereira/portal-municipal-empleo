@@ -147,7 +147,7 @@ const isEditing = Boolean(curso);
 
             <div>
               <label className="block text-xs font-bold text-zinc-700 mb-1">
-                Duración Estimada
+                Duración estimada
               </label>
               <div className="relative">
                 <Input
@@ -165,7 +165,7 @@ const isEditing = Boolean(curso);
 
           <div>
             <label className="block text-xs font-bold text-zinc-700 mb-1">
-              Descripción y Contenidos
+              Descripción y contenidos
             </label>
             <div className="relative">
               <textarea
@@ -219,7 +219,7 @@ const isEditing = Boolean(curso);
                   Guardando...
                 </>
               ) : isEditing ? (
-                'Guardar Cambios'
+                'Guardar cambios'
               ) : (
                 'Crear Capacitación'
               )}

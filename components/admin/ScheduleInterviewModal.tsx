@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Building2, Phone, Video, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { TimePicker } from '@/components/ui/TimePicker';
 
 export interface ScheduleInterviewModalProps {
   isOpen: boolean;
@@ -65,7 +66,7 @@ export function ScheduleInterviewModal({
       aria-labelledby="schedule-modal-title"
       className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200"
     >
-      <div className="relative bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200">
+      <div className="relative bg-white rounded-2xl max-w-lg w-full max-h-[92dvh] flex flex-col p-4 sm:p-6 shadow-2xl border border-slate-200 overflow-y-auto my-auto">
         <button
           type="button"
           onClick={onClose}
@@ -77,7 +78,7 @@ export function ScheduleInterviewModal({
 
         <div className="mb-4">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-bold mb-2">
-            Entrevista Preliminar Municipal
+            Entrevista preliminar municipal
           </div>
           <h3 id="schedule-modal-title" className="text-lg font-bold text-slate-900">
             Coordinar Cita con el Postulante
@@ -99,12 +100,12 @@ export function ScheduleInterviewModal({
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Hora *</label>
-              <Input
-                type="time"
+              <label className="block text-xs font-bold text-slate-700 mb-1">Hora de inicio *</label>
+              <TimePicker
                 required
                 value={hora}
-                onChange={(e) => setHora(e.target.value)}
+                onChange={setHora}
+                disabled={loading}
               />
             </div>
           </div>
@@ -204,7 +205,7 @@ export function ScheduleInterviewModal({
             </Button>
             <Button variant="primary" type="submit" disabled={loading} className="gap-1.5">
               <Check className="w-4 h-4" />
-              {loading ? 'Agendando...' : 'Confirmar y Notificar'}
+              {loading ? 'Agendando...' : 'Confirmar entrevista'}
             </Button>
           </div>
         </form>

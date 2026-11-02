@@ -96,7 +96,7 @@ const [email, setEmail] = useState('');
             </div>
             <div>
               <h2 className="text-base font-bold text-zinc-900">
-                Alta de Administrador Municipal
+                Alta de administrador municipal
               </h2>
               <p className="text-xs text-zinc-500">
                 Incorporación de un nuevo miembro par a la Oficina de Empleo.
@@ -184,7 +184,7 @@ const [email, setEmail] = useState('');
 
             <div>
               <label className="block text-xs font-bold text-zinc-700 mb-1">
-                Teléfono de Contacto
+                Teléfono de contacto
               </label>
               <div className="relative">
                 <Input
@@ -204,7 +204,7 @@ const [email, setEmail] = useState('');
           <div className="border-t border-zinc-100 pt-3 space-y-3">
             <div>
               <label className="block text-xs font-bold text-zinc-700 mb-1">
-                Correo Electrónico Institucional <span className="text-red-500">*</span>
+                Correo electrónico institucional <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <Input
@@ -222,7 +222,7 @@ const [email, setEmail] = useState('');
 
             <div>
               <label className="block text-xs font-bold text-zinc-700 mb-1">
-                Contraseña Inicial Provisoria <span className="text-red-500">*</span>
+                Contraseña inicial provisoria <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <Input

@@ -95,7 +95,7 @@ const [prevAdminId, setPrevAdminId] = useState<string | null>(null);
               <Pencil className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-sm font-bold text-zinc-900">Editar Administrador</h2>
+              <h2 className="text-sm font-bold text-zinc-900">Editar administrador</h2>
               <p className="text-[11px] text-zinc-500">
                 Actualizar datos personales y de contacto de la cuenta.
               </p>
@@ -189,7 +189,7 @@ const [prevAdminId, setPrevAdminId] = useState<string | null>(null);
               className="bg-brand-800 hover:bg-brand-900"
             >
               {loading && <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" />}
-              Guardar Cambios
+              Guardar cambios
             </Button>
           </div>
         </form>

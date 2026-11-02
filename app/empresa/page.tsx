@@ -214,21 +214,21 @@ function EmpresaDashboardContent() {
 
   return (
     <div className="min-h-screen bg-page text-foreground flex flex-col font-sans">
-      {/* 1. Banda Verde Superior Institucional Funes Compacta (~72px de alto en Desktop) */}
-      <section className="bg-gradient-to-r from-brand-950 via-brand-900 to-brand-800 text-white border-b border-brand-950/40 shadow-sm py-3 sm:py-3.5 min-h-[72px] flex items-center">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 w-full flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
-          {/* Lado Izquierdo: Avatar 44px + Info en 1-2 líneas compactas */}
-          <div className="flex items-center gap-3 min-w-0 flex-1">
-            {/* Avatar Cuadrado 44px con botón de cámara integrado */}
-            <div className="relative w-[44px] h-[44px] shrink-0 group">
+      {/* 1. Banda Verde Superior Institucional Funes Compacta */}
+      <section className="bg-gradient-to-r from-brand-950 via-brand-900 to-brand-800 text-white border-b border-brand-950/40 shadow-sm py-4 sm:py-5 min-h-[72px] flex items-center">
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 w-full flex flex-col md:flex-row md:items-center justify-between gap-4">
+          {/* Lado Izquierdo: Avatar con botón de cámara + Info en varias líneas organizadas */}
+          <div className="flex items-center gap-3.5 sm:gap-4 min-w-0 flex-1">
+            {/* Avatar Cuadrado redondeado con botón de cámara integrado */}
+            <div className="relative w-[44px] h-[44px] sm:w-[50px] sm:h-[50px] shrink-0 group">
               {displayEmpresa?.logo_url ? (
                 <img
                   src={displayEmpresa.logo_url}
                   alt={empresaNombre}
-                  className="w-[44px] h-[44px] rounded-xl object-contain bg-white p-1 border border-white/20 shadow-xs"
+                  className="w-[44px] h-[44px] sm:w-[50px] sm:h-[50px] rounded-xl object-contain bg-white p-1 border border-white/20 shadow-xs"
                 />
               ) : (
-                <div className="w-[44px] h-[44px] rounded-xl bg-white/10 border border-white/20 text-white flex items-center justify-center font-extrabold text-lg shrink-0 shadow-xs">
+                <div className="w-[44px] h-[44px] sm:w-[50px] sm:h-[50px] rounded-xl bg-white/10 border border-white/20 text-white flex items-center justify-center font-extrabold text-lg sm:text-xl shrink-0 shadow-xs">
                   {initialLetter}
                 </div>
               )}
@@ -246,60 +246,75 @@ function EmpresaDashboardContent() {
               </label>
             </div>
 
-            <div className="min-w-0 flex-1">
-              {/* Chip pequeño (11.5px) */}
-              <div className="flex items-center gap-1.5 mb-0.5">
+            <div className="min-w-0 flex-1 space-y-1">
+              {/* Chip sobre el nombre */}
+              <div className="flex flex-wrap items-center gap-2">
                 {!isStateReady ? (
-                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white/10 border border-white/15 text-white/70 text-[11.5px] font-semibold leading-none animate-pulse">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-white/10 border border-white/15 text-white/70 text-[11.5px] font-semibold leading-none animate-pulse">
                     Comprobando estado...
                   </span>
                 ) : isAprobada ? (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-500/20 border border-emerald-400/30 text-emerald-200 text-[11.5px] font-semibold leading-none">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-white/10 border border-white/15 text-white/95 text-[11.5px] font-semibold backdrop-blur-xs leading-none">
                     <Check className="w-3 h-3 stroke-[3] text-emerald-300" />
                     Empresa Habilitada por la Oficina de Empleo de Funes
                   </span>
                 ) : isRechazada ? (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-500/25 border border-rose-400/40 text-rose-200 text-[11.5px] font-semibold leading-none">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-rose-500/25 border border-rose-400/40 text-rose-200 text-[11.5px] font-semibold leading-none">
                     <XCircleIcon className="w-3 h-3 text-rose-300" />
-                    Solicitud de Habilitación Observada
+                    Solicitud de habilitación observada
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-500/20 border border-amber-400/40 text-amber-200 text-[11.5px] font-semibold leading-none">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-amber-500/20 border border-amber-400/40 text-amber-200 text-[11.5px] font-semibold leading-none">
                     <ClockIcon className="w-3 h-3 text-amber-300" />
-                    Pendiente de Aprobación Municipal
+                    Pendiente de aprobación municipal
                   </span>
                 )}
               </div>
 
-              {/* Nombre de empresa (22px bold en una línea) + descripción resumida integrada */}
-              <div className="flex items-baseline gap-2 truncate">
-                <h1 className="text-[20px] sm:text-[22px] font-bold tracking-tight leading-tight text-white font-sans truncate">
+              {/* Nombre de empresa grande */}
+              <div>
+                <h1 className="text-xl sm:text-2xl md:text-[26px] font-bold tracking-tight leading-tight text-white font-sans">
                   {empresaNombre}
                 </h1>
-                <span className="hidden md:inline text-xs text-brand-100/80 truncate">
-                  • Gestión de búsquedas laborales y seguimiento de candidatos derivados.
+              </div>
+
+              {/* Debajo del nombre: Razón social, CUIT y Rubro al 86% de opacidad */}
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-white/86 text-[14px]">
+                <span className="inline-flex items-center gap-1.5">
+                  <Building2 className="w-3.5 h-3.5 shrink-0 opacity-80" />
+                  <span>{displayEmpresa?.razon_social || 'Empresa Funes SRL'}</span>
+                </span>
+                <span className="text-white/30 hidden sm:inline">•</span>
+                <span className="inline-flex items-center gap-1.5">
+                  <ShieldCheckIcon className="w-3.5 h-3.5 shrink-0 opacity-80" />
+                  <span className="tabular-nums">{displayEmpresa?.cuit || '30-71234567-8'}</span>
+                </span>
+                <span className="text-white/30 hidden sm:inline">•</span>
+                <span className="inline-flex items-center gap-1.5">
+                  <Briefcase className="w-3.5 h-3.5 shrink-0 opacity-80" />
+                  <span>{displayEmpresa?.rubro || 'Comercio'}</span>
                 </span>
               </div>
             </div>
           </div>
 
-          {/* Lado Derecho: Botón de Acción Compacto (40px) */}
-          <div className="shrink-0 flex items-center gap-3 self-start sm:self-auto">
+          {/* Lado Derecho: Botón de Acción Compacto */}
+          <div className="shrink-0 flex items-center gap-3 pt-2 md:pt-0">
             {isAprobada ? (
               <Link
                 href="/empresa/ofertas/nueva"
-                className="h-10 px-4 rounded-xl bg-amber-400 hover:bg-amber-300 text-amber-950 font-bold text-xs inline-flex items-center gap-2 transition-all shadow-xs cursor-pointer"
+                className="h-10 px-4 rounded-xl bg-amber-400 hover:bg-amber-300 text-amber-950 font-bold text-xs inline-flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer w-full sm:w-auto shrink-0"
               >
                 <PlusIcon className="w-3.5 h-3.5 stroke-[2.4]" />
-                Publicar Nueva Oferta
+                Publicar nueva oferta
               </Link>
             ) : isRechazada ? (
-              <span className="h-10 px-4 rounded-xl bg-rose-500/20 border border-rose-400/30 text-xs text-rose-200 font-semibold inline-flex items-center gap-1.5">
+              <span className="h-10 px-4 rounded-xl bg-rose-500/20 border border-rose-400/30 text-xs text-rose-200 font-semibold inline-flex items-center justify-center gap-1.5 w-full sm:w-auto">
                 <XCircleIcon className="w-3.5 h-3.5 text-rose-300" />
                 Publicación no habilitada
               </span>
             ) : (
-              <span className="h-10 px-4 rounded-xl bg-white/10 border border-white/20 text-xs text-white/80 font-medium inline-flex items-center">
+              <span className="h-10 px-4 rounded-xl bg-white/10 border border-white/20 text-xs text-white/80 font-medium inline-flex items-center justify-center w-full sm:w-auto">
                 {isStateReady ? 'Habilitación en revisión' : 'Comprobando habilitación...'}
               </span>
             )}
@@ -326,23 +341,23 @@ function EmpresaDashboardContent() {
         </div>
       )}
 
-      {/* 2. Barra de Navegación por Pestañas (Sin contadores numéricos) */}
-      <div className="bg-surface border-b border-zinc-200">
+      {/* 2. Barra de Navegación por Pestañas Segmentadas (Estilo unificado con Admin) */}
+      <div className="bg-surface border-b border-zinc-200 shadow-2xs">
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10">
-          <div className="flex items-center gap-1 overflow-x-auto py-1.5 no-scrollbar text-xs" role="tablist">
+          <div className="flex items-center gap-1 overflow-x-auto py-1.5 scroll-smooth no-scrollbar text-xs" role="tablist">
             <button
               type="button"
               role="tab"
               aria-selected={activeTab === 'perfil'}
               onClick={() => setActiveTab('perfil')}
-              className={`inline-flex items-center gap-2 px-4 py-2.5 border-b-2 font-bold transition-all whitespace-nowrap cursor-pointer ${
+              className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl font-bold transition-all whitespace-nowrap cursor-pointer ${
                 activeTab === 'perfil'
-                  ? 'border-brand-800 text-brand-900 font-extrabold bg-brand-50/60 rounded-t-lg'
-                  : 'border-transparent text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50'
+                  ? 'bg-brand-900 text-white shadow-xs'
+                  : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
               }`}
             >
-              <Building2 className="w-4 h-4 text-brand-800" />
-              <span>Perfil de Empresa</span>
+              <Building2 className="w-3.5 h-3.5" />
+              <span>Perfil de empresa</span>
             </button>
 
             <button
@@ -350,14 +365,14 @@ function EmpresaDashboardContent() {
               role="tab"
               aria-selected={activeTab === 'ofertas'}
               onClick={() => setActiveTab('ofertas')}
-              className={`inline-flex items-center gap-2 px-4 py-2.5 border-b-2 font-bold transition-all whitespace-nowrap cursor-pointer ${
+              className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl font-bold transition-all whitespace-nowrap cursor-pointer ${
                 activeTab === 'ofertas'
-                  ? 'border-brand-800 text-brand-900 font-extrabold bg-brand-50/60 rounded-t-lg'
-                  : 'border-transparent text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50'
+                  ? 'bg-brand-900 text-white shadow-xs'
+                  : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
               }`}
             >
-              <Briefcase className="w-4 h-4 text-brand-800" />
-              <span>Mis Ofertas Laborales</span>
+              <Briefcase className="w-3.5 h-3.5" />
+              <span>Mis ofertas laborales</span>
             </button>
 
             <button
@@ -365,14 +380,14 @@ function EmpresaDashboardContent() {
               role="tab"
               aria-selected={activeTab === 'candidatos'}
               onClick={() => setActiveTab('candidatos')}
-              className={`inline-flex items-center gap-2 px-4 py-2.5 border-b-2 font-bold transition-all whitespace-nowrap cursor-pointer ${
+              className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl font-bold transition-all whitespace-nowrap cursor-pointer ${
                 activeTab === 'candidatos'
-                  ? 'border-brand-800 text-brand-900 font-extrabold bg-brand-50/60 rounded-t-lg'
-                  : 'border-transparent text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50'
+                  ? 'bg-brand-900 text-white shadow-xs'
+                  : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
               }`}
             >
-              <Users className="w-4 h-4 text-brand-800" />
-              <span>Candidatos Derivados</span>
+              <Users className="w-3.5 h-3.5" />
+              <span>Candidatos derivados</span>
             </button>
           </div>
         </div>
@@ -411,7 +426,7 @@ function EmpresaDashboardContent() {
                 className="px-4 py-2.5 rounded-xl bg-rose-700 hover:bg-rose-800 text-white font-bold text-xs inline-flex items-center gap-2 shadow-xs transition-colors cursor-pointer"
               >
                 <Edit3 className="w-3.5 h-3.5" />
-                <span>Corregir Datos y Reenviar Solicitud</span>
+                <span>Corregir datos y reenviar solicitud</span>
               </button>
             </div>
           </div>
@@ -434,78 +449,22 @@ function EmpresaDashboardContent() {
         {/* ============================================================== */}
         {activeTab === 'perfil' && (
           <div className="w-full bg-surface border border-zinc-200/90 rounded-2xl shadow-xs divide-y divide-zinc-200/80 overflow-hidden">
-            {/* 1. Cabecera de Identidad y Datos Principales */}
-            <div className="p-6 sm:p-8 flex flex-col md:flex-row md:items-start justify-between gap-6">
-              <div className="flex items-start gap-5 min-w-0">
-                {/* Avatar 56px con botón de cámara */}
-                <div className="relative w-14 h-14 shrink-0 group">
-                  {displayEmpresa?.logo_url ? (
-                    <img
-                      src={displayEmpresa.logo_url}
-                      alt={empresaNombre}
-                      className="w-14 h-14 rounded-2xl object-contain bg-white shadow-xs border border-zinc-200 p-1"
-                    />
-                  ) : (
-                    <div className="w-14 h-14 rounded-2xl bg-brand-100 text-brand-900 flex items-center justify-center font-extrabold text-2xl font-sans shadow-xs border border-brand-200">
-                      {initialLetter}
-                    </div>
-                  )}
-                  <label
-                    title="Subir o cambiar logo institucional directamente"
-                    className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-brand-700 text-white flex items-center justify-center shadow-md hover:bg-brand-800 transition-transform active:scale-95 border-2 border-white cursor-pointer"
-                  >
-                    <Camera className="w-3 h-3" />
-                    <input
-                      type="file"
-                      accept="image/png,image/jpeg,image/webp"
-                      className="hidden"
-                      onChange={handleDirectLogoUpload}
-                    />
-                  </label>
-                </div>
-
-                {/* Textos y metadata en línea continua */}
-                <div className="space-y-1.5 min-w-0">
-                  <div className="flex items-center gap-3 flex-wrap">
-                    <h2 className="text-xl sm:text-2xl font-extrabold text-zinc-900 tracking-tight font-sans">
-                      {empresaNombre}
-                    </h2>
-                    {isAprobada && (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold">
-                        <Check className="w-3 h-3 text-emerald-600 stroke-[2.5]" />
-                        Habilitada
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-zinc-500 font-medium">
-                    <span>Razón Social: <strong className="text-zinc-800 font-semibold">{displayEmpresa?.razon_social || 'No informada'}</strong></span>
-                    <span className="text-zinc-300">•</span>
-                    <span>CUIT: <strong className="text-zinc-800 font-semibold tabular-nums">{displayEmpresa?.cuit || 'Pendiente'}</strong></span>
-                    <span className="text-zinc-300">•</span>
-                    <span>Rubro: <strong className="text-zinc-800 font-semibold">{displayEmpresa?.rubro || 'General'}</strong></span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Botón de edición alineado */}
-              <div className="shrink-0">
+            {/* Canales de contacto y radicación (4 columnas integradas en la hoja ATS) con acción de editar */}
+            <div className="p-6 sm:p-8 space-y-4">
+              <div className="flex items-center justify-between gap-4">
+                <h3 className="text-[11px] font-extrabold uppercase tracking-wider text-zinc-400">
+                  Canales de contacto y radicación
+                </h3>
                 <button
                   type="button"
                   onClick={() => setIsEditProfileOpen(true)}
-                  className="h-9 px-4 rounded-xl border border-zinc-200 bg-white hover:bg-zinc-50 font-bold text-xs text-zinc-800 transition-all shadow-xs flex items-center gap-2 cursor-pointer"
+                  className="h-8.5 px-3.5 rounded-full border border-zinc-200 bg-white hover:bg-zinc-50 font-bold text-xs text-zinc-700 transition-all shadow-2xs flex items-center gap-2 cursor-pointer"
+                  aria-label="Editar ficha comercial"
                 >
                   <Edit3 className="w-3.5 h-3.5 text-brand-800" />
-                  <span>Editar Ficha Comercial</span>
+                  <span>Editar ficha comercial</span>
                 </button>
               </div>
-            </div>
-
-            {/* 2. Canales de Contacto y Radicación (4 columnas integradas en la hoja) */}
-            <div className="p-6 sm:p-8 space-y-3">
-              <h3 className="text-[11px] font-extrabold uppercase tracking-wider text-zinc-400">
-                Canales de Contacto y Radicación
-              </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 <div>
                   <span className="text-xs font-semibold text-zinc-500 block mb-1">Teléfono / WhatsApp</span>
@@ -515,7 +474,7 @@ function EmpresaDashboardContent() {
                   </div>
                 </div>
                 <div>
-                  <span className="text-xs font-semibold text-zinc-500 block mb-1">Correo Electrónico RRHH</span>
+                  <span className="text-xs font-semibold text-zinc-500 block mb-1">Correo electrónico RRHH</span>
                   <div className="flex items-center gap-2 text-sm font-bold text-zinc-900">
                     <Mail className="w-4 h-4 text-brand-800 shrink-0" />
                     <span className="truncate">{displayEmpresa?.email_contacto || user?.email || 'No informado'}</span>
@@ -529,7 +488,7 @@ function EmpresaDashboardContent() {
                   </div>
                 </div>
                 <div>
-                  <span className="text-xs font-semibold text-zinc-500 block mb-1">Responsable Comercial</span>
+                  <span className="text-xs font-semibold text-zinc-500 block mb-1">Responsable comercial</span>
                   <div className="flex items-center gap-2 text-sm font-bold text-zinc-900">
                     <Users className="w-4 h-4 text-brand-800 shrink-0" />
                     <span>{displayEmpresa?.persona_contacto || user?.nombre || 'No informado'}</span>
@@ -538,11 +497,11 @@ function EmpresaDashboardContent() {
               </div>
             </div>
 
-            {/* 3. Descripción y Actividad Comercial */}
+            {/* 3. Descripción y actividad comercial */}
             <div className="p-6 sm:p-8 space-y-3">
               <div className="flex items-center justify-between">
                 <h3 className="text-[11px] font-extrabold uppercase tracking-wider text-zinc-400">
-                  Descripción y Actividad Comercial
+                  Descripción y actividad comercial
                 </h3>
                 {displayEmpresa?.sitio_web && (
                   <a
@@ -552,7 +511,7 @@ function EmpresaDashboardContent() {
                     className="text-xs font-bold text-brand-800 hover:underline flex items-center gap-1.5"
                   >
                     <Globe className="w-3.5 h-3.5" />
-                    Sitio Web Institucional
+                    Sitio web institucional
                     <ExternalLink className="w-3 h-3" />
                   </a>
                 )}
@@ -566,7 +525,7 @@ function EmpresaDashboardContent() {
             <div className="p-6 sm:p-8 bg-zinc-50/70 flex flex-col md:flex-row md:items-center justify-between gap-5">
               <div className="space-y-1">
                 <h3 className="text-sm font-bold text-zinc-900">
-                  Gestión de Búsquedas y Candidatos
+                  Gestión de búsquedas y candidatos
                 </h3>
                 <p className="text-xs text-zinc-500 max-w-xl">
                   Podés crear nuevas convocatorias laborales o consultar el avance de las entrevistas con los candidatos derivados por la Oficina de Empleo.
@@ -580,7 +539,7 @@ function EmpresaDashboardContent() {
                     className="h-9 px-4 rounded-xl bg-brand-800 hover:bg-brand-900 text-white font-bold text-xs inline-flex items-center gap-2 shadow-xs transition-colors cursor-pointer"
                   >
                     <Briefcase className="w-3.5 h-3.5" />
-                    <span>Nueva Búsqueda</span>
+                    <span>Nueva búsqueda</span>
                   </Link>
                 ) : (
                   <button
@@ -589,7 +548,7 @@ function EmpresaDashboardContent() {
                     className="h-9 px-4 rounded-xl bg-brand-800 text-white font-bold text-xs inline-flex items-center gap-2 shadow-xs opacity-50 cursor-not-allowed"
                   >
                     <Briefcase className="w-3.5 h-3.5" />
-                    <span>Nueva Búsqueda</span>
+                    <span>Nueva búsqueda</span>
                   </button>
                 )}
                 <button
@@ -598,7 +557,7 @@ function EmpresaDashboardContent() {
                   className="h-9 px-4 rounded-xl border border-zinc-200 bg-white hover:bg-zinc-50 text-zinc-800 font-bold text-xs inline-flex items-center gap-2 shadow-xs transition-colors cursor-pointer"
                 >
                   <Users className="w-3.5 h-3.5 text-brand-800" />
-                  <span>Ver Candidatos Derivados</span>
+                  <span>Ver candidatos derivados</span>
                 </button>
               </div>
             </div>
@@ -613,7 +572,7 @@ function EmpresaDashboardContent() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-1">
               <div>
                 <h2 className="text-xl font-extrabold text-[#10231B] font-sans">
-                  Mis Búsquedas Laborales
+                  Mis búsquedas laborales
                 </h2>
                 <p className="text-xs sm:text-sm text-[#4B6256] mt-0.5">
                   Administrá tus avisos de empleo y accedé a los candidatos derivados por la Oficina de Empleo.
@@ -626,7 +585,7 @@ function EmpresaDashboardContent() {
                   className="px-5 py-2.5 rounded-full bg-[#0E4D36] hover:bg-[#06402B] text-white font-bold text-xs sm:text-sm inline-flex items-center gap-2 transition-all cursor-pointer shadow-xs self-start sm:self-auto"
                 >
                   <PlusIcon className="w-4 h-4" />
-                  Nueva Oferta
+                  Nueva oferta
                 </Link>
               )}
             </div>

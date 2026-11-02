@@ -19,7 +19,7 @@ export const HomeRolesSection: React.FC = () => {
                 <UserIcon className="w-6 h-6" />
               </div>
               <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-brand-50 text-brand-800 border border-brand-200/60">
-                Para Vecinos de Funes
+                Para vecinos de Funes
               </span>
             </div>
 
@@ -56,7 +56,7 @@ export const HomeRolesSection: React.FC = () => {
 
             <div className="pt-3">
               <Button href="/registro" variant="primary" className="w-full sm:w-auto font-bold gap-2">
-                <span>Registrarme como Postulante</span>
+                <span>Registrarme como postulante</span>
                 <ArrowRightIcon className="w-4 h-4" />
               </Button>
             </div>
@@ -74,7 +74,7 @@ export const HomeRolesSection: React.FC = () => {
                 <BuildingIcon className="w-6 h-6" />
               </div>
               <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-brand-50 text-brand-800 border border-brand-200/60">
-                Para Comercios y Empresas
+                Para comercios y empresas
               </span>
             </div>
 
@@ -111,7 +111,7 @@ export const HomeRolesSection: React.FC = () => {
 
             <div className="pt-3">
               <Button href="/registro/empresa" variant="secondary" className="w-full sm:w-auto font-bold gap-2">
-                <span>Espacio Empresas</span>
+                <span>Espacio empresas</span>
                 <ArrowRightIcon className="w-4 h-4" />
               </Button>
             </div>

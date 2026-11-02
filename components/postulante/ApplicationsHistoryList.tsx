@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
   PostulacionConDetalle,
@@ -42,7 +43,22 @@ export const ApplicationsHistoryList: React.FC<ApplicationsHistoryListProps> = (
   isLoading = false,
   onChanged,
 }) => {
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  const highlightedPostulacionId = searchParams.get('postulacionId');
+  const [expandedId, setExpandedId] = useState<string | null>(() => {
+    return highlightedPostulacionId || null;
+  });
+
+  useEffect(() => {
+    if (highlightedPostulacionId) {
+      setExpandedId(highlightedPostulacionId);
+      // Desplazar suavemente hacia la tarjeta correspondiente
+      setTimeout(() => {
+        const el = document.getElementById(`postulacion-${highlightedPostulacionId}`);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 150);
+    }
+  }, [highlightedPostulacionId]);
   const [appToWithdraw, setAppToWithdraw] = useState<PostulacionConDetalle | null>(null);
   const [isWithdrawing, setIsWithdrawing] = useState(false);
   const [openingCvId, setOpeningCvId] = useState<string | null>(null);
@@ -179,7 +195,7 @@ export const ApplicationsHistoryList: React.FC<ApplicationsHistoryListProps> = (
         <div className="flex items-center gap-2">
           <ShieldCheck className="w-4 h-4 text-blue-700 shrink-0" />
           <div className="leading-snug">
-            <span className="font-bold text-blue-900">Intermediación Municipal de Funes:</span>
+            <span className="font-bold text-blue-900">Intermediación municipal de Funes:</span>
             <span className="text-blue-800/90 ml-1.5 hidden sm:inline">
               Cada postulación es analizada técnicamente antes de su derivación a la empresa solicitante.
             </span>

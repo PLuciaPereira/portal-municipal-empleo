@@ -96,10 +96,10 @@ export function InviteCandidateToJobModal({
         <div className="mb-4">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 text-xs font-bold mb-2">
             <Send className="w-3.5 h-3.5 text-emerald-700" />
-            Intermediación Municipal
+            Intermediación municipal
           </div>
           <h3 id="invite-candidate-modal-title" className="text-lg font-bold text-zinc-900">
-            Invitar Postulante a Oferta
+            Invitar postulante a oferta
           </h3>
           <p className="text-xs text-zinc-500 mt-0.5">
             Oferta: <strong className="text-zinc-800">{oferta.titulo}</strong>

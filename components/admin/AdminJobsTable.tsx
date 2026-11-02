@@ -123,7 +123,12 @@ export function AdminJobsTable({
     }).sort((a, b) => {
       const timeA = new Date(a.created_at).getTime() || 0;
       const timeB = new Date(b.created_at).getTime() || 0;
-      return sortOrder === 'recientes' ? timeB - timeA : timeA - timeB;
+      if (sortOrder === 'antiguas') {
+        return timeA - timeB;
+      }
+      // 'recientes' predeterminado por fecha de creación descendente
+      if (timeB !== timeA) return timeB - timeA;
+      return (b.id || '').localeCompare(a.id || '');
     });
   }, [ofertas, filterEstado, searchTerm, sortOrder]);
 
@@ -215,7 +220,7 @@ export function AdminJobsTable({
     }
   };
 
-  // Dar de Baja
+  // Dar de baja
   const handleInitiateDeactivate = (oferta: OfertaAdminItem) => {
     setOfertaToDeactivate(oferta);
     setIsDeactivateDialogOpen(true);
@@ -428,13 +433,13 @@ export function AdminJobsTable({
             />
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+          <div className="overflow-x-auto scroll-smooth">
+            <table className="w-full min-w-[720px] text-left text-xs">
               <thead className="bg-zinc-50/80 text-zinc-600 border-b border-zinc-200 uppercase tracking-wider font-semibold text-[11px]">
                 <tr>
-                  <th className="py-2.5 px-3.5">Puesto y Empresa</th>
-                  <th className="py-2.5 px-3">Rubro y Modalidad</th>
-                  <th className="py-2.5 px-3">Vacantes y Postulaciones</th>
+                  <th className="py-2.5 px-3.5">Puesto y empresa</th>
+                  <th className="py-2.5 px-3">Rubro y modalidad</th>
+                  <th className="py-2.5 px-3">Vacantes y postulaciones</th>
                   <th className="py-2.5 px-3">Estado</th>
                   <th className="py-2.5 px-3.5 text-right">Acciones</th>
                 </tr>
@@ -450,7 +455,7 @@ export function AdminJobsTable({
                       key={of.id}
                       className="hover:bg-zinc-50/60 transition-colors group"
                     >
-                      {/* Puesto y Empresa */}
+                      {/* Puesto y empresa */}
                       <td className="py-2.5 px-3.5 font-medium text-zinc-900">
                         <div className="flex items-center gap-2.5">
                           <div className="w-8 h-8 rounded-lg bg-brand-50 text-brand-900 flex items-center justify-center font-bold shrink-0 border border-brand-200/50">
@@ -472,7 +477,7 @@ export function AdminJobsTable({
                         </div>
                       </td>
 
-                      {/* Rubro y Modalidad */}
+                      {/* Rubro y modalidad */}
                       <td className="py-2.5 px-3">
                         <span className="font-semibold text-zinc-800 block text-xs truncate max-w-[170px]" title={of.rubro?.nombre || 'General'}>
                           {of.rubro?.nombre || 'General'}
@@ -482,7 +487,7 @@ export function AdminJobsTable({
                         </div>
                       </td>
 
-                      {/* Vacantes y Postulaciones (1 sola línea, formato del mockup) */}
+                      {/* Vacantes y postulaciones (1 sola línea, formato del mockup) */}
                       <td className="py-2.5 px-3 whitespace-nowrap">
                         <span className="text-xs font-semibold text-zinc-800">
                           {of.vacantes} {of.vacantes === 1 ? 'vacante' : 'vacantes'}
@@ -522,17 +527,35 @@ export function AdminJobsTable({
                             <span>Ficha</span>
                           </Button>
 
-                          {/* Botón de Intermediación / Postulantes */}
+                          {/* Botón de Intermediación / Postulantes con señal visual de novedades */}
                           {onSelectOfertaPostulaciones && (
                             <Button
-                              variant="outline"
+                              variant={of.postulaciones_nuevas_count && of.postulaciones_nuevas_count > 0 ? "secondary" : "outline"}
                               size="sm"
                               onClick={() => onSelectOfertaPostulaciones(of.id)}
-                              className="h-7 px-2 text-brand-900 hover:bg-brand-50 gap-1 text-xs border-brand-200"
-                              title="Ver y gestionar postulantes"
+                              className={`h-7 px-2 gap-1.5 text-xs transition-all ${
+                                of.postulaciones_nuevas_count && of.postulaciones_nuevas_count > 0
+                                  ? 'bg-amber-100 hover:bg-amber-200 text-amber-950 border border-amber-300 font-bold shadow-2xs'
+                                  : 'text-brand-900 hover:bg-brand-50 border-brand-200'
+                              }`}
+                              title={
+                                of.postulaciones_nuevas_count && of.postulaciones_nuevas_count > 0
+                                  ? `${of.postulaciones_nuevas_count} nueva${of.postulaciones_nuevas_count === 1 ? '' : 's'} postulaci${of.postulaciones_nuevas_count === 1 ? 'ón' : 'ones'} sin revisar`
+                                  : 'Ver y gestionar postulantes'
+                              }
                             >
-                              <Users className="w-3.5 h-3.5 text-brand-800" />
+                              <div className="relative flex items-center">
+                                <Users className={`w-3.5 h-3.5 ${of.postulaciones_nuevas_count && of.postulaciones_nuevas_count > 0 ? 'text-amber-800' : 'text-brand-800'}`} />
+                                {of.postulaciones_nuevas_count && of.postulaciones_nuevas_count > 0 ? (
+                                  <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-amber-500 animate-ping" />
+                                ) : null}
+                              </div>
                               <span>Postulantes</span>
+                              {of.postulaciones_nuevas_count && of.postulaciones_nuevas_count > 0 ? (
+                                <span className="px-1 py-0.2 rounded-full bg-amber-500 text-white text-[10px] font-extrabold leading-none">
+                                  +{of.postulaciones_nuevas_count}
+                                </span>
+                              ) : null}
                             </Button>
                           )}
 
@@ -574,7 +597,7 @@ export function AdminJobsTable({
                               title="Dar de baja oferta pública"
                             >
                               <BadgeAlert className="w-3.5 h-3.5" />
-                              <span>Dar de Baja</span>
+                              <span>Dar de baja</span>
                             </Button>
                           )}
                         </div>
@@ -656,7 +679,7 @@ export function AdminJobsTable({
         isLoading={actionLoading}
       />
 
-      {/* ConfirmDialog: Dar de Baja con Motivo Obligatorio */}
+      {/* ConfirmDialog: Dar de baja con Motivo Obligatorio */}
       <ConfirmDialog
         isOpen={isDeactivateDialogOpen}
         onClose={() => setIsDeactivateDialogOpen(false)}

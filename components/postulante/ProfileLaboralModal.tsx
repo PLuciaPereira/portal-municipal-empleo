@@ -247,7 +247,7 @@ export const ProfileLaboralModal: React.FC<ProfileLaboralModalProps> = ({
               <div className="space-y-2 pt-2 border-t border-zinc-100">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold uppercase tracking-wider text-zinc-700 block">
-                    Rubros Laborales de Interés en Funes
+                    Rubros laborales de interés en Funes
                   </span>
                   <span className="text-[11px] text-zinc-400">
                     {selectedRubroIds.length} seleccionados
@@ -296,7 +296,7 @@ export const ProfileLaboralModal: React.FC<ProfileLaboralModalProps> = ({
               size="sm"
               isLoading={isSaving}
             >
-              Guardar Perfil Laboral
+              Guardar perfil laboral
             </Button>
           </div>
         </form>
