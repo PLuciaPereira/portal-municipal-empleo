@@ -52,9 +52,9 @@ export const Navbar: React.FC = () => {
   const { user, empresa, isAuthenticated, logout } = useAuth();
 
   const navLinks = [
-    { label: 'Ofertas Laborales', href: '/ofertas' },
+    { label: 'Ofertas laborales', href: '/ofertas' },
     { label: 'Rubros', href: '/#rubros' },
-    { label: 'Cómo Funciona', href: '/#como-funciona' },
+    { label: 'Cómo funciona', href: '/#como-funciona' },
     { label: 'Cursos', href: '/#capacitaciones' },
     { label: 'Oficina de Empleo', href: '/#contacto' },
   ];
@@ -142,6 +142,7 @@ export const Navbar: React.FC = () => {
           <div className="hidden md:flex items-center gap-3">
             {isAuthenticated ? (
               <div className="flex items-center gap-3">
+                <NotificationBell />
                 <Link
                   href={dashboardHref}
                   className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-zinc-100 transition-colors text-left"
@@ -232,13 +233,16 @@ export const Navbar: React.FC = () => {
                 </Badge>
               </div>
               <div className="flex flex-col items-end gap-1.5">
-                <Link
-                  href={dashboardHref}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="text-xs text-brand-800 font-bold hover:underline"
-                >
-                  Ir a {dashboardLabel} &rarr;
-                </Link>
+                <div className="flex items-center gap-2">
+                  <NotificationBell />
+                  <Link
+                    href={dashboardHref}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="text-xs text-brand-800 font-bold hover:underline"
+                  >
+                    Ir a {dashboardLabel} &rarr;
+                  </Link>
+                </div>
                 <button
                   type="button"
                   onClick={() => {
@@ -276,7 +280,7 @@ export const Navbar: React.FC = () => {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <UserIcon className="w-4 h-4 mr-2" />
-                Iniciar Sesión / Ingresar
+                Iniciar sesión / ingresar
               </Button>
               <Button
                 href="/registro"
@@ -285,7 +289,7 @@ export const Navbar: React.FC = () => {
                 className="w-full justify-center"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Registrarme como Postulante
+                Registrarme como postulante
               </Button>
               <Button
                 href="/registro/empresa"
@@ -295,7 +299,7 @@ export const Navbar: React.FC = () => {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <BuildingIcon className="w-4 h-4 mr-2" />
-                Registrar Empresa o Comercio
+                Registrar empresa o comercio
               </Button>
               <Link
                 href="/login?redirect=/admin"

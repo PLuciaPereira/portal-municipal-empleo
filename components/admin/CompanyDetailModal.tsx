@@ -16,6 +16,7 @@ import {
   AlertTriangle,
   CheckCircle2,
   ShieldAlert,
+  Pencil,
 } from 'lucide-react';
 
 interface CompanyDetailModalProps {
@@ -24,6 +25,7 @@ interface CompanyDetailModalProps {
   onClose: () => void;
   onApprove: (empresa: Empresa) => void;
   onReject: (empresa: Empresa) => void;
+  onEdit?: (empresa: Empresa) => void;
 }
 
 export function CompanyDetailModal({
@@ -32,9 +34,10 @@ export function CompanyDetailModal({
   onClose,
   onApprove,
   onReject,
+  onEdit,
 }: CompanyDetailModalProps) {
-    useBodyScrollLock(Boolean(isOpen));
-if (!isOpen || !empresa) return null;
+  useBodyScrollLock(Boolean(isOpen));
+  if (!isOpen || !empresa) return null;
 
   return (
     <div
@@ -55,7 +58,7 @@ if (!isOpen || !empresa) return null;
                 {empresa.nombre_fantasia || empresa.razon_social}
               </h2>
               <span className="text-xs text-zinc-500 font-medium">
-                Razón Social: {empresa.razon_social}
+                Razón social: {empresa.razon_social}
               </span>
             </div>
           </div>
@@ -74,7 +77,7 @@ if (!isOpen || !empresa) return null;
           <div className="p-4 rounded-xl border border-zinc-200 bg-zinc-50/50 flex items-center justify-between">
             <div>
               <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500 block">
-                Estado Actual
+                Estado actual
               </span>
               <div className="mt-1 flex items-center gap-2">
                 <CompanyStatusBadge estado={empresa.estado} />
@@ -121,9 +124,10 @@ if (!isOpen || !empresa) return null;
               </span>
               <p className="text-sm font-bold text-zinc-900 font-mono">{empresa.cuit}</p>
             </div>
+
             <div className="p-3.5 rounded-xl border border-zinc-200 bg-white space-y-1">
               <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500 block">
-                Rubro o Actividad
+                Rubro principal
               </span>
               <p className="text-sm font-semibold text-zinc-900">
                 {empresa.rubro || 'No especificado'}
@@ -132,28 +136,28 @@ if (!isOpen || !empresa) return null;
           </div>
 
           {/* Ubicación y Domicilio */}
-          <div className="p-4 rounded-xl border border-zinc-200 bg-white space-y-2">
-            <div className="flex items-center gap-2 text-xs font-bold text-zinc-700 uppercase tracking-wider">
+          <div className="p-3.5 rounded-xl border border-zinc-200 bg-white space-y-2">
+            <div className="flex items-center gap-1.5 text-xs font-bold text-zinc-700 uppercase tracking-wider">
               <MapPin className="w-4 h-4 text-brand-800" />
-              Ubicación y Domicilio
+              Ubicación y Domicilio Legal / Operativo
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-zinc-600 pt-1">
+            <div className="text-xs text-zinc-600 grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
               <div>
-                <span className="text-zinc-500">Localidad:</span>{' '}
-                <strong className="text-zinc-900">{empresa.localidad}</strong>
+                <span className="text-zinc-500 block">Dirección:</span>
+                <span className="font-semibold text-zinc-900">{empresa.direccion}</span>
               </div>
               <div>
-                <span className="text-zinc-500">Dirección:</span>{' '}
-                <strong className="text-zinc-900">{empresa.direccion}</strong>
+                <span className="text-zinc-500 block">Localidad:</span>
+                <span className="font-semibold text-zinc-900">{empresa.localidad}</span>
               </div>
             </div>
           </div>
 
-          {/* Contacto Institucional */}
-          <div className="p-4 rounded-xl border border-zinc-200 bg-white space-y-3">
+          {/* Contacto Directo */}
+          <div className="p-3.5 rounded-xl border border-zinc-200 bg-white space-y-3">
             <div className="flex items-center gap-2 text-xs font-bold text-zinc-700 uppercase tracking-wider">
               <User className="w-4 h-4 text-brand-800" />
-              Datos de Contacto
+              Datos de contacto
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs pt-1">
               <div className="space-y-0.5">
@@ -203,7 +207,7 @@ if (!isOpen || !empresa) return null;
               {empresa.sitio_web && (
                 <div className="text-xs flex items-center gap-1.5 text-zinc-600">
                   <Globe className="w-3.5 h-3.5 text-zinc-400" />
-                  <span>Sitio Web:</span>
+                  <span>Sitio web:</span>
                   <a
                     href={
                       empresa.sitio_web.startsWith('http')
@@ -224,9 +228,22 @@ if (!isOpen || !empresa) return null;
 
         {/* Pie de Acciones */}
         <div className="px-6 py-4 bg-zinc-50/80 border-t border-zinc-100 flex flex-wrap items-center justify-between gap-3">
-          <Button variant="outline" size="sm" onClick={onClose}>
-            Cerrar Ficha
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={onClose}>
+              Cerrar ficha
+            </Button>
+            {onEdit && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => onEdit(empresa)}
+                className="gap-1.5"
+              >
+                <Pencil className="w-3.5 h-3.5" />
+                Editar perfil
+              </Button>
+            )}
+          </div>
 
           <div className="flex items-center gap-2">
             {empresa.estado === 'pendiente' && (
@@ -238,7 +255,7 @@ if (!isOpen || !empresa) return null;
                   className="gap-1.5"
                 >
                   <ShieldAlert className="w-4 h-4" />
-                  Rechazar Empresa
+                  Rechazar empresa
                 </Button>
                 <Button
                   variant="primary"
@@ -247,7 +264,7 @@ if (!isOpen || !empresa) return null;
                   className="gap-1.5 bg-brand-800 hover:bg-brand-900"
                 >
                   <CheckCircle2 className="w-4 h-4" />
-                  Aprobar Empresa
+                  Aprobar empresa
                 </Button>
               </>
             )}
@@ -260,7 +277,7 @@ if (!isOpen || !empresa) return null;
                 className="gap-1.5"
               >
                 <ShieldAlert className="w-4 h-4" />
-                Inhabilitar Empresa
+                Inhabilitar empresa
               </Button>
             )}
 

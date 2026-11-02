@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { Database } from '@/types/database';
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   let response = NextResponse.next({
     request: {
       headers: request.headers,
@@ -90,7 +90,9 @@ export async function middleware(request: NextRequest) {
   }
 
   // 4. Rutas públicas de autenticación (Login / Registro):
-  // Si el usuario ya está autenticado, redirigir directamente a su panel correspondiente
+  // Si el usuario ya está autenticado, redirigir directamente a su panel correspondiente.
+  // Rutas como /recuperar-password, /recuperar-password/cambiar y /auth/callback no redirigen automáticamente
+  // para permitir completar la recuperación o solicitarla sin bloqueos.
   const isAuthRoute =
     pathname === '/login' ||
     pathname === '/registro' ||
@@ -134,6 +136,14 @@ export async function middleware(request: NextRequest) {
       const dest = userRole === 'empresa' ? '/empresa' : '/postulante';
       return NextResponse.redirect(new URL(dest, request.url));
     }
+
+    // Proteger páginas privadas contra almacenamiento en memoria o caché en el navegador
+    response.headers.set(
+      'Cache-Control',
+      'no-store, no-cache, must-revalidate, proxy-revalidate'
+    );
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
   }
 
   return response;

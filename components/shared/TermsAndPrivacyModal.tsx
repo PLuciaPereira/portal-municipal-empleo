@@ -210,7 +210,7 @@ export const TermsAndPrivacyModal: React.FC<TermsAndPrivacyModalProps> = ({
             </div>
             <div>
               <h3 id="modalTitle" className="text-lg font-bold text-foreground">
-                Términos del Servicio y Privacidad
+                Términos del servicio y privacidad
               </h3>
               <p id="modalDesc" className="text-xs text-muted-foreground">
                 Oficina de Empleo &bull; Municipalidad de Funes
@@ -260,7 +260,7 @@ export const TermsAndPrivacyModal: React.FC<TermsAndPrivacyModalProps> = ({
                 : 'text-muted-foreground hover:text-foreground border-b-2 border-transparent font-semibold'
             }`}
           >
-            Términos y Condiciones
+            Términos y condiciones
           </button>
           <button
             role="tab"
@@ -275,7 +275,7 @@ export const TermsAndPrivacyModal: React.FC<TermsAndPrivacyModalProps> = ({
                 : 'text-muted-foreground hover:text-foreground border-b-2 border-transparent font-semibold'
             }`}
           >
-            Política de Privacidad
+            Política de privacidad
           </button>
         </div>
 

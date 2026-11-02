@@ -51,7 +51,7 @@ function RegistroEmpresaAside() {
           </div>
           <div className="space-y-2">
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white tracking-tight">
-              Registro de Empresas y Comercios
+              Registro de empresas y comercios
             </h1>
             <p className="text-sm text-brand-200 leading-relaxed">
               Completá los datos comerciales y de acceso para comenzar a publicar búsquedas laborales en la ciudad de Funes.
@@ -125,7 +125,7 @@ function RegistroEmpresaFooterLinks() {
           href="/registro"
           className="font-semibold text-brand-800 hover:text-brand-900 underline underline-offset-2 focus:outline-none focus:ring-1 focus:ring-brand-800 rounded-xs"
         >
-          Registrate como Postulante
+          Registrate como postulante
         </Link>
       </div>
     </div>
@@ -302,7 +302,7 @@ function RegisterEmpresaForm() {
 
     // 1. Datos de la empresa
     if (!formData.razonSocial.trim()) {
-      newErrors.razonSocial = 'Por favor ingresá la Razón Social.';
+      newErrors.razonSocial = 'Por favor ingresá la razón social.';
     }
 
     const cuitResult = validateCuitModulo11(formData.cuit);
@@ -454,7 +454,7 @@ function RegisterEmpresaForm() {
       if (res.requiresEmailConfirmation) {
         setSuccessConfirmation(true);
       } else {
-        router.push('/empresa');
+        router.replace('/empresa');
       }
     } else {
       const errorMsg = res.error || 'No se pudo registrar la empresa.';
@@ -512,7 +512,7 @@ function RegisterEmpresaForm() {
 
             <div className="pt-2 w-full sm:w-auto">
               <Button href="/login" variant="primary" size="lg" className="w-full sm:w-auto px-8 justify-center">
-                Ir a Iniciar Sesión
+                Ir a iniciar sesión
               </Button>
             </div>
           </div>
@@ -581,7 +581,7 @@ function RegisterEmpresaForm() {
                 required
                 label={
                   <span>
-                    Razón Social <span className="text-destructive" aria-hidden="true">*</span>
+                    Razón social <span className="text-destructive" aria-hidden="true">*</span>
                   </span>
                 }
                 placeholder="Ej: Funes Retail S.R.L."
@@ -629,7 +629,7 @@ function RegisterEmpresaForm() {
                 name="nombreFantasia"
                 label={
                   <span className="flex items-center gap-1.5">
-                    <span>Nombre de Fantasía</span>
+                    <span>Nombre de fantasía</span>
                     <span className="text-xs font-normal text-muted-foreground">(opcional)</span>
                   </span>
                 }
@@ -761,6 +761,72 @@ function RegisterEmpresaForm() {
                   }}
                   error={errors.sitioWeb}
                 />
+              </div>
+            </div>
+
+            {/* Documentación comercial o societaria (Opcional) */}
+            <div className="pt-2">
+              <div className="p-4 sm:p-5 bg-brand-50/40 rounded-2xl border border-dashed border-brand-200 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-brand-900 block">
+                        Documentación comercial o societaria
+                      </span>
+                      <span className="text-[10px] font-semibold text-muted-foreground bg-zinc-100 px-2 py-0.5 rounded-full">
+                        Opcional
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-brand-800/80 leading-relaxed">
+                      Constancia de CUIT, habilitación o estatuto para facilitar la verificación. Formatos: PDF, JPG, PNG (máx. 5MB). No es un requisito excluyente.
+                    </p>
+                  </div>
+
+                  <label className="cursor-pointer shrink-0 inline-flex items-center gap-1.5 px-4 py-2 bg-brand-800 text-white rounded-xl text-xs font-semibold hover:bg-brand-900 transition-colors shadow-2xs">
+                    <Upload className="w-4 h-4" />
+                    <span>Seleccionar archivos</span>
+                    <input
+                      type="file"
+                      multiple
+                      accept=".pdf,image/png,image/jpeg,image/webp"
+                      className="hidden"
+                      onChange={handleAddFiles}
+                      disabled={isLoading || uploadingDocs}
+                    />
+                  </label>
+                </div>
+
+                {documentos.length > 0 && (
+                  <div className="space-y-2 pt-2 border-t border-brand-200/60">
+                    <span className="text-xs font-bold text-zinc-700 block">
+                      Archivos listos para enviar ({documentos.length}):
+                    </span>
+                    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {documentos.map((doc) => (
+                        <li
+                          key={doc.id}
+                          className="flex items-center justify-between p-2.5 bg-white rounded-xl border border-brand-200 text-xs shadow-2xs"
+                        >
+                          <div className="flex items-center gap-2 truncate">
+                            <FileText className="w-4 h-4 text-brand-700 shrink-0" />
+                            <div className="truncate">
+                              <p className="font-semibold text-zinc-900 truncate">{doc.nombre}</p>
+                              <p className="text-[10px] text-zinc-500">{(doc.file.size / 1024).toFixed(1)} KB</p>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveDoc(doc.id)}
+                            className="p-1 text-zinc-400 hover:text-rose-600 transition-colors ml-2"
+                            title="Quitar archivo"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
             </div>
           </section>
@@ -958,84 +1024,6 @@ function RegisterEmpresaForm() {
                 }
               />
             </div>
-
-            {/* ========================================================================= */}
-          {/* SECCIÓN 3: DOCUMENTACIÓN DE LA EMPRESA (OPCIONAL) */}
-          {/* ========================================================================= */}
-          <section className="space-y-4" aria-labelledby="sec3-title">
-            <div className="flex items-center gap-3 border-b border-border/80 pb-3">
-              <span className="w-7 h-7 rounded-full bg-brand-100 text-brand-800 font-bold text-xs flex items-center justify-center shrink-0">
-                3
-              </span>
-              <div>
-                <h2 id="sec3-title" className="text-base font-bold text-foreground flex items-center gap-2">
-                  <span>Documentación comercial o societaria</span>
-                  <span className="text-xs font-normal text-muted-foreground bg-zinc-100 px-2 py-0.5 rounded-full">Opcional</span>
-                </h2>
-                <p className="text-xs text-muted-foreground">
-                  Podés adjuntar constancias para facilitar y acelerar la validación de identidad por parte de la Oficina de Empleo.
-                </p>
-              </div>
-            </div>
-
-            <div className="p-4 sm:p-5 bg-brand-50/40 rounded-2xl border border-dashed border-brand-200 space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="space-y-0.5">
-                  <span className="text-xs font-bold text-brand-900 block">
-                    Adjuntar Constancia de CUIT, Habilitación o Estatuto
-                  </span>
-                  <p className="text-[11px] text-brand-800/80 leading-relaxed">
-                    Formatos admitidos: PDF, JPG, PNG. Podés seleccionar varios archivos (máx. 5MB cada uno). No es un requisito excluyente para registrarte.
-                  </p>
-                </div>
-
-                <label className="cursor-pointer shrink-0 inline-flex items-center gap-1.5 px-4 py-2 bg-brand-800 text-white rounded-xl text-xs font-semibold hover:bg-brand-900 transition-colors shadow-2xs">
-                  <Upload className="w-4 h-4" />
-                  <span>Seleccionar archivos</span>
-                  <input
-                    type="file"
-                    multiple
-                    accept=".pdf,image/png,image/jpeg,image/webp"
-                    className="hidden"
-                    onChange={handleAddFiles}
-                    disabled={isLoading || uploadingDocs}
-                  />
-                </label>
-              </div>
-
-              {documentos.length > 0 && (
-                <div className="space-y-2 pt-2 border-t border-brand-200/60">
-                  <span className="text-xs font-bold text-zinc-700 block">
-                    Archivos listos para enviar ({documentos.length}):
-                  </span>
-                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {documentos.map((doc) => (
-                      <li
-                        key={doc.id}
-                        className="flex items-center justify-between p-2.5 bg-white rounded-xl border border-brand-200 text-xs shadow-2xs"
-                      >
-                        <div className="flex items-center gap-2 truncate">
-                          <FileText className="w-4 h-4 text-brand-700 shrink-0" />
-                          <div className="truncate">
-                            <p className="font-semibold text-zinc-900 truncate">{doc.nombre}</p>
-                            <p className="text-[10px] text-zinc-500">{(doc.file.size / 1024).toFixed(1)} KB</p>
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveDoc(doc.id)}
-                          className="p-1 text-zinc-400 hover:text-rose-600 transition-colors ml-2"
-                          title="Quitar archivo"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          </section>
 
           {/* Checkbox de Términos y Condiciones y Política de Privacidad */}
             <div className="pt-2">

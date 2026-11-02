@@ -1,3 +1,4 @@
+import { agendarEntrevistaEmpresaAction, reprogramarEntrevistaEmpresaAction, cancelarEntrevistaEmpresaAction } from '@/app/empresa/actions';
 import {
   Database,
   Empresa,
@@ -7,6 +8,8 @@ import {
   VistaCandidatoEmpresa,
 } from '@/types/database';
 import { createClient } from '@/lib/supabase/client';
+import { notificarAdmins, crearNotificacionDeduplicada } from '@/lib/notifications';
+import { darDeBajaOfertaEmpresaAction } from '@/app/empresa/actions';
 
 export interface CreateOfertaInput {
   titulo: string;
@@ -307,6 +310,42 @@ export async function enviarOfertaARevision(ofertaId: string): Promise<{
     return { success: false, error: error.message };
   }
 
+    // Notificar a administradores y confirmar a la empresa
+  try {
+    const { data: ofData } = await supabase
+      .from('ofertas')
+      .select('titulo, empresa:empresas(user_id, nombre_fantasia, razon_social)')
+      .eq('id', ofertaId)
+      .single();
+
+    const tituloOferta = ofData?.titulo || 'Oferta';
+    const nombreEmp = (ofData?.empresa as any)?.nombre_fantasia || (ofData?.empresa as any)?.razon_social || 'Una empresa';
+    const empUserId = (ofData?.empresa as any)?.user_id;
+
+    // Aviso a administradores
+    await notificarAdmins({
+      titulo: 'Nueva oferta para revisión',
+      mensaje: `La empresa "${nombreEmp}" envió a revisión la oferta "${tituloOferta}".`,
+      tipo: 'postulacion',
+      link: '/admin?tab=ofertas&estado=pendiente_revision',
+      agrupadorKey: 'oferta_revision_' + ofertaId,
+    });
+
+    // Confirmación a la empresa
+    if (empUserId) {
+      await crearNotificacionDeduplicada({
+        userId: empUserId,
+        titulo: 'Oferta enviada a revisión técnica',
+        mensaje: `Tu oferta "${tituloOferta}" fue enviada a la Oficina de Empleo para su revisión y aprobación.`,
+        tipo: 'info',
+        link: '/empresa',
+        agrupadorKey: 'empresa_confirma_revision_' + ofertaId,
+      });
+    }
+  } catch (e) {
+    console.warn('Aviso: no se pudo notificar envio a revision:', e);
+  }
+
   return { success: true };
 }
 
@@ -321,22 +360,8 @@ export async function darDeBajaOfertaEmpresa(
     return { success: false, error: 'El motivo de baja es obligatorio.' };
   }
 
-  const supabase = createClient();
-
-  const { error } = await supabase
-    .from('ofertas')
-    .update({
-      deleted_at: new Date().toISOString(),
-      motivo_baja: motivo.trim(),
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', ofertaId);
-
-  if (error) {
-    return { success: false, error: error.message };
-  }
-
-  return { success: true };
+  // Se delega a la Server Action que cuenta con verificación estricta de propiedad y permisos para sortear RLS restrictivo en revisión
+  return await darDeBajaOfertaEmpresaAction({ ofertaId, motivo });
 }
 
 /**
@@ -347,13 +372,42 @@ export async function getCandidatosPresentados(
 ): Promise<{ data: VistaCandidatoEmpresa[]; error?: string }> {
   const supabase = createClient();
 
-  // Se consulta a través de la función RPC segura obtener_candidatos_empresa
+  // 1. Obtener la empresa asociada al usuario autenticado
+  const { data: miEmpresa, error: empError } = await getMiEmpresa();
+  if (empError || !miEmpresa) {
+    return { data: [], error: empError || 'Empresa no encontrada o no autorizada.' };
+  }
+
+  if (miEmpresa.estado !== 'aprobada') {
+    return { data: [], error: 'La empresa debe estar aprobada para visualizar candidatos derivados.' };
+  }
+
+  // 1.1 Bloqueo en servidor: no se pueden consultar candidatos de ofertas en revisión o no aprobadas
+  if (ofertaId) {
+    const { data: ofertaCheck } = await supabase
+      .from('ofertas')
+      .select('id, estado, empresa_id')
+      .eq('id', ofertaId)
+      .maybeSingle();
+
+    if (ofertaCheck && ofertaCheck.estado === 'pendiente_revision') {
+      return {
+        data: [],
+        error: 'Los candidatos estarán disponibles cuando la oferta sea aprobada por la Oficina de Empleo.',
+      };
+    }
+  }
+
+  // 2. Se consulta a través de la función RPC segura obtener_candidatos_empresa o vista_candidatos_empresa
   const { data, error } = await supabase.rpc('obtener_candidatos_empresa', {
     p_oferta_id: ofertaId || null,
   });
 
-  if (error) {
-    // Si la función falla, fallback directo a la vista con RLS
+  let rawList: VistaCandidatoEmpresa[] = [];
+
+  // Si la RPC arroja error o devuelve vacío pero existe la vista con RLS (por disparidad de claims/sesión),
+  // consultar la vista asegurando que la empresa acceda a sus candidatos derivados.
+  if (error || !data || (Array.isArray(data) && data.length === 0)) {
     const viewQuery = supabase
       .from('vista_candidatos_empresa')
       .select('*')
@@ -364,19 +418,31 @@ export async function getCandidatosPresentados(
     }
 
     const { data: viewData, error: viewError } = await viewQuery;
-    if (viewError) {
-      return { data: [], error: viewError.message };
+    if (!viewError && viewData && viewData.length > 0) {
+      rawList = viewData as VistaCandidatoEmpresa[];
+    } else if (data && data.length > 0) {
+      rawList = data as VistaCandidatoEmpresa[];
+    } else if (viewError && error) {
+      return { data: [], error: error.message || viewError.message };
     }
-    return { data: (viewData || []) as VistaCandidatoEmpresa[] };
+  } else {
+    rawList = (data || []) as VistaCandidatoEmpresa[];
   }
 
-  return { data: (data || []) as VistaCandidatoEmpresa[] };
+  // 3. Defensa en profundidad: Aislamiento estricto por empresa_id en la capa de datos
+  const sanitizedList = rawList.filter((candidato) => {
+    if (candidato.empresa_id !== miEmpresa.id) {
+      console.warn(
+        `[SEGURIDAD] Candidato ${candidato.postulacion_id} con empresa_id ajeno (${candidato.empresa_id}) filtrado preventivamente.`
+      );
+      return false;
+    }
+    return true;
+  });
+
+  return { data: sanitizedList };
 }
 
-/**
- * Registra la decisión final de rechazo sobre un candidato derivado.
- * Requiere motivo obligatorio que queda resguardado para la Oficina de Empleo.
- */
 export async function rechazarCandidatoEmpresa(
   postulacionId: string,
   motivoRechazo: string
@@ -400,6 +466,43 @@ export async function rechazarCandidatoEmpresa(
     return { success: false, error: error.message };
   }
 
+    // Notificar al postulante (con motivo) y a la Oficina de Empleo
+  try {
+    const { data: postInfo } = await supabase
+      .from('postulaciones')
+      .select('postulante_id, oferta:ofertas(titulo, empresa:empresas(nombre_fantasia, razon_social))')
+      .eq('id', postulacionId)
+      .single();
+
+    if (postInfo?.postulante_id) {
+      const ofTitulo = (postInfo.oferta as any)?.titulo || 'la búsqueda laboral';
+      const empNombre = (postInfo.oferta as any)?.empresa?.nombre_fantasia || (postInfo.oferta as any)?.empresa?.razon_social || 'La empresa';
+
+      // Al postulante
+      await crearNotificacionDeduplicada({
+        userId: postInfo.postulante_id,
+        titulo: 'Postulación no seleccionada por la empresa',
+        mensaje: `${empNombre} ha concluido el proceso para "${ofTitulo}" y no avanzará con tu postulación en esta ocasión.`,
+        tipo: 'alerta',
+        link: '/postulante?tab=postulaciones',
+        metadata: { motivo: motivoRechazo.trim() },
+        agrupadorKey: 'rechazo_empresa_' + postulacionId,
+      });
+
+      // A la Oficina de Empleo (admin)
+      await notificarAdmins({
+        titulo: 'Candidato rechazado por empresa',
+        mensaje: `${empNombre} rechazó un candidato derivado para "${ofTitulo}". Motivo: ${motivoRechazo.trim()}`,
+        tipo: 'alerta',
+        link: '/admin?tab=ofertas',
+        metadata: { motivo: motivoRechazo.trim() },
+        agrupadorKey: 'admin_rechazo_candidato_' + postulacionId,
+      });
+    }
+  } catch (e) {
+    console.warn('Aviso: no se pudo notificar rechazo de candidato:', e);
+  }
+
   return { success: true };
 }
 
@@ -418,6 +521,41 @@ export async function contratarCandidatoEmpresa(
 
   if (error) {
     return { success: false, error: error.message };
+  }
+
+    // Notificar al postulante y a la Oficina de Empleo
+  try {
+    const { data: postInfo } = await supabase
+      .from('postulaciones')
+      .select('postulante_id, oferta:ofertas(titulo, empresa:empresas(nombre_fantasia, razon_social))')
+      .eq('id', postulacionId)
+      .single();
+
+    if (postInfo?.postulante_id) {
+      const ofTitulo = (postInfo.oferta as any)?.titulo || 'el puesto laboral';
+      const empNombre = (postInfo.oferta as any)?.empresa?.nombre_fantasia || (postInfo.oferta as any)?.empresa?.razon_social || 'La empresa';
+
+      // Al postulante
+      await crearNotificacionDeduplicada({
+        userId: postInfo.postulante_id,
+        titulo: '¡Felicitaciones! Has sido seleccionado/a',
+        mensaje: `${empNombre} confirmó tu contratación para la búsqueda "${ofTitulo}". ¡Muchos éxitos en tu nuevo empleo!`,
+        tipo: 'postulacion',
+        link: '/postulante?tab=postulaciones',
+        agrupadorKey: 'contratacion_postulante_' + postulacionId,
+      });
+
+      // A la Oficina de Empleo (admin)
+      await notificarAdmins({
+        titulo: '¡Postulante contratado por empresa!',
+        mensaje: `${empNombre} registró formalmente la contratación de un candidato derivado para "${ofTitulo}".`,
+        tipo: 'postulacion',
+        link: '/admin?tab=ofertas',
+        agrupadorKey: 'admin_contratacion_' + postulacionId,
+      });
+    }
+  } catch (e) {
+    console.warn('Aviso: no se pudo notificar contratación de candidato:', e);
   }
 
   return { success: true };
@@ -629,58 +767,109 @@ export async function agendarEntrevistaEmpresa(params: {
   entrevistador?: string;
   notas?: string;
 }): Promise<{ success: boolean; error?: string }> {
+  try {
+    return await agendarEntrevistaEmpresaAction(params);
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Error al agendar entrevista';
+    return { success: false, error: msg };
+  }
+}
+
+/**
+ * Reenviar solicitud de habilitación para empresa en estado rechazada
+ */
+export async function reenviarSolicitudEmpresa(
+  empresaId: string,
+  datos: {
+    nombre_fantasia?: string;
+    persona_contacto?: string;
+    telefono?: string;
+    email_contacto?: string;
+    direccion?: string;
+    localidad?: string;
+    rubro?: string | null;
+    sitio_web?: string | null;
+    descripcion?: string | null;
+  }
+): Promise<{ success: boolean; error?: string }> {
   const supabase = createClient();
   try {
-    const fechaHora = `${params.fecha}T${params.hora}:00`;
-
-    // 1. Actualizar postulación
-    const { data: post, error: postError } = await supabase
-      .from('postulaciones')
-      .update({
-        estado: 'entrevista',
-        fecha_entrevista: fechaHora,
-        modalidad_entrevista: params.modalidad,
-        lugar_entrevista: params.lugar,
-        entrevistador: params.entrevistador || null,
-        observaciones_derivacion: params.notas || null,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', params.postulacionId)
-      .select('id, postulante_id, oferta:ofertas(titulo, empresa:empresas(nombre_fantasia, razon_social))')
-      .single();
-
-    if (postError) {
-      return { success: false, error: postError.message };
-    }
-
-    // 2. Registrar en historial de la postulación
-    await supabase.from('historial_postulacion').insert({
-      postulacion_id: params.postulacionId,
-      estado_anterior: 'presentado_a_empresa',
-      estado_nuevo: 'entrevista',
-      cambiado_por: null,
-      observaciones: `Entrevista agendada por la empresa para el ${params.fecha} a las ${params.hora} hs (${params.modalidad})`,
+    // Intentar invocar la RPC si la migración ya fue aplicada
+    const { data, error } = await (supabase.rpc as any)('reenviar_solicitud_empresa', {
+      p_empresa_id: empresaId,
+      p_datos: datos,
     });
 
-    // 3. Notificar al postulante
-    if (post?.postulante_id) {
-      const ofertaObj = post.oferta as any;
-      const empresaNombre = ofertaObj?.empresa?.nombre_fantasia || ofertaObj?.empresa?.razon_social || 'La empresa';
-      const ofertaTitulo = ofertaObj?.titulo || 'la búsqueda';
+    if (error) {
+      // Fallback directo si la función RPC aún no fue migrada en el backend remoto
+      const { error: updErr } = await supabase
+        .from('empresas')
+        .update({
+          ...datos,
+          estado: 'pendiente',
+          verificada: false,
+          motivo_rechazo: null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', empresaId);
 
-      await supabase.from('notificaciones').insert({
-        user_id: post.postulante_id,
-        titulo: 'Entrevista de trabajo agendada',
-        mensaje: `${empresaNombre} coordinó una entrevista para ${ofertaTitulo} el día ${params.fecha} a las ${params.hora} hs (${params.modalidad}). Lugar/Contacto: ${params.lugar}`,
-        tipo: 'entrevista',
-        link: '/postulante',
-        leida: false,
+      if (updErr) return { success: false, error: updErr.message };
+    } else if (data && !data.success) {
+      return { success: false, error: data.error };
+    }
+
+    // Notificar a la administración de Funes
+    try {
+      await notificarAdmins({
+        titulo: 'Solicitud de empresa reenviada',
+        mensaje: `La empresa ${datos.nombre_fantasia || 'registrada'} actualizó sus datos y reenvió la solicitud de habilitación para revisión.`,
+        tipo: 'empresa',
+        link: '/admin?tab=empresas',
+        metadata: { empresaId },
+        agrupadorKey: 'empresa_reenvio_' + empresaId,
       });
+    } catch (e) {
+      console.warn('No se pudo notificar a los administradores:', e);
     }
 
     return { success: true };
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : 'Error al agendar entrevista';
+    const msg = err instanceof Error ? err.message : 'Error al reenviar solicitud';
+    return { success: false, error: msg };
+  }
+}
+
+/**
+ * Reprogramar una entrevista existente con el postulante
+ */
+export async function reprogramarEntrevistaEmpresa(params: {
+  postulacionId: string;
+  fecha: string;
+  hora: string;
+  modalidad: 'presencial' | 'virtual' | 'telefonica';
+  lugar: string;
+  entrevistador?: string;
+  notas?: string;
+}): Promise<{ success: boolean; error?: string }> {
+  try {
+    return await reprogramarEntrevistaEmpresaAction(params);
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Error al reprogramar entrevista';
+    return { success: false, error: msg };
+  }
+}
+
+/**
+ * Cancelar una entrevista previamente coordinada
+ */
+export async function cancelarEntrevistaEmpresa(params: {
+  postulacionId: string;
+  motivo: string;
+}): Promise<{ success: boolean; error?: string }> {
+  try {
+    return await cancelarEntrevistaEmpresaAction(params);
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Error al cancelar entrevista';
     return { success: false, error: msg };
   }
 }

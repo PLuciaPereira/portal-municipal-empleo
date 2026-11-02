@@ -8,6 +8,7 @@ import { Pagination } from '@/components/ui/Pagination';
 import { JobFilters, FilterState } from './JobFilters';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
+import { ArrowUpDown } from 'lucide-react';
 import {
   SearchIcon,
   UserIcon,
@@ -44,6 +45,7 @@ export const JobCatalogView: React.FC<JobCatalogViewProps> = ({
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [sortBy, setSortBy] = useState<'recientes' | 'antiguas' | 'titulo'>('recientes');
 
   // Sincronizar URL cuando cambian los filtros principales
   useEffect(() => {
@@ -115,8 +117,18 @@ export const JobCatalogView: React.FC<JobCatalogViewProps> = ({
       }
 
       return true;
+    }).sort((a, b) => {
+      if (sortBy === 'titulo') {
+        return (a.titulo || '').localeCompare(b.titulo || '', 'es', { sensitivity: 'base' });
+      }
+      // Orden estrictamente cronológico: la última oferta publicada es la primera en verse
+      const dateA = a.fecha_revision || a.created_at;
+      const dateB = b.fecha_revision || b.created_at;
+      const timeA = dateA ? new Date(dateA).getTime() : 0;
+      const timeB = dateB ? new Date(dateB).getTime() : 0;
+      return sortBy === 'recientes' ? timeB - timeA : timeA - timeB;
     });
-  }, [initialJobs, filters]);
+  }, [initialJobs, filters, sortBy]);
 
   const paginatedJobs = useMemo(() => {
     const start = (currentPage - 1) * pageSize;
@@ -127,7 +139,7 @@ export const JobCatalogView: React.FC<JobCatalogViewProps> = ({
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [filters]);
+  }, [filters, sortBy]);
 
   const handleReset = () => {
     setFilters({
@@ -148,19 +160,18 @@ export const JobCatalogView: React.FC<JobCatalogViewProps> = ({
 
   return (
     <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 py-6 sm:py-8 space-y-6">
-      {/* Banner de Cabecera Full-Width */}
-      <div className="bg-gradient-to-r from-brand-950 via-brand-900 to-brand-800 border border-brand-950/40 rounded-2xl p-6 sm:p-8 text-white relative overflow-hidden shadow-xs">
-        <div className="relative z-10 max-w-4xl space-y-2.5">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-white/10 border border-white/15 text-white/95 text-xs font-semibold backdrop-blur-xs">
-            <ShieldCheckIcon className="w-3.5 h-3.5 text-emerald-300" />
+      {/* Banner de Cabecera Compacto Full-Width */}
+      <div className="bg-gradient-to-r from-brand-950 via-brand-900 to-brand-800 border border-brand-950/40 rounded-2xl px-5 py-4 sm:px-8 sm:py-5 text-white relative overflow-hidden shadow-xs">
+        <div className="relative z-10 max-w-4xl space-y-1.5">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-white/10 border border-white/15 text-white/95 text-[11px] font-semibold backdrop-blur-xs leading-none">
+            <ShieldCheckIcon className="w-3 h-3 text-emerald-300" />
             Bolsa de Empleo Municipal &bull; Funes, Santa Fe
           </div>
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-white font-sans">
-            Ofertas Laborales Vigentes en Funes
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold tracking-tight text-white font-sans">
+            Ofertas laborales vigentes en Funes
           </h1>
-          <p className="text-xs sm:text-sm lg:text-base text-brand-100/90 leading-relaxed">
-            Consultá las búsquedas activas de comercios y empresas de la ciudad. Postulate de manera gratuita; la Oficina de Empleo acompaña y preselecciona cada postulación con absoluta confidencialidad y prioridad comunitaria.
-          </p>
+          <p className="text-xs sm:text-sm text-brand-100/90 leading-relaxed max-w-3xl">
+            Búsquedas activas en comercios y empresas de la ciudad.          </p>
         </div>
       </div>
 
@@ -263,13 +274,26 @@ export const JobCatalogView: React.FC<JobCatalogViewProps> = ({
 
         {/* Listado de Ofertas */}
         <section className="flex-1 w-full space-y-4">
-          <div className="flex items-center justify-between text-xs sm:text-sm text-muted-foreground pb-2 border-b border-border">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs sm:text-sm text-muted-foreground pb-3 border-b border-border">
             <span>
-              Mostrando <strong className="text-foreground font-bold">{filteredJobs.length}</strong> {filteredJobs.length === 1 ? 'oferta' : 'ofertas laborales'}
+              Mostrando <strong className="text-foreground font-bold">{filteredJobs.length}</strong> {filteredJobs.length === 1 ? 'oferta' : 'ofertas laborales'} en Funes
             </span>
-            <span className="text-brand-800 font-semibold hidden sm:inline">
-              Funes y área metropolitana
-            </span>
+            <div className="flex items-center gap-2">
+              <label htmlFor="catalog-sort" className="text-xs text-zinc-500 font-medium flex items-center gap-1 shrink-0">
+                <ArrowUpDown className="w-3.5 h-3.5 text-zinc-400" />
+                <span>Ordenar:</span>
+              </label>
+              <select
+                id="catalog-sort"
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as any)}
+                className="text-xs px-2.5 py-1.5 rounded-xl border border-zinc-200 bg-white font-semibold text-zinc-800 cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-800 shadow-2xs"
+              >
+                <option value="recientes">Más recientes primero</option>
+                <option value="antiguas">Más antiguas primero</option>
+                <option value="titulo">Título (A - Z)</option>
+              </select>
+            </div>
           </div>
 
           {filteredJobs.length > 0 ? (
@@ -336,7 +360,7 @@ export const JobCatalogView: React.FC<JobCatalogViewProps> = ({
               size="md"
               className="shrink-0 w-full sm:w-auto"
             >
-              Registrar mi Perfil
+              Registrar mi perfil
             </Button>
           </div>
         </section>

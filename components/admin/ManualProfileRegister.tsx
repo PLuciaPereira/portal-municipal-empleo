@@ -11,13 +11,13 @@ import {
   Sparkles,
   Briefcase,
 } from 'lucide-react';
-import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Checkbox } from '@/components/ui/Checkbox';
 import { Rubro } from '@/types/database';
 import { createClient } from '@/lib/supabase/client';
-import { registrarPostulanteAsistido } from '@/lib/admin';
+import { registrarPostulanteAsistidoAction } from '@/app/admin/actions';
+import { validateDni, validatePhone } from '@/lib/validators';
 
 const NIVELES_EDUCATIVOS = [
   'Primario incompleto',
@@ -59,7 +59,7 @@ export function ManualProfileRegister({ onCreated }: { onCreated?: () => void })
   const [telefono, setTelefono] = useState('');
   const [fechaNacimiento, setFechaNacimiento] = useState('');
   const [direccion, setDireccion] = useState('');
-  const [localidad, setLocalidad] = useState('Funes');
+  const [localidad, setLocalidad] = useState('');
 
   // Campos de Formación y Disponibilidad
   const [nivelEducativo, setNivelEducativo] = useState(NIVELES_EDUCATIVOS[4]); // Secundario completo por defecto
@@ -95,13 +95,20 @@ export function ManualProfileRegister({ onCreated }: { onCreated?: () => void })
     };
   }, []);
 
-  // Calcular esResidenteFunes directamente según la localidad sin trigger de setState en effect
-  const esResidenteFunes = localidad.trim().toLowerCase() === 'funes';
-
   const toggleRubro = (id: number) => {
     setSelectedRubroIds((prev) =>
       prev.includes(id) ? prev.filter((rId) => rId !== id) : [...prev, id]
     );
+  };
+
+  // Handler que garantiza solo dígitos en tipeo y pegado
+  const handleNumericInput = (
+    setter: React.Dispatch<React.SetStateAction<string>>,
+    maxLen?: number
+  ) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    let clean = e.target.value.replace(/\D/g, '');
+    if (maxLen) clean = clean.slice(0, maxLen);
+    setter(clean);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -110,13 +117,37 @@ export function ManualProfileRegister({ onCreated }: { onCreated?: () => void })
     setErrorMsg(null);
     setSuccessMsg(null);
 
+    // Validar DNI
+    const dniValidation = validateDni(dni);
+    if (!dniValidation.isValid) {
+      setErrorMsg(dniValidation.message || 'El DNI debe tener 7 u 8 dígitos numéricos válidos.');
+      setSaving(false);
+      return;
+    }
+
+    // Validar Teléfono
+    if (!validatePhone(telefono)) {
+      setErrorMsg('El teléfono debe tener un formato válido (mínimo 8 dígitos numéricos).');
+      setSaving(false);
+      return;
+    }
+
+    // Validar Localidad
+    if (!localidad.trim()) {
+      setErrorMsg('Por favor ingrese la localidad de residencia.');
+      setSaving(false);
+      return;
+    }
+
     const habilidades = habilidadesTexto
       .split(',')
       .map((h) => h.trim())
       .filter((h) => h.length > 0);
 
+    const esResidenteFunes = localidad.trim().toLowerCase() === 'funes';
+
     try {
-      const res = await registrarPostulanteAsistido({
+      const res = await registrarPostulanteAsistidoAction({
         nombre,
         apellido,
         dni,
@@ -124,7 +155,7 @@ export function ManualProfileRegister({ onCreated }: { onCreated?: () => void })
         telefono,
         fecha_nacimiento: fechaNacimiento || null,
         direccion: direccion || null,
-        localidad: localidad || 'Funes',
+        localidad: localidad.trim(),
         es_residente_funes: esResidenteFunes,
         nivel_educativo: nivelEducativo,
         situacion_laboral_actual: situacionLaboral,
@@ -134,11 +165,41 @@ export function ManualProfileRegister({ onCreated }: { onCreated?: () => void })
         habilidades,
         rubroIds: selectedRubroIds,
         avatar_url: avatarUrl || null,
-        cvFile: cvFile || undefined,
       });
 
-      if (res.success) {
-        setSuccessMsg(`Legajo laboral de ${nombre} ${apellido} registrado correctamente en el sistema.`);
+      if (res.success && res.perfilId) {
+        // Si se adjuntó CV, subirlo a storage vinculado al perfil
+        if (cvFile) {
+          try {
+            const supabase = createClient();
+            const fileExt = cvFile.name.split('.').pop();
+            const filePath = `${res.perfilId}/cv_asistido_${Date.now()}.${fileExt}`;
+            const { error: uploadErr } = await supabase.storage
+              .from('postulantes-cvs')
+              .upload(filePath, cvFile, { upsert: true });
+
+            if (!uploadErr) {
+              const { data: publicUrlData } = supabase.storage
+                .from('postulantes-cvs')
+                .getPublicUrl(filePath);
+
+              await supabase.from('curriculums').insert({
+                postulante_id: res.perfilId,
+                nombre_cv: 'CV Legajo Asistido',
+                archivo_url: publicUrlData.publicUrl,
+                es_principal: true,
+                activo: true,
+              });
+            }
+          } catch (cvErr) {
+            console.warn('Advertencia al subir CV asistido:', cvErr);
+          }
+        }
+
+        const msgClave = res.claveAsignada
+          ? ` Clave asignada de acceso: ${res.claveAsignada}`
+          : '';
+        setSuccessMsg(`Legajo laboral de ${nombre} ${apellido} registrado correctamente. Podrá ingresar con su DNI.${msgClave}`);
         // Reset form
         setNombre('');
         setApellido('');
@@ -147,7 +208,7 @@ export function ManualProfileRegister({ onCreated }: { onCreated?: () => void })
         setTelefono('');
         setFechaNacimiento('');
         setDireccion('');
-        setLocalidad('Funes');
+        setLocalidad('');
         setExperienciaResumen('');
         setHabilidadesTexto('');
         setSelectedRubroIds([]);
@@ -155,7 +216,7 @@ export function ManualProfileRegister({ onCreated }: { onCreated?: () => void })
         setAvatarUrl('');
         if (onCreated) onCreated();
       } else {
-        setErrorMsg(res.message);
+        setErrorMsg(res.error || 'No se pudo registrar el legajo.');
       }
     } catch {
       setErrorMsg('Error de red al procesar el registro asistido.');
@@ -165,29 +226,27 @@ export function ManualProfileRegister({ onCreated }: { onCreated?: () => void })
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div className="bg-emerald-900 text-white rounded-2xl p-6 shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-800 text-emerald-100 text-xs font-bold mb-2">
-            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-            Inclusión Digital y Atención Municipal
-          </div>
-          <h2 className="text-xl font-bold">Carga Manual Asistida de Perfil</h2>
-          <p className="text-xs text-emerald-100 mt-1 max-w-2xl leading-relaxed">
-            Formulario institucional para registrar legajos de personas mayores o vecinos sin conectividad/dispositivos. Este registro ingresa de forma oficial al Padrón de Postulantes con todas sus competencias y prioridad local.
-          </p>
-        </div>
+    <div className="w-full space-y-3">
+      {/* Banner Compacto de Una Sola Línea */}
+      <div className="h-[44px] bg-gradient-to-r from-emerald-900 to-emerald-800 text-white rounded-[12px] px-4 shadow-xs flex items-center gap-3 overflow-hidden">
+        <h2 className="text-[15px] font-bold text-white shrink-0 tracking-tight">
+          Carga manual asistida de perfil
+        </h2>
+        <span className="w-1 h-1 rounded-full bg-white/50 shrink-0" aria-hidden="true" />
+        <p className="text-[13px] text-emerald-100/90 truncate font-normal">
+          Registro oficial para vecinos que se acercan a la Oficina de Empleo.
+        </p>
       </div>
 
       {successMsg && (
-        <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-semibold flex items-center gap-2 animate-in fade-in">
+        <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs sm:text-sm font-semibold flex items-center gap-2 animate-in fade-in">
           <CheckCircle2 className="w-5 h-5 text-emerald-700 shrink-0" />
           <span>{successMsg}</span>
         </div>
       )}
 
       {errorMsg && (
-        <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 text-xs font-semibold flex items-center gap-2 animate-in fade-in">
+        <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 text-xs sm:text-sm font-semibold flex items-center gap-2 animate-in fade-in">
           <AlertCircle className="w-5 h-5 text-rose-700 shrink-0" />
           <span>{errorMsg}</span>
         </div>
@@ -195,13 +254,13 @@ export function ManualProfileRegister({ onCreated }: { onCreated?: () => void })
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* SECCIÓN 1: Datos Personales y Contacto */}
-        <Card className="p-6 bg-white shadow-xs space-y-4">
-          <h3 className="text-sm font-bold uppercase tracking-wider text-[var(--color-brand-800)] border-b border-slate-100 pb-2 flex items-center gap-2">
+        <section className="p-6 bg-surface border border-zinc-200/90 rounded-2xl shadow-xs space-y-5">
+          <h3 className="text-sm font-bold uppercase tracking-wider text-[var(--color-brand-800)] border-b border-zinc-100 pb-3 flex items-center gap-2">
             <UserPlus className="w-4 h-4" />
             1. Identificación y Contacto
           </h3>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             <Input
               label="Nombre *"
               required
@@ -217,18 +276,27 @@ export function ManualProfileRegister({ onCreated }: { onCreated?: () => void })
               placeholder="Ej: Rossi"
             />
             <Input
-              label="DNI (sin puntos) *"
+              label="DNI (solo números) *"
               required
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              maxLength={8}
               value={dni}
-              onChange={(e) => setDni(e.target.value)}
-              placeholder="Ej: 14234567"
+              onChange={handleNumericInput(setDni, 8)}
+              placeholder="Ej: 38123456"
+              hint="7 u 8 dígitos numéricos"
             />
             <Input
               label="Teléfono / Celular de contacto *"
               required
+              type="tel"
+              inputMode="numeric"
+              maxLength={15}
               value={telefono}
-              onChange={(e) => setTelefono(e.target.value)}
-              placeholder="Ej: 341 555-4321"
+              onChange={handleNumericInput(setTelefono, 15)}
+              placeholder="Ej: 3415554321"
+              hint="Solo números (mínimo 8 dígitos)"
             />
             <Input
               label="Correo electrónico (Opcional si no posee)"
@@ -243,47 +311,34 @@ export function ManualProfileRegister({ onCreated }: { onCreated?: () => void })
               value={fechaNacimiento}
               onChange={(e) => setFechaNacimiento(e.target.value)}
             />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-            <div>
-              <Input
-                label="Localidad de residencia *"
-                required
-                value={localidad}
-                onChange={(e) => setLocalidad(e.target.value)}
-                placeholder="Ej: Funes"
-              />
-              <div className="mt-1.5 flex items-center gap-2">
-                <span
-                  className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
-                    esResidenteFunes ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'
-                  }`}
-                >
-                  {esResidenteFunes ? '✓ Residente de Funes (Prioridad Activa)' : 'Otras Localidades'}
-                </span>
-              </div>
-            </div>
-
             <Input
-              label="Dirección / Domicilio / Barrio"
-              value={direccion}
-              onChange={(e) => setDireccion(e.target.value)}
-              placeholder="Calle, número, barrio"
+              label="Localidad de residencia *"
+              required
+              value={localidad}
+              onChange={(e) => setLocalidad(e.target.value)}
+              placeholder="Ej: Funes"
             />
+            <div className="md:col-span-2">
+              <Input
+                label="Dirección / Domicilio / Barrio"
+                value={direccion}
+                onChange={(e) => setDireccion(e.target.value)}
+                placeholder="Calle, número, barrio"
+              />
+            </div>
           </div>
-        </Card>
+        </section>
 
         {/* SECCIÓN 2: Formación y Situación Laboral */}
-        <Card className="p-6 bg-white shadow-xs space-y-4">
-          <h3 className="text-sm font-bold uppercase tracking-wider text-[var(--color-brand-800)] border-b border-slate-100 pb-2 flex items-center gap-2">
+        <section className="p-6 bg-surface border border-zinc-200/90 rounded-2xl shadow-xs space-y-5">
+          <h3 className="text-sm font-bold uppercase tracking-wider text-[var(--color-brand-800)] border-b border-zinc-100 pb-3 flex items-center gap-2">
             <GraduationCap className="w-4 h-4" />
             2. Formación y Disponibilidad
           </h3>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 items-end">
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Nivel Educativo *</label>
+              <label className="block text-xs font-bold text-slate-700 mb-1.5">Nivel educativo *</label>
               <select
                 required
                 value={nivelEducativo}
@@ -299,7 +354,7 @@ export function ManualProfileRegister({ onCreated }: { onCreated?: () => void })
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Situación Laboral Actual *</label>
+              <label className="block text-xs font-bold text-slate-700 mb-1.5">Situación laboral actual *</label>
               <select
                 required
                 value={situacionLaboral}
@@ -315,7 +370,7 @@ export function ManualProfileRegister({ onCreated }: { onCreated?: () => void })
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Disponibilidad Horaria *</label>
+              <label className="block text-xs font-bold text-slate-700 mb-1.5">Disponibilidad horaria *</label>
               <select
                 required
                 value={disponibilidadHoraria}
@@ -330,7 +385,7 @@ export function ManualProfileRegister({ onCreated }: { onCreated?: () => void })
               </select>
             </div>
 
-            <div className="flex items-center pt-5">
+            <div className="pb-2">
               <Checkbox
                 id="movilidad_propia"
                 checked={movilidadPropia}
@@ -339,76 +394,78 @@ export function ManualProfileRegister({ onCreated }: { onCreated?: () => void })
               />
             </div>
           </div>
-        </Card>
+        </section>
 
         {/* SECCIÓN 3: Trayectoria, Competencias y Rubros */}
-        <Card className="p-6 bg-white shadow-xs space-y-4">
-          <h3 className="text-sm font-bold uppercase tracking-wider text-[var(--color-brand-800)] border-b border-slate-100 pb-2 flex items-center gap-2">
+        <section className="p-6 bg-surface border border-zinc-200/90 rounded-2xl shadow-xs space-y-5">
+          <h3 className="text-sm font-bold uppercase tracking-wider text-[var(--color-brand-800)] border-b border-zinc-100 pb-3 flex items-center gap-2">
             <Briefcase className="w-4 h-4" />
             3. Competencias Laborales y Rubros
           </h3>
 
-          <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">
-              Resumen de experiencia o trayectoria laboral
-            </label>
-            <textarea
-              rows={3}
-              value={experienciaResumen}
-              onChange={(e) => setExperienciaResumen(e.target.value)}
-              placeholder="Describí los puestos previos, oficios, años de experiencia o trabajos realizados..."
-              className="w-full text-xs p-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-[var(--color-brand-800)] focus:outline-none"
-            />
-          </div>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                Resumen de experiencia o trayectoria laboral
+              </label>
+              <textarea
+                rows={3}
+                value={experienciaResumen}
+                onChange={(e) => setExperienciaResumen(e.target.value)}
+                placeholder="Describí los puestos previos, oficios, años de experiencia o trabajos realizados..."
+                className="w-full text-xs p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-[var(--color-brand-800)] focus:outline-none"
+              />
+            </div>
 
-          <div>
-            <Input
-              label="Habilidades o conocimientos (separadas por coma)"
-              value={habilidadesTexto}
-              onChange={(e) => setHabilidadesTexto(e.target.value)}
-              placeholder="Ej: Albañilería, Plomería, Manejo de caja, Atención al público, Excel"
-            />
-          </div>
+            <div>
+              <Input
+                label="Habilidades o conocimientos (separadas por coma)"
+                value={habilidadesTexto}
+                onChange={(e) => setHabilidadesTexto(e.target.value)}
+                placeholder="Ej: Albañilería, Plomería, Manejo de caja, Atención al público, Excel"
+              />
+            </div>
 
-          <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1.5">
-              Rubros o sectores de interés para empleo
-            </label>
-            {loadingRubros ? (
-              <p className="text-xs text-slate-400">Cargando rubros...</p>
-            ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {rubrosDisponibles.map((rubro) => {
-                  const isSelected = selectedRubroIds.includes(rubro.id);
-                  return (
-                    <button
-                      key={rubro.id}
-                      type="button"
-                      onClick={() => toggleRubro(rubro.id)}
-                      className={`p-2 rounded-xl text-left text-xs font-semibold border transition-all cursor-pointer flex items-center justify-between ${
-                        isSelected
-                          ? 'border-[var(--color-brand-800)] bg-emerald-50 text-[var(--color-brand-800)]'
-                          : 'border-slate-200 text-slate-700 hover:bg-slate-50'
-                      }`}
-                    >
-                      <span className="truncate">{rubro.nombre}</span>
-                      {isSelected && <span className="text-[10px] font-bold">✓</span>}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-2">
+                Rubros o sectores de interés para empleo
+              </label>
+              {loadingRubros ? (
+                <p className="text-xs text-slate-400">Cargando rubros...</p>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2.5">
+                  {rubrosDisponibles.map((rubro) => {
+                    const isSelected = selectedRubroIds.includes(rubro.id);
+                    return (
+                      <button
+                        key={rubro.id}
+                        type="button"
+                        onClick={() => toggleRubro(rubro.id)}
+                        className={`p-2.5 rounded-xl text-left text-xs font-semibold border transition-all cursor-pointer flex items-center justify-between ${
+                          isSelected
+                            ? 'border-[var(--color-brand-800)] bg-emerald-50 text-[var(--color-brand-800)] ring-1 ring-[var(--color-brand-800)]/20'
+                            : 'border-slate-200 text-slate-700 hover:bg-slate-50'
+                        }`}
+                      >
+                        <span className="truncate">{rubro.nombre}</span>
+                        {isSelected && <span className="text-xs font-bold ml-1 shrink-0">✓</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
-        </Card>
+        </section>
 
         {/* SECCIÓN 4: Foto de Perfil y Archivo de CV */}
-        <Card className="p-6 bg-white shadow-xs space-y-4">
-          <h3 className="text-sm font-bold uppercase tracking-wider text-[var(--color-brand-800)] border-b border-slate-100 pb-2 flex items-center gap-2">
+        <section className="p-6 bg-surface border border-zinc-200/90 rounded-2xl shadow-xs space-y-5">
+          <h3 className="text-sm font-bold uppercase tracking-wider text-[var(--color-brand-800)] border-b border-zinc-100 pb-3 flex items-center gap-2">
             <ImageIcon className="w-4 h-4" />
             4. Foto de Perfil y Documentación Adjunta
           </h3>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
               <Input
                 label="Foto de Perfil (URL de imagen o foto de legajo)"
@@ -416,14 +473,14 @@ export function ManualProfileRegister({ onCreated }: { onCreated?: () => void })
                 onChange={(e) => setAvatarUrl(e.target.value)}
                 placeholder="https://... o dejar vacío"
               />
-              <p className="text-[11px] text-slate-400 mt-1">Opcional. Permite identificar al postulante en el padrón municipal.</p>
+              <p className="text-[11px] text-slate-400 mt-1.5">Opcional. Permite identificar al postulante en el padrón municipal.</p>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
+              <label className="block text-xs font-bold text-slate-700 mb-1.5">
                 CV o Documento Escaneado (PDF/DOCX/JPG)
               </label>
-              <div className="border-2 border-dashed border-slate-200 rounded-xl p-3 text-center">
+              <div className="border-2 border-dashed border-slate-200 hover:border-emerald-700/40 rounded-xl p-4 text-center transition-colors">
                 <input
                   type="file"
                   id="cv-upload"
@@ -439,7 +496,7 @@ export function ManualProfileRegister({ onCreated }: { onCreated?: () => void })
                   htmlFor="cv-upload"
                   className="cursor-pointer flex flex-col items-center justify-center text-xs text-slate-600 hover:text-emerald-800"
                 >
-                  <Upload className="w-5 h-5 text-slate-400 mb-1" />
+                  <Upload className="w-5 h-5 text-slate-400 mb-1.5" />
                   {cvFile ? (
                     <span className="font-bold text-emerald-800">{cvFile.name}</span>
                   ) : (
@@ -449,7 +506,7 @@ export function ManualProfileRegister({ onCreated }: { onCreated?: () => void })
               </div>
             </div>
           </div>
-        </Card>
+        </section>
 
         {/* Botón de Guardado */}
         <div className="flex justify-end gap-3 pt-2">
@@ -458,7 +515,7 @@ export function ManualProfileRegister({ onCreated }: { onCreated?: () => void })
             size="lg"
             type="submit"
             disabled={saving}
-            className="w-full sm:w-auto px-8 gap-2"
+            className="w-full sm:w-auto px-8 gap-2 shadow-xs"
           >
             <UserPlus className="w-5 h-5" />
             {saving ? 'Registrando Legajo...' : 'Guardar y Dar de Alta en Padrón'}

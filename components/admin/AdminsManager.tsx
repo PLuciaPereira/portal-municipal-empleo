@@ -159,7 +159,7 @@ export function AdminsManager() {
               Equipo de la Oficina de Empleo
             </h3>
             <Badge variant="blue" className="text-[10px]">
-              Gestión Entre Pares
+              Gestión entre pares
             </Badge>
           </div>
           <p className="text-xs text-zinc-500 mt-0.5">
@@ -175,7 +175,7 @@ export function AdminsManager() {
             className="bg-brand-800 hover:bg-brand-900 text-white gap-1.5 shadow-2xs"
           >
             <UserPlus className="w-4 h-4" />
-            <span>Nuevo Administrador</span>
+            <span>Nuevo administrador</span>
           </Button>
 
           <Button
@@ -211,7 +211,7 @@ export function AdminsManager() {
             className="w-full h-9 text-xs rounded-xl border border-zinc-200 bg-white px-2.5 text-zinc-700 focus:outline-hidden focus:border-brand-500 font-medium"
           >
             <option value="todos">Todos los administradores ({administradores.length})</option>
-            <option value="activos">Sólo Activos ({totalActivos})</option>
+            <option value="activos">Solo activos ({totalActivos})</option>
             <option value="inactivos">Inactivos ({totalInactivos})</option>
           </select>
         </div>
@@ -241,7 +241,7 @@ export function AdminsManager() {
                 <tr>
                   <th className="py-3 px-4">Administrador / DNI</th>
                   <th className="py-3 px-4">Teléfono</th>
-                  <th className="py-3 px-4">Fecha de Alta</th>
+                  <th className="py-3 px-4">Fecha de alta</th>
                   <th className="py-3 px-4">Estado</th>
                   <th className="py-3 px-4 text-right">Acciones</th>
                 </tr>

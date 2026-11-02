@@ -60,6 +60,7 @@ const [rubros, setRubros] = useState<Rubro[]>([]);
     experienciaRequerida: ofertaToEdit?.experiencia_requerida || '',
     tipoJornada: ofertaToEdit?.tipo_jornada || 'Jornada completa',
     tipoContrato: ofertaToEdit?.tipo_contrato || 'Relación de dependencia',
+    modalidadTrabajo: ofertaToEdit?.modalidad_trabajo || 'Presencial',
     ubicacion: ofertaToEdit?.ubicacion || 'Funes, Santa Fe',
     rangoSalarial: ofertaToEdit?.rango_salarial || '',
     vacantes: ofertaToEdit?.vacantes || 1,
@@ -260,7 +261,7 @@ const [rubros, setRubros] = useState<Rubro[]>([]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn">
-      <div className="relative w-full max-w-2xl bg-surface rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden border border-border max-h-[92vh] flex flex-col">
+      <div className="relative w-full max-w-4xl bg-surface rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden border border-border max-h-[92vh] flex flex-col">
         {/* Encabezado */}
         <div className="flex items-start justify-between px-6 py-5 border-b border-border/80 shrink-0 gap-4">
           <div className="space-y-1">
@@ -526,7 +527,7 @@ const [rubros, setRubros] = useState<Rubro[]>([]);
                 disabled={isBusy}
               >
                 <SendIcon className="w-4 h-4 mr-1.5" />
-                Crear Oferta
+                Crear oferta
               </Button>
             </div>
           </div>

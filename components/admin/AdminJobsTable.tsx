@@ -5,6 +5,8 @@ import { OfertaAdminItem } from '@/lib/admin';
 import { JobStatus } from '@/types/database';
 import { JobStatusBadge } from '@/components/empresa/JobStatusBadge';
 import { AdminJobDetailModal } from './AdminJobDetailModal';
+import { InviteCandidateToJobModal } from './InviteCandidateToJobModal';
+import { PostulanteAdminItem } from '@/lib/admin';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -21,6 +23,8 @@ import {
   Star,
   BadgeAlert,
   Users,
+  UserPlus,
+  ArrowUpDown,
 } from 'lucide-react';
 import {
   aprobarOfertaAdmin,
@@ -31,6 +35,7 @@ import {
 
 interface AdminJobsTableProps {
   ofertas: OfertaAdminItem[];
+  postulantesDisponibles?: PostulanteAdminItem[];
   loading?: boolean;
   onRefresh: () => void;
   onSelectOfertaPostulaciones?: (ofertaId: string) => void;
@@ -40,16 +45,20 @@ type FilterEstado = JobStatus | 'todas' | 'bajas';
 
 export function AdminJobsTable({
   ofertas,
+  postulantesDisponibles = [],
   loading,
   onRefresh,
   onSelectOfertaPostulaciones,
 }: AdminJobsTableProps) {
   const [filterEstado, setFilterEstado] = useState<FilterEstado>('todas');
   const [searchTerm, setSearchTerm] = useState('');
+  const [sortOrder, setSortOrder] = useState<'recientes' | 'antiguas'>('recientes');
 
   // Modales
   const [selectedOferta, setSelectedOferta] = useState<OfertaAdminItem | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [ofertaToInvitePostulante, setOfertaToInvitePostulante] = useState<OfertaAdminItem | null>(null);
+  const [isInviteCandidateModalOpen, setIsInviteCandidateModalOpen] = useState(false);
 
   const [ofertaToApprove, setOfertaToApprove] = useState<OfertaAdminItem | null>(null);
   const [isApproveDialogOpen, setIsApproveDialogOpen] = useState(false);
@@ -72,9 +81,12 @@ export function AdminJobsTable({
       const isDeleted = Boolean(of.deleted_at);
 
       if (filterEstado === 'bajas') {
-        if (!isDeleted) return false;
+        if (!isDeleted || of.estado === 'borrador') return false;
       } else if (filterEstado !== 'todas') {
         if (isDeleted || of.estado !== filterEstado) return false;
+      } else {
+        // En "todas", tampoco mostrar borradores dados de baja que nunca llegaron al municipio
+        if (isDeleted && of.estado === 'borrador') return false;
       }
 
       if (searchTerm.trim()) {
@@ -89,12 +101,36 @@ export function AdminJobsTable({
           .includes(q);
         const matchesRubro = (of.rubro?.nombre || '').toLowerCase().includes(q);
         const matchesUbicacion = (of.ubicacion || '').toLowerCase().includes(q);
-        return matchesTitulo || matchesEmpresa || matchesRubro || matchesUbicacion;
+        const matchesJornada = (of.tipo_jornada || '').toLowerCase().includes(q);
+        const matchesContrato = (of.tipo_contrato || '').toLowerCase().includes(q);
+        const matchesRequisitos = (of.requisitos || '').toLowerCase().includes(q);
+        const matchesDescripcion = (of.descripcion || '').toLowerCase().includes(q);
+        const matchesExp = (of.experiencia_requerida || '').toLowerCase().includes(q);
+        return (
+          matchesTitulo ||
+          matchesEmpresa ||
+          matchesRubro ||
+          matchesUbicacion ||
+          matchesJornada ||
+          matchesContrato ||
+          matchesRequisitos ||
+          matchesDescripcion ||
+          matchesExp
+        );
       }
 
       return true;
+    }).sort((a, b) => {
+      const timeA = new Date(a.created_at).getTime() || 0;
+      const timeB = new Date(b.created_at).getTime() || 0;
+      if (sortOrder === 'antiguas') {
+        return timeA - timeB;
+      }
+      // 'recientes' predeterminado por fecha de creación descendente
+      if (timeB !== timeA) return timeB - timeA;
+      return (b.id || '').localeCompare(a.id || '');
     });
-  }, [ofertas, filterEstado, searchTerm]);
+  }, [ofertas, filterEstado, searchTerm, sortOrder]);
 
   // Contadores por filtro
   const counts = useMemo(() => {
@@ -105,7 +141,8 @@ export function AdminJobsTable({
       ).length,
       publicadas: ofertas.filter((o) => o.estado === 'publicada' && !o.deleted_at).length,
       rechazadas: ofertas.filter((o) => o.estado === 'rechazada' && !o.deleted_at).length,
-      bajas: ofertas.filter((o) => Boolean(o.deleted_at)).length,
+      // Las bajas en el panel municipal solo consideran ofertas que ya estuvieron en circuito (no borradores privados)
+      bajas: ofertas.filter((o) => Boolean(o.deleted_at) && o.estado !== 'borrador').length,
     };
   }, [ofertas]);
 
@@ -183,7 +220,7 @@ export function AdminJobsTable({
     }
   };
 
-  // Dar de Baja
+  // Dar de baja
   const handleInitiateDeactivate = (oferta: OfertaAdminItem) => {
     setOfertaToDeactivate(oferta);
     setIsDeactivateDialogOpen(true);
@@ -335,15 +372,30 @@ export function AdminJobsTable({
           </button>
         </div>
 
-        {/* Buscador */}
-        <div className="relative flex-1 max-w-md">
-          <Search className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
-          <Input
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Buscar por puesto, empresa, rubro o localidad..."
-            className="pl-9 h-10 text-xs w-full bg-zinc-50 border-zinc-200"
-          />
+        {/* Buscador y Selector Compacto de Orden */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 flex-1 max-w-xl">
+          <div className="relative flex-1">
+            <Search className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Input
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Buscar por puesto, empresa, rubro, requisitos o localidad..."
+              className="pl-9 h-10 text-xs w-full bg-zinc-50 border-zinc-200"
+            />
+          </div>
+
+          <div className="flex items-center gap-1.5 bg-zinc-50 px-2.5 h-10 rounded-xl border border-zinc-200 text-xs shrink-0">
+            <ArrowUpDown className="w-3.5 h-3.5 text-zinc-500" />
+            <span className="text-zinc-500 font-medium hidden sm:inline">Orden:</span>
+            <select
+              value={sortOrder}
+              onChange={(e) => setSortOrder(e.target.value as 'recientes' | 'antiguas')}
+              className="bg-transparent text-zinc-800 font-semibold focus:outline-none cursor-pointer text-xs"
+            >
+              <option value="recientes">Más recientes</option>
+              <option value="antiguas">Más antiguas</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -381,13 +433,13 @@ export function AdminJobsTable({
             />
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+          <div className="overflow-x-auto scroll-smooth">
+            <table className="w-full min-w-[720px] text-left text-xs">
               <thead className="bg-zinc-50/80 text-zinc-600 border-b border-zinc-200 uppercase tracking-wider font-semibold text-[11px]">
                 <tr>
-                  <th className="py-2.5 px-3.5">Puesto y Empresa</th>
-                  <th className="py-2.5 px-3">Rubro y Modalidad</th>
-                  <th className="py-2.5 px-3">Vacantes y Postulaciones</th>
+                  <th className="py-2.5 px-3.5">Puesto y empresa</th>
+                  <th className="py-2.5 px-3">Rubro y modalidad</th>
+                  <th className="py-2.5 px-3">Vacantes y postulaciones</th>
                   <th className="py-2.5 px-3">Estado</th>
                   <th className="py-2.5 px-3.5 text-right">Acciones</th>
                 </tr>
@@ -403,7 +455,7 @@ export function AdminJobsTable({
                       key={of.id}
                       className="hover:bg-zinc-50/60 transition-colors group"
                     >
-                      {/* Puesto y Empresa */}
+                      {/* Puesto y empresa */}
                       <td className="py-2.5 px-3.5 font-medium text-zinc-900">
                         <div className="flex items-center gap-2.5">
                           <div className="w-8 h-8 rounded-lg bg-brand-50 text-brand-900 flex items-center justify-center font-bold shrink-0 border border-brand-200/50">
@@ -425,7 +477,7 @@ export function AdminJobsTable({
                         </div>
                       </td>
 
-                      {/* Rubro y Modalidad */}
+                      {/* Rubro y modalidad */}
                       <td className="py-2.5 px-3">
                         <span className="font-semibold text-zinc-800 block text-xs truncate max-w-[170px]" title={of.rubro?.nombre || 'General'}>
                           {of.rubro?.nombre || 'General'}
@@ -435,7 +487,7 @@ export function AdminJobsTable({
                         </div>
                       </td>
 
-                      {/* Vacantes y Postulaciones (1 sola línea, formato del mockup) */}
+                      {/* Vacantes y postulaciones (1 sola línea, formato del mockup) */}
                       <td className="py-2.5 px-3 whitespace-nowrap">
                         <span className="text-xs font-semibold text-zinc-800">
                           {of.vacantes} {of.vacantes === 1 ? 'vacante' : 'vacantes'}
@@ -475,17 +527,35 @@ export function AdminJobsTable({
                             <span>Ficha</span>
                           </Button>
 
-                          {/* Botón de Intermediación / Postulantes */}
+                          {/* Botón de Intermediación / Postulantes con señal visual de novedades */}
                           {onSelectOfertaPostulaciones && (
                             <Button
-                              variant="outline"
+                              variant={of.postulaciones_nuevas_count && of.postulaciones_nuevas_count > 0 ? "secondary" : "outline"}
                               size="sm"
                               onClick={() => onSelectOfertaPostulaciones(of.id)}
-                              className="h-7 px-2 text-brand-900 hover:bg-brand-50 gap-1 text-xs border-brand-200"
-                              title="Ver y gestionar postulantes"
+                              className={`h-7 px-2 gap-1.5 text-xs transition-all ${
+                                of.postulaciones_nuevas_count && of.postulaciones_nuevas_count > 0
+                                  ? 'bg-amber-100 hover:bg-amber-200 text-amber-950 border border-amber-300 font-bold shadow-2xs'
+                                  : 'text-brand-900 hover:bg-brand-50 border-brand-200'
+                              }`}
+                              title={
+                                of.postulaciones_nuevas_count && of.postulaciones_nuevas_count > 0
+                                  ? `${of.postulaciones_nuevas_count} nueva${of.postulaciones_nuevas_count === 1 ? '' : 's'} postulaci${of.postulaciones_nuevas_count === 1 ? 'ón' : 'ones'} sin revisar`
+                                  : 'Ver y gestionar postulantes'
+                              }
                             >
-                              <Users className="w-3.5 h-3.5 text-brand-800" />
+                              <div className="relative flex items-center">
+                                <Users className={`w-3.5 h-3.5 ${of.postulaciones_nuevas_count && of.postulaciones_nuevas_count > 0 ? 'text-amber-800' : 'text-brand-800'}`} />
+                                {of.postulaciones_nuevas_count && of.postulaciones_nuevas_count > 0 ? (
+                                  <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-amber-500 animate-ping" />
+                                ) : null}
+                              </div>
                               <span>Postulantes</span>
+                              {of.postulaciones_nuevas_count && of.postulaciones_nuevas_count > 0 ? (
+                                <span className="px-1 py-0.2 rounded-full bg-amber-500 text-white text-[10px] font-extrabold leading-none">
+                                  +{of.postulaciones_nuevas_count}
+                                </span>
+                              ) : null}
                             </Button>
                           )}
 
@@ -527,7 +597,7 @@ export function AdminJobsTable({
                               title="Dar de baja oferta pública"
                             >
                               <BadgeAlert className="w-3.5 h-3.5" />
-                              <span>Dar de Baja</span>
+                              <span>Dar de baja</span>
                             </Button>
                           )}
                         </div>
@@ -542,6 +612,19 @@ export function AdminJobsTable({
       </div>
 
       {/* Modal de Detalle Completo de la Oferta */}
+            <InviteCandidateToJobModal
+        isOpen={isInviteCandidateModalOpen}
+        oferta={ofertaToInvitePostulante}
+        postulantesDisponibles={postulantesDisponibles}
+        onClose={() => {
+          setIsInviteCandidateModalOpen(false);
+          setOfertaToInvitePostulante(null);
+        }}
+        onSuccess={() => {
+          onRefresh();
+        }}
+      />
+
       <AdminJobDetailModal
         oferta={selectedOferta}
         isOpen={isDetailModalOpen}
@@ -596,7 +679,7 @@ export function AdminJobsTable({
         isLoading={actionLoading}
       />
 
-      {/* ConfirmDialog: Dar de Baja con Motivo Obligatorio */}
+      {/* ConfirmDialog: Dar de baja con Motivo Obligatorio */}
       <ConfirmDialog
         isOpen={isDeactivateDialogOpen}
         onClose={() => setIsDeactivateDialogOpen(false)}

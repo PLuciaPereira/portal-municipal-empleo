@@ -1,20 +1,21 @@
 'use client';
 
-import React, { useState, Suspense } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { UserRole } from '@/types/database';
-import { AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { AlertCircle, Eye, EyeOff, CheckCircle2, Loader2 } from 'lucide-react';
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectUrl = searchParams.get('redirect');
+  const isRecovered = searchParams.get('recovered') === '1';
 
-  const { login, isLoading } = useAuth();
-  const [email, setEmail] = useState('');
+  const { user, login, isLoading } = useAuth();
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -38,12 +39,21 @@ function LoginForm() {
     return '/postulante';
   };
 
+  // Validación reactiva: si el usuario ya está autenticado, redirigir automáticamente
+  // y sustituir /login en el historial para evitar rebotes al pulsar la flecha "Atrás"
+  useEffect(() => {
+    if (!isLoading && user) {
+      const target = getTargetUrlForRole(user.rol);
+      router.replace(target);
+    }
+  }, [user, isLoading, router]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
-    if (!email.trim()) {
-      setError('Por favor ingresá tu correo electrónico.');
+    if (!identifier.trim()) {
+      setError('Por favor ingresá tu correo electrónico o número de DNI.');
       return;
     }
 
@@ -52,14 +62,24 @@ function LoginForm() {
       return;
     }
 
-    const res = await login(email, password);
+    const res = await login(identifier, password);
     if (res.success) {
       const target = getTargetUrlForRole(res.role);
-      router.push(target);
+      router.replace(target);
     } else {
       setError(res.error || 'Credenciales incorrectas.');
     }
   };
+
+  // Si ya existe sesión activa confirmada, mostrar indicador de redirección limpia
+  if (!isLoading && user) {
+    return (
+      <div className="w-full bg-white border border-[#dfe8e2] rounded-[24px] shadow-[0_16px_44px_rgba(11,93,59,0.10)] p-8 text-center flex flex-col items-center justify-center gap-3">
+        <Loader2 className="w-6 h-6 text-brand-800 animate-spin" />
+        <p className="text-sm font-medium text-[#14231c]">Redirigiendo a tu panel...</p>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -81,6 +101,16 @@ function LoginForm() {
       {/* Tarjeta blanca con bordes redondeados y sombra sutil verdosa */}
       <div className="w-full bg-white border border-[#dfe8e2] rounded-[24px] shadow-[0_16px_44px_rgba(11,93,59,0.10)] overflow-hidden">
         <form onSubmit={handleSubmit} className="p-6 sm:p-8 flex flex-col gap-5">
+          {isRecovered && !error && (
+            <div
+              role="status"
+              className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-xl flex items-start gap-2 animate-fade-in"
+            >
+              <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5 text-emerald-600" aria-hidden="true" />
+              <span>¡Tu contraseña ha sido restablecida con éxito! Ya podés iniciar sesión con tu nueva clave.</span>
+            </div>
+          )}
+
           {error && (
             <div
               role="alert"
@@ -91,20 +121,20 @@ function LoginForm() {
             </div>
           )}
 
-          {/* Campo Correo Electrónico */}
+          {/* Campo Correo Electrónico o DNI */}
           <div className="flex flex-col gap-2">
-            <label htmlFor="email" className="text-sm font-semibold text-[#14231c]">
-              Correo electrónico
+            <label htmlFor="identifier" className="text-sm font-semibold text-[#14231c]">
+              Correo electrónico o DNI
             </label>
             <input
-              id="email"
-              name="email"
-              type="email"
+              id="identifier"
+              name="identifier"
+              type="text"
               required
-              autoComplete="email"
-              placeholder="tu-correo@ejemplo.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="username"
+              placeholder="tu@correo.com o tu número de DNI"
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
               className="w-full h-[52px] px-4 rounded-xl border border-[#d5ddd8] bg-[#fbfcfb] text-[15px] text-[#14231c] placeholder:text-[#8a978f] focus:outline-none focus:ring-3 focus:ring-[#b7e0c9] focus:border-[#075a36] transition-all"
             />
           </div>
@@ -116,7 +146,7 @@ function LoginForm() {
                 Contraseña
               </label>
               <Link
-                href="#"
+                href="/recuperar-password"
                 className="text-[13px] font-medium text-brand-800 hover:text-brand-900 hover:underline transition-colors"
               >
                 ¿Olvidaste tu contraseña?
@@ -174,7 +204,7 @@ function LoginForm() {
               href="/registro"
               className="font-semibold text-brand-800 hover:text-brand-900 hover:underline transition-colors"
             >
-              Registrate como Postulante
+              Registrate como postulante
             </Link>
           </p>
           <p className="m-0 leading-normal">
@@ -183,7 +213,7 @@ function LoginForm() {
               href="/registro/empresa"
               className="font-semibold text-brand-800 hover:text-brand-900 hover:underline transition-colors"
             >
-              Registrá tu Empresa acá
+              Registrá tu empresa acá
             </Link>
           </p>
         </div>

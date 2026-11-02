@@ -23,7 +23,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
   const pathname = usePathname();
 
   const navigation = [
-    { name: 'Ofertas Laborales', href: '/ofertas', icon: BriefcaseIcon },
+    { name: 'Ofertas laborales', href: '/ofertas', icon: BriefcaseIcon },
     { name: 'Postulantes', href: '/postulante', icon: UserIcon },
     { name: 'Empresas', href: '/empresa', icon: BuildingIcon },
     { name: 'Oficina de Empleo', href: '/admin', icon: ShieldCheckIcon },

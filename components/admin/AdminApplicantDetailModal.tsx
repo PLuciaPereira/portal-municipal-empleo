@@ -2,7 +2,10 @@
 
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 import React, { useState } from 'react';
-import { PostulanteAdminItem, getCurriculumSignedUrlAdmin } from '@/lib/admin';
+import {
+  PostulanteAdminItem,
+  getCurriculumSignedUrlAdmin,
+} from '@/lib/admin';
 import { Button } from '@/components/ui/Button';
 import { Perfil } from '@/types/database';
 import { Badge } from '@/components/ui/Badge';
@@ -14,7 +17,6 @@ import {
   FileText,
   Download,
   CheckCircle2,
-  Calendar,
   AlertCircle,
 } from 'lucide-react';
 
@@ -22,15 +24,17 @@ interface AdminApplicantDetailModalProps {
   postulante: (Partial<PostulanteAdminItem> & Pick<Perfil, 'id' | 'nombre'>) | null;
   isOpen: boolean;
   onClose: () => void;
+  onOpenHistory?: () => void;
 }
 
 export function AdminApplicantDetailModal({
   postulante,
   isOpen,
   onClose,
+  onOpenHistory,
 }: AdminApplicantDetailModalProps) {
-    useBodyScrollLock(Boolean(isOpen));
-const [downloadingCvId, setDownloadingCvId] = useState<string | null>(null);
+  useBodyScrollLock(Boolean(isOpen));
+  const [downloadingCvId, setDownloadingCvId] = useState<string | null>(null);
   const [cvError, setCvError] = useState<string | null>(null);
 
   if (!isOpen || !postulante) return null;
@@ -57,24 +61,29 @@ const [downloadingCvId, setDownloadingCvId] = useState<string | null>(null);
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-postulante-title"
-      className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
+      className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150 font-sans"
     >
-      <div className="relative w-full max-w-3xl bg-white rounded-2xl shadow-2xl border border-zinc-200 overflow-hidden my-8">
+      <div className="relative w-full max-w-4xl max-h-[92dvh] flex flex-col bg-white rounded-2xl shadow-2xl border border-zinc-200 overflow-hidden my-auto">
         {/* Cabecera */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100 bg-zinc-50/70">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-brand-100 text-brand-900 flex items-center justify-center shrink-0 font-bold text-base">
+            <div className="w-12 h-12 rounded-2xl bg-brand-50 text-brand-900 border border-brand-200/50 flex items-center justify-center font-bold text-base shrink-0">
               {postulante.nombre.charAt(0)}
               {postulante.apellido ? postulante.apellido.charAt(0) : ''}
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 id="modal-postulante-title" className="text-base font-bold text-zinc-900 leading-tight">
+                <h2 id="modal-postulante-title" className="text-lg font-bold text-zinc-900 leading-tight">
                   {postulante.nombre} {postulante.apellido || ''}
                 </h2>
-                {postulante.localidad && (
-                  <Badge variant="zinc" className="text-[10px] py-0 px-1.5">
-                    {postulante.localidad}
+                {postulante.es_residente_funes && (
+                  <Badge variant="emerald" className="text-[10px]">
+                    Residente de Funes
+                  </Badge>
+                )}
+                {postulante.registro_asistido && (
+                  <Badge variant="zinc" className="text-[10px]">
+                    Registro asistido
                   </Badge>
                 )}
               </div>
@@ -86,7 +95,7 @@ const [downloadingCvId, setDownloadingCvId] = useState<string | null>(null);
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 transition-colors"
+            className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 transition-colors cursor-pointer"
             aria-label="Cerrar legajo"
           >
             <X className="w-5 h-5" />
@@ -94,7 +103,7 @@ const [downloadingCvId, setDownloadingCvId] = useState<string | null>(null);
         </div>
 
         {/* Contenido */}
-        <div className="p-6 space-y-6 max-h-[calc(85vh-130px)] overflow-y-auto">
+        <div className="p-4 sm:p-6 space-y-5 overflow-y-auto flex-1 scroll-smooth">
           {/* Mensaje de error al abrir CV si ocurre */}
           {cvError && (
             <div className="p-3.5 rounded-xl border border-rose-200 bg-rose-50 text-xs text-rose-800 flex items-center gap-2">
@@ -103,41 +112,36 @@ const [downloadingCvId, setDownloadingCvId] = useState<string | null>(null);
             </div>
           )}
 
-          {/* Datos Personales y de Contacto */}
+          {/* Datos Personales y Contacto */}
           <div className="p-4 rounded-xl border border-zinc-200 bg-zinc-50/50 space-y-3">
-            <span className="text-xs font-bold text-zinc-900 uppercase tracking-wider block">
-              Datos Personales y Contacto
+            <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500 block">
+              Datos Personales y de Residencia
             </span>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
               <div className="space-y-0.5">
-                <span className="text-zinc-500 flex items-center gap-1">
-                  <Phone className="w-3.5 h-3.5 text-zinc-400" /> Teléfono:
+                <span className="text-zinc-400 block text-[11px] font-medium flex items-center gap-1">
+                  <MapPin className="w-3.5 h-3.5 text-zinc-400" />
+                  Localidad y Dirección:
                 </span>
-                {postulante.telefono ? (
-                  <a
-                    href={`tel:${postulante.telefono}`}
-                    className="font-semibold text-brand-800 hover:underline block truncate"
-                  >
-                    {postulante.telefono}
-                  </a>
-                ) : (
-                  <span className="text-zinc-400">Sin teléfono</span>
-                )}
-              </div>
-
-              <div className="space-y-0.5">
-                <span className="text-zinc-500 flex items-center gap-1">
-                  <MapPin className="w-3.5 h-3.5 text-zinc-400" /> Domicilio y Localidad:
-                </span>
-                <span className="font-semibold text-zinc-800 block truncate">
-                  {postulante.direccion ? `${postulante.direccion}, ` : ''}
+                <span className="font-semibold text-zinc-800 block">
                   {postulante.localidad || 'Funes'}
+                  {postulante.direccion && ` · ${postulante.direccion}`}
                 </span>
               </div>
 
               <div className="space-y-0.5">
-                <span className="text-zinc-500 flex items-center gap-1">
-                  <Calendar className="w-3.5 h-3.5 text-zinc-400" /> Nacimiento:
+                <span className="text-zinc-400 block text-[11px] font-medium flex items-center gap-1">
+                  <Phone className="w-3.5 h-3.5 text-zinc-400" />
+                  Teléfono de Contacto:
+                </span>
+                <span className="font-semibold text-zinc-800 block">
+                  {postulante.telefono || 'Sin teléfono informado'}
+                </span>
+              </div>
+
+              <div className="space-y-0.5">
+                <span className="text-zinc-400 block text-[11px] font-medium">
+                  Fecha de Nacimiento:
                 </span>
                 <span className="font-semibold text-zinc-800 block">
                   {postulante.fecha_nacimiento
@@ -152,7 +156,7 @@ const [downloadingCvId, setDownloadingCvId] = useState<string | null>(null);
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
             <div className="p-3 rounded-xl border border-zinc-200 bg-white space-y-1">
               <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 block">
-                Nivel Educativo
+                Nivel educativo
               </span>
               <p className="font-bold text-zinc-900 truncate">
                 {postulante.nivel_educativo || 'No especificado'}
@@ -161,7 +165,7 @@ const [downloadingCvId, setDownloadingCvId] = useState<string | null>(null);
 
             <div className="p-3 rounded-xl border border-zinc-200 bg-white space-y-1">
               <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 block">
-                Situación Laboral
+                Situación laboral
               </span>
               <p className="font-bold text-zinc-900 truncate">
                 {postulante.situacion_laboral_actual || 'No informada'}
@@ -179,7 +183,7 @@ const [downloadingCvId, setDownloadingCvId] = useState<string | null>(null);
 
             <div className="p-3 rounded-xl border border-zinc-200 bg-white space-y-1">
               <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 block">
-                Movilidad Propia
+                Movilidad propia
               </span>
               <p className="font-bold text-zinc-900">
                 {postulante.movilidad_propia ? 'Posee movilidad' : 'No'}
@@ -187,12 +191,12 @@ const [downloadingCvId, setDownloadingCvId] = useState<string | null>(null);
             </div>
           </div>
 
-          {/* Resumen de Experiencia Laboral */}
+          {/* Resumen de experiencia laboral */}
           {postulante.experiencia_resumen && (
             <div className="p-4 rounded-xl border border-zinc-200 bg-white space-y-2">
               <h3 className="text-xs font-bold text-zinc-900 uppercase tracking-wider flex items-center gap-1.5">
                 <Briefcase className="w-4 h-4 text-brand-800" />
-                Resumen de Experiencia Laboral
+                Resumen de experiencia laboral
               </h3>
               <p className="text-xs text-zinc-700 whitespace-pre-wrap leading-relaxed">
                 {postulante.experiencia_resumen}
@@ -205,7 +209,7 @@ const [downloadingCvId, setDownloadingCvId] = useState<string | null>(null);
             <div className="p-4 rounded-xl border border-zinc-200 bg-white space-y-2">
               <h3 className="text-xs font-bold text-zinc-900 uppercase tracking-wider flex items-center gap-1.5">
                 <CheckCircle2 className="w-4 h-4 text-brand-800" />
-                Habilidades y Competencias Declaradas
+                Habilidades y competencias declaradas
               </h3>
               <div className="flex flex-wrap gap-1.5 pt-1">
                 {postulante.habilidades.map((hab, idx) => (
@@ -274,9 +278,24 @@ const [downloadingCvId, setDownloadingCvId] = useState<string | null>(null);
         </div>
 
         {/* Pie de Acciones */}
-        <div className="px-6 py-4 bg-zinc-50/80 border-t border-zinc-100 flex items-center justify-end">
-          <Button variant="primary" size="sm" onClick={onClose} className="bg-brand-800 hover:bg-brand-900">
-            Cerrar Legajo
+        <div className="px-4 sm:px-6 py-3.5 bg-zinc-50/80 border-t border-zinc-100 flex items-center justify-between shrink-0">
+          <div>
+            {onOpenHistory && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  onClose();
+                  onOpenHistory();
+                }}
+                className="text-xs text-brand-900 hover:bg-brand-50 border-brand-200"
+              >
+                Ver historial de postulaciones
+              </Button>
+            )}
+          </div>
+          <Button variant="primary" size="sm" onClick={onClose} className="bg-brand-800 hover:bg-brand-900 text-xs">
+            Cerrar legajo
           </Button>
         </div>
       </div>

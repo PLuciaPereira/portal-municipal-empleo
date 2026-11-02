@@ -145,6 +145,7 @@ export type Oferta = {
   experiencia_requerida: string | null;
   tipo_jornada: string;
   tipo_contrato: string | null;
+  modalidad_trabajo?: 'Presencial' | 'Remoto' | 'Híbrido' | null;
   ubicacion: string;
   rango_salarial: string | null;
   vacantes: number;
@@ -243,14 +244,27 @@ export type PostulanteCurso = {
 };
 
 
+export type TipoNotificacion =
+  | 'info'
+  | 'entrevista'
+  | 'invitacion'
+  | 'sistema'
+  | 'postulacion'
+  | 'empresa'
+  | 'alerta'
+  | 'curso'
+  | 'vencimiento';
+
 export type Notificacion = {
   id: string;
   user_id: string;
   titulo: string;
   mensaje: string;
-  tipo: 'info' | 'entrevista' | 'invitacion' | 'sistema';
+  tipo: TipoNotificacion;
   link: string | null;
   leida: boolean;
+  metadata?: Record<string, any> | null;
+  agrupador_key?: string | null;
   created_at: string;
 };
 
@@ -282,6 +296,10 @@ export type VistaCandidatoEmpresa = {
   motivo_rechazo_empresa: string | null;
   fecha_rechazo_empresa: string | null;
   fecha_respuesta_empresa: string | null;
+  fecha_entrevista?: string | null;
+  modalidad_entrevista?: string | null;
+  lugar_entrevista?: string | null;
+  entrevistador?: string | null;
 };
 
 export type SchemaMigration = {

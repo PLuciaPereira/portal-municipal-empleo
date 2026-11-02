@@ -252,3 +252,182 @@ export async function actualizarDatosAdminAction(input: EditarAdminInput): Promi
     };
   }
 }
+
+export interface RegistrarPostulanteAsistidoInput {
+  nombre: string;
+  apellido: string;
+  dni: string;
+  email?: string;
+  password?: string;
+  telefono: string;
+  fecha_nacimiento?: string | null;
+  direccion?: string | null;
+  localidad: string;
+  es_residente_funes: boolean;
+  nivel_educativo: string;
+  situacion_laboral_actual: string;
+  disponibilidad_horaria: string;
+  movilidad_propia: boolean;
+  experiencia_resumen?: string | null;
+  habilidades: string[];
+  rubroIds: number[];
+  avatar_url?: string | null;
+}
+
+/**
+ * Server Action para dar de alta un postulante desde la pestaña Registro Asistido.
+ * Crea formalmente el usuario en auth.users (permitiendo su posterior login con DNI y contraseña),
+ * y vincula el legajo en public.perfil y public.perfil_rubros.
+ */
+export async function registrarPostulanteAsistidoAction(
+  input: RegistrarPostulanteAsistidoInput
+): Promise<{ success: boolean; error?: string; perfilId?: string; claveAsignada?: string }> {
+  try {
+    const supabaseCaller = await createServerSupabase();
+    const {
+      data: { user: callerUser },
+      error: authError,
+    } = await supabaseCaller.auth.getUser();
+
+    if (authError || !callerUser) {
+      return { success: false, error: 'No autorizado: Debés iniciar sesión como administrador.' };
+    }
+
+    const { data: callerPerfil } = await supabaseCaller
+      .from('perfil')
+      .select('rol, activo, deleted_at')
+      .eq('id', callerUser.id)
+      .maybeSingle();
+
+    if (
+      !callerPerfil ||
+      callerPerfil.rol !== 'admin' ||
+      !callerPerfil.activo ||
+      callerPerfil.deleted_at !== null
+    ) {
+      return {
+        success: false,
+        error: 'Operación denegada: Sólo un administrador activo puede registrar legajos asistidos.',
+      };
+    }
+
+    const cleanDni = input.dni ? input.dni.replace(/\D/g, '') : '';
+    if (!cleanDni || cleanDni.length < 7 || cleanDni.length > 8) {
+      return { success: false, error: 'El DNI debe tener 7 u 8 dígitos numéricos válidos.' };
+    }
+
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!supabaseUrl || !serviceRoleKey) {
+      return { success: false, error: 'Configuración del servidor incompleta (falta Service Role).' };
+    }
+
+    const supabaseAdmin = createAdminSupabase<Database>(supabaseUrl, serviceRoleKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+
+    // Verificar si ya existe perfil con este DNI
+    const { data: perfilExistente } = await supabaseAdmin
+      .from('perfil')
+      .select('id, nombre, apellido')
+      .eq('dni', cleanDni)
+      .maybeSingle();
+
+    if (perfilExistente) {
+      return {
+        success: false,
+        error: `Ya existe un legajo registrado con el DNI ${cleanDni} (${perfilExistente.nombre} ${perfilExistente.apellido || ''}).`,
+      };
+    }
+
+    // Determinar email de autenticación: si tiene correo real lo usa; sino, genera el alias municipal
+    const tieneEmailReal = Boolean(input.email && input.email.trim());
+    const emailAuth = tieneEmailReal
+      ? input.email!.trim().toLowerCase()
+      : `dni${cleanDni}@postulante.funes.gob.ar`;
+
+    // Determinar contraseña: la provista o una provisoria estándar comunicada al vecino
+    const claveAsignada = input.password && input.password.trim().length >= 6
+      ? input.password.trim()
+      : `Funes.${cleanDni.slice(-4)}`;
+
+    // 1. Crear usuario en auth.users
+    const { data: newUserData, error: createError } = await supabaseAdmin.auth.admin.createUser({
+      email: emailAuth,
+      password: claveAsignada,
+      email_confirm: true,
+      user_metadata: {
+        rol: 'postulante',
+        nombre: input.nombre.trim(),
+        apellido: input.apellido?.trim() || null,
+        dni: cleanDni,
+        telefono: input.telefono?.trim() || null,
+      },
+    });
+
+    if (createError || !newUserData.user) {
+      return {
+        success: false,
+        error: createError?.message || 'No se pudo crear la credencial de autenticación.',
+      };
+    }
+
+    const newUserId = newUserData.user.id;
+
+    // 2. Crear o actualizar perfil en public.perfil
+    const { error: perfilInsertError } = await supabaseAdmin.from('perfil').upsert({
+      id: newUserId,
+      rol: 'postulante',
+      nombre: input.nombre.trim(),
+      apellido: input.apellido?.trim() || null,
+      dni: cleanDni,
+      telefono: input.telefono?.trim() || null,
+      fecha_nacimiento: input.fecha_nacimiento || null,
+      direccion: input.direccion?.trim() || null,
+      localidad: input.localidad.trim(),
+      es_residente_funes: input.es_residente_funes,
+      nivel_educativo: input.nivel_educativo,
+      situacion_laboral_actual: input.situacion_laboral_actual,
+      disponibilidad_horaria: input.disponibilidad_horaria,
+      movilidad_propia: input.movilidad_propia,
+      experiencia_resumen: input.experiencia_resumen?.trim() || null,
+      cv_url: null,
+      habilidades: input.habilidades,
+      avatar_url: input.avatar_url || null,
+      registro_asistido: true,
+      creado_por_admin: callerUser.id,
+      activo: true,
+      deleted_at: null,
+    });
+
+    if (perfilInsertError) {
+      console.error('Error insertando perfil asistido:', perfilInsertError);
+      return {
+        success: false,
+        error: `Error al crear el perfil laboral: ${perfilInsertError.message}`,
+      };
+    }
+
+    // 3. Vincular rubros si se especificaron
+    if (input.rubroIds && input.rubroIds.length > 0) {
+      const rubroRows = input.rubroIds.map((rId) => ({
+        perfil_id: newUserId,
+        rubro_id: rId,
+      }));
+      await supabaseAdmin.from('perfil_rubros').insert(rubroRows);
+    }
+
+    return {
+      success: true,
+      perfilId: newUserId,
+      claveAsignada,
+    };
+  } catch (err) {
+    console.error('Error inesperado en registrarPostulanteAsistidoAction:', err);
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : 'Error inesperado al registrar postulante asistido.',
+    };
+  }
+}
+

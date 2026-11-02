@@ -16,7 +16,7 @@ export const HomeHowItWorks: React.FC = () => {
       {/* Cabecera de Sección */}
       <div className="text-center max-w-3xl mx-auto mb-10 space-y-3">
         <Badge variant="brand" size="md">
-          Proceso Transparente y Gratuito
+          Proceso transparente y gratuito
         </Badge>
         <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-foreground">
           ¿Cómo funciona la Oficina de Empleo?
@@ -179,10 +179,10 @@ export const HomeHowItWorks: React.FC = () => {
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <Button href="/registro" size="sm" variant="primary">
-            Cargar mi CV (Postulante)
+            Cargar mi CV
           </Button>
           <Button href="/registro/empresa" size="sm" variant="secondary">
-            Publicar Vacante (Empresa)
+            Publicar vacante
           </Button>
         </div>
       </div>

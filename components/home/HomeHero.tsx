@@ -83,7 +83,7 @@ export const HomeHero: React.FC<HomeHeroProps> = ({ latestJobs = [] }) => {
                 className="w-4 h-4 object-contain shrink-0"
                 priority
               />
-              <span>Portal Oficial de Empleo · Municipalidad de Funes</span>
+              <span>Portal oficial de empleo · Municipalidad de Funes</span>
             </div>
 
             {/* H1 Principal con Resaltador Cálido */}
@@ -123,7 +123,7 @@ export const HomeHero: React.FC<HomeHeroProps> = ({ latestJobs = [] }) => {
                   variant="primary"
                   className="w-full sm:w-auto h-10 px-5 font-bold shadow-xs shrink-0 text-xs sm:text-sm"
                 >
-                  Buscar Ofertas
+                  Buscar ofertas
                 </Button>
               </form>
             </div>
@@ -138,7 +138,7 @@ export const HomeHero: React.FC<HomeHeroProps> = ({ latestJobs = [] }) => {
                 <Link
                   key={chip.query}
                   href={`/ofertas?q=${encodeURIComponent(chip.query)}`}
-                  className="px-2.5 py-1 rounded-lg bg-surface hover:bg-brand-50 text-foreground hover:text-brand-900 border border-border hover:border-brand-300 transition-colors shadow-2xs font-medium inline-flex items-center text-xs"
+                  className="px-2.5 py-1 rounded-lg bg-surface hover:bg-brand-50 text-foreground hover:text-brand-900 border border-border hover:border-brand-300 transition-all duration-150 active:scale-[0.98] hover:-translate-y-0.5 shadow-2xs font-medium inline-flex items-center text-xs"
                 >
                   {chip.label}
                 </Link>
@@ -187,7 +187,7 @@ export const HomeHero: React.FC<HomeHeroProps> = ({ latestJobs = [] }) => {
                     <Link
                       key={job.id}
                       href={`/ofertas/${job.id}`}
-                      className="block p-2.5 sm:p-3 rounded-xl bg-surface text-foreground border border-border shadow-xs hover:border-brand-600 hover:shadow-sm transition-all group"
+                      className="block p-2.5 sm:p-3 rounded-xl bg-surface text-foreground border border-border shadow-xs hover:border-brand-600 hover:shadow-sm hover:-translate-y-0.5 transition-all group"
                     >
                       <div className="flex items-center justify-between gap-2.5">
                         <div className="space-y-0.5 min-w-0">
@@ -205,9 +205,19 @@ export const HomeHero: React.FC<HomeHeroProps> = ({ latestJobs = [] }) => {
                               </>
                             )}
                           </div>
-                          <div className="flex items-center gap-1 text-[11px] text-brand-700 font-medium">
-                            <MapPinIcon className="w-3 h-3 shrink-0" />
-                            <span>{job.ubicacion || 'Funes, Santa Fe'}</span>
+                          <div className="flex items-center justify-between gap-2 text-[11px] pt-0.5">
+                            <div className="flex items-center gap-1 text-brand-700 font-medium">
+                              <MapPinIcon className="w-3 h-3 shrink-0" />
+                              <span className="truncate">{job.ubicacion || 'Funes, Santa Fe'}</span>
+                            </div>
+                            <span className="text-zinc-500 font-medium bg-zinc-100/90 px-1.5 py-0.2 rounded text-[10px] shrink-0">
+                              {(() => {
+                                const d = job.fecha_revision || job.created_at;
+                                if (!d) return 'Reciente';
+                                const isToday = new Date().toDateString() === new Date(d).toDateString();
+                                return isToday ? 'Publicada hoy' : new Date(d).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' });
+                              })()}
+                            </span>
                           </div>
                         </div>
                         <div className="w-7 h-7 rounded-lg bg-brand-50 text-brand-800 flex items-center justify-center shrink-0 group-hover:bg-brand-800 group-hover:text-white transition-colors">
@@ -287,7 +297,7 @@ export const HomeHero: React.FC<HomeHeroProps> = ({ latestJobs = [] }) => {
                 <ShieldCheckIcon className="w-4.5 h-4.5" />
               </div>
               <div className="space-y-0.5">
-                <h4 className="text-xs sm:text-sm font-bold text-foreground">Gratuito y Oficial</h4>
+                <h4 className="text-xs sm:text-sm font-bold text-foreground">Gratuito y oficial</h4>
                 <p className="text-[11px] text-muted-foreground leading-tight">
                   Sin costo para postulantes ni comercios
                 </p>

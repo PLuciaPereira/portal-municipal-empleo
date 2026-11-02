@@ -36,11 +36,11 @@ export const HomeTrainingAndContact: React.FC = () => {
           <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             <div className="lg:col-span-7 space-y-4 text-left">
               <Badge variant="brand" className="bg-brand-800 text-brand-100 border-brand-700">
-                Formación y Empleabilidad
+                Formación y empleabilidad
               </Badge>
 
               <h3 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white leading-tight">
-                Cursos y Talleres Gratuitos para Vecinos de Funes
+                Cursos y talleres gratuitos para vecinos de Funes
               </h3>
 
               <p className="text-sm sm:text-base text-brand-100/90 leading-relaxed font-normal">
@@ -84,7 +84,7 @@ export const HomeTrainingAndContact: React.FC = () => {
                   variant="hero-primary"
                   className="w-full justify-center font-bold"
                 >
-                  <span>Consultar por Cursos</span>
+                  <span>Consultar por cursos</span>
                   <ArrowRightIcon className="w-4 h-4 ml-1.5" />
                 </Button>
               </div>
@@ -104,7 +104,7 @@ export const HomeTrainingAndContact: React.FC = () => {
             <div className="lg:col-span-7 space-y-4 text-left">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-100 text-brand-800 text-xs font-semibold border border-brand-200">
                 <ShieldCheckIcon className="w-4 h-4 text-brand-700" />
-                <span>Atención Oficial y Asesoramiento</span>
+                <span>Atención oficial y asesoramiento</span>
               </div>
 
               <h3 className="text-2xl sm:text-3xl font-extrabold text-foreground">
@@ -121,7 +121,7 @@ export const HomeTrainingAndContact: React.FC = () => {
                     <ClockIcon className="w-4 h-4" />
                   </div>
                   <div className="space-y-0.5">
-                    <span className="text-xs font-bold text-foreground block">Horario de Atención</span>
+                    <span className="text-xs font-bold text-foreground block">Horario de atención</span>
                     <span className="text-xs text-muted-foreground">Lunes a Viernes de 7:00 a 13:00 hs</span>
                   </div>
                 </div>
@@ -131,7 +131,7 @@ export const HomeTrainingAndContact: React.FC = () => {
                     <MapPinIcon className="w-4 h-4" />
                   </div>
                   <div className="space-y-0.5">
-                    <span className="text-xs font-bold text-foreground block">Sede Municipal</span>
+                    <span className="text-xs font-bold text-foreground block">Sede municipal</span>
                     <span className="text-xs text-muted-foreground">Santa Fe 1689, Funes, Santa Fe</span>
                   </div>
                 </div>
@@ -143,7 +143,7 @@ export const HomeTrainingAndContact: React.FC = () => {
               <div className="p-6 rounded-2xl bg-brand-50/60 border border-brand-200/80 space-y-4">
                 <div className="space-y-1">
                   <span className="text-xs font-bold text-brand-800 uppercase tracking-wider">
-                    Contacto y Consultas
+                    Contacto y consultas
                   </span>
                   <h4 className="font-bold text-base text-foreground">
                     Escribinos directamente
@@ -158,7 +158,7 @@ export const HomeTrainingAndContact: React.FC = () => {
                     <MailIcon className="w-4 h-4" />
                   </div>
                   <div className="truncate">
-                    <span className="text-[11px] text-muted-foreground block">Correo Oficial</span>
+                    <span className="text-[11px] text-muted-foreground block">Correo oficial</span>
                     <a
                       href="mailto:empleo@funes.gob.ar"
                       className="text-xs sm:text-sm font-bold text-brand-800 hover:underline"
@@ -174,7 +174,7 @@ export const HomeTrainingAndContact: React.FC = () => {
                     variant="primary"
                     className="w-full justify-center font-bold"
                   >
-                    <span>Cargar mi CV en el Portal</span>
+                    <span>Cargar mi CV</span>
                     <ArrowRightIcon className="w-4 h-4 ml-1.5" />
                   </Button>
                 </div>

@@ -67,10 +67,10 @@ export function InviteToJobModal({
         <div className="mb-4">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 text-xs font-bold mb-2">
             <Send className="w-3.5 h-3.5" />
-            Vincular y Sugerir Empleo
+            Vincular y sugerir empleo
           </div>
           <h3 id="invite-modal-title" className="text-lg font-bold text-slate-900">
-            Invitar Postulante a Oferta Laboral
+            Invitar postulante a oferta laboral
           </h3>
           <p className="text-xs text-slate-500 mt-0.5">
             Sugerir una vacante activa al postulante <strong className="text-slate-800">{postulanteNombre}</strong>.

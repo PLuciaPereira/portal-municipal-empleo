@@ -13,7 +13,7 @@ export const JOB_STATUS_CONFIG: Record<JobStatus, JobStatusConfig> = {
     variant: 'zinc',
   },
   pendiente_revision: {
-    label: 'En Revisión Municipal',
+    label: 'En revisión municipal',
     variant: 'amber',
   },
   publicada: {
@@ -41,7 +41,7 @@ interface JobStatusBadgeProps {
 
 export function JobStatusBadge({ estado, isDeleted }: JobStatusBadgeProps) {
   if (isDeleted) {
-    return <Badge variant="rose">Dada de Baja</Badge>;
+    return <Badge variant="rose">Dada de baja</Badge>;
   }
 
   const config = JOB_STATUS_CONFIG[estado] || {

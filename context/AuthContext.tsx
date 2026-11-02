@@ -1,5 +1,7 @@
 'use client';
 
+import { notificarAdmins } from '@/lib/notifications';
+
 import React, {
   createContext,
   useContext,
@@ -12,6 +14,8 @@ import React, {
 import { Perfil, Empresa, UserRole } from '@/types/database';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
+
+import { resolverEmailParaLoginAction } from '@/app/auth/actions';
 
 export interface AuthUser extends Perfil {
   email?: string;
@@ -264,14 +268,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
   }, [isSupabaseConfigured, loadUserData]);
 
-  // Iniciar sesión real contra Supabase Auth
+  // Iniciar sesión real contra Supabase Auth (admite Correo o DNI)
   const login = useCallback(
     async (
-      email: string,
+      identifier: string,
       password?: string
     ): Promise<{ success: boolean; error?: string; role?: UserRole }> => {
       setIsLoading(true);
-      const cleanEmail = email.trim();
+      const cleanIdentifier = identifier.trim();
+
+      if (!cleanIdentifier) {
+        setIsLoading(false);
+        return { success: false, error: 'Por favor ingresá tu correo electrónico o número de DNI.' };
+      }
 
       if (!password) {
         setIsLoading(false);
@@ -287,9 +296,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
 
       try {
+        // Resolver email si el usuario ingresó DNI
+        const resolution = await resolverEmailParaLoginAction(cleanIdentifier);
+        if (!resolution.success || !resolution.email) {
+          setIsLoading(false);
+          return {
+            success: false,
+            error: resolution.error || 'No se pudo verificar la cuenta asociada a los datos ingresados.',
+          };
+        }
+
+        const emailParaAuth = resolution.email;
         const supabase = createClient();
         const { data, error } = await supabase.auth.signInWithPassword({
-          email: cleanEmail,
+          email: emailParaAuth,
           password,
         });
 
@@ -297,7 +317,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           setIsLoading(false);
           let errorMsg = 'Error al iniciar sesión.';
           if (error.message.includes('Invalid login credentials')) {
-            errorMsg = 'Correo electrónico o contraseña incorrectos.';
+            errorMsg = cleanIdentifier.includes('@')
+              ? 'Correo electrónico o contraseña incorrectos.'
+              : 'DNI o contraseña incorrectos.';
           } else if (error.message.includes('Email not confirmed')) {
             errorMsg = 'Debés confirmar tu correo electrónico antes de ingresar.';
           } else if (error.message.includes('Too many requests')) {
@@ -355,7 +377,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setAppliedJobIds([]);
       window.dispatchEvent(new Event('portal_funes_auth_changed'));
       setIsLoading(false);
-      router.push('/login');
+      router.replace('/login');
       router.refresh();
     }
   }, [isSupabaseConfigured, router]);
@@ -423,7 +445,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         if (signUpData.session && signUpData.user) {
           await loadUserData(signUpData.user.id, data.email);
           setIsLoading(false);
-          return { success: true, requiresEmailConfirmation: false };
+          // Notificar a los administradores sobre nuevo postulante registrado
+        try {
+          const hoy = new Date().toISOString().split('T')[0];
+          await notificarAdmins({
+            titulo: 'Nuevos postulantes en el portal',
+            mensaje: 'Nuevos vecinos se han registrado en el Portal de Empleo Funes.',
+            tipo: 'info',
+            link: '/admin?tab=postulantes',
+            agrupadorKey: 'resumen_postulantes_' + hoy,
+          });
+        } catch (e) {
+          console.warn('Aviso: no se pudo notificar nuevo postulante:', e);
+        }
+
+        return { success: true, requiresEmailConfirmation: false };
         }
 
         setIsLoading(false);
@@ -499,7 +535,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         if (signUpData.session && signUpData.user) {
           await loadUserData(signUpData.user.id, data.email);
           setIsLoading(false);
-          return { success: true, requiresEmailConfirmation: false };
+          // Notificar a los administradores sobre nueva empresa para revisión
+        try {
+          const nombreEmpresa = data.nombre_fantasia?.trim() || data.razon_social.trim();
+          await notificarAdmins({
+            titulo: 'Nueva empresa para revisión',
+            mensaje: `La empresa "${nombreEmpresa}" se ha registrado en el portal y espera verificación.`,
+            tipo: 'empresa',
+            link: '/admin?tab=empresas&estado=pendiente',
+            agrupadorKey: 'empresa_revision_' + (signUpData.user ? signUpData.user.id : data.cuit.trim()),
+          });
+        } catch (e) {
+          console.warn('Aviso: no se pudo notificar nueva empresa:', e);
+        }
+
+        return { success: true, requiresEmailConfirmation: false };
         }
 
         setIsLoading(false);
