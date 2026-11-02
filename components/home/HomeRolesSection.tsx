@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 import { UserIcon, BuildingIcon, CheckIcon, ArrowRightIcon } from '@/components/ui/Icons';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent } from '@/components/ui/Card';
@@ -54,11 +55,17 @@ export const HomeRolesSection: React.FC = () => {
               </li>
             </ul>
 
-            <div className="pt-3">
+            <div className="pt-3 flex flex-col sm:flex-row sm:items-center gap-3">
               <Button href="/registro" variant="primary" className="w-full sm:w-auto font-bold gap-2">
                 <span>Registrarme como postulante</span>
                 <ArrowRightIcon className="w-4 h-4" />
               </Button>
+              <Link
+                href="/login"
+                className="text-xs text-muted-foreground hover:text-brand-800 font-medium text-center sm:text-left transition-colors"
+              >
+                ¿Ya tenés cuenta? <span className="underline font-semibold text-brand-800">Iniciá sesión</span>
+              </Link>
             </div>
           </CardContent>
         </Card>
@@ -109,11 +116,17 @@ export const HomeRolesSection: React.FC = () => {
               </li>
             </ul>
 
-            <div className="pt-3">
+            <div className="pt-3 flex flex-col sm:flex-row sm:items-center gap-3">
               <Button href="/registro/empresa" variant="secondary" className="w-full sm:w-auto font-bold gap-2">
-                <span>Espacio empresas</span>
+                <span>Registrar mi empresa</span>
                 <ArrowRightIcon className="w-4 h-4" />
               </Button>
+              <Link
+                href="/login?redirect=/empresa"
+                className="text-xs text-muted-foreground hover:text-brand-800 font-medium text-center sm:text-left transition-colors"
+              >
+                ¿Ya estás registrado? <span className="underline font-semibold text-brand-800">Iniciá sesión</span>
+              </Link>
             </div>
           </CardContent>
         </Card>

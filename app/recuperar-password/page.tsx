@@ -109,6 +109,50 @@ function RecuperarPasswordForm() {
               Consultar con otro correo o DNI
             </button>
           </div>
+        ) : result?.status === 'email_unconfirmed' ? (
+          <div className="p-6 sm:p-8 flex flex-col items-center text-center gap-4">
+            <div className="w-14 h-14 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-700 mb-1">
+              <Mail className="w-8 h-8" aria-hidden="true" />
+            </div>
+
+            <h2 className="text-xl font-bold text-[#14231c]">
+              Cuenta pendiente de activación
+            </h2>
+
+            <p className="text-sm text-[#4a5a52] leading-relaxed max-w-sm">
+              Tu cuenta ya se encuentra registrada en el portal, pero <strong>aún no confirmaste tu dirección de correo electrónico</strong>.
+            </p>
+
+            <div className="w-full bg-[#fdfbf7] border border-[#f5ebd7] rounded-xl p-4 text-xs text-[#524a3a] text-left flex flex-col gap-2">
+              <span className="font-bold text-[#14231c]">¿Qué tenés que hacer ahora?</span>
+              <ul className="list-disc list-inside space-y-1.5">
+                <li>Te <strong>reenviamos el enlace de confirmación</strong> a tu casilla de correo.</li>
+                <li>Abrí el mensaje y hacé clic en el botón de confirmación para activar tu usuario.</li>
+                <li>Una vez activada la cuenta, podrás iniciar sesión con la contraseña que elegiste al registrarte.</li>
+                <li>Si no lo encontrás en tu bandeja de entrada, revisá tu carpeta de <strong>Correo no deseado o Spam</strong>.</li>
+              </ul>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center gap-3 w-full mt-2">
+              <Link
+                href="/login"
+                className="w-full py-2.5 px-4 bg-brand-800 hover:bg-brand-900 text-white font-bold text-xs rounded-xl text-center transition-colors shadow-2xs"
+              >
+                Ir al inicio de sesión
+              </Link>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                setResult(null);
+                setError(null);
+              }}
+              className="mt-1 text-xs font-semibold text-brand-800 hover:text-brand-900 hover:underline cursor-pointer focus:outline-none transition-colors"
+            >
+              Consultar con otro correo o DNI
+            </button>
+          </div>
         ) : result?.status === 'email_sent' ? (
           <div className="p-6 sm:p-8 flex flex-col items-center text-center gap-4">
             <div className="w-14 h-14 rounded-full bg-brand-50 border border-brand-200 flex items-center justify-center text-brand-800 mb-1">

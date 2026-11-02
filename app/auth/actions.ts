@@ -102,7 +102,7 @@ export async function resolverEmailParaLoginAction(
 
 export type RecuperoResult = {
   success: boolean;
-  status: 'email_sent' | 'asistido_requiere_oficina' | 'not_found' | 'error';
+  status: 'email_sent' | 'email_unconfirmed' | 'asistido_requiere_oficina' | 'not_found' | 'error';
   maskedEmail?: string;
   message?: string;
 };
@@ -190,6 +190,37 @@ export async function solicitarRecuperoPasswordAction(
       };
     }
 
+    // Verificar si el usuario está registrado pero aún no confirmó su correo electrónico
+    try {
+      const { data: listData } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+      const targetUser = listData?.users?.find(
+        (u) => u.email && u.email.toLowerCase() === emailDestino!.toLowerCase()
+      );
+
+      if (targetUser && !targetUser.email_confirmed_at) {
+        // El usuario está registrado pero pendiente de confirmación. Reenviar enlace de activación.
+        try {
+          await supabaseAdmin.auth.resend({
+            type: 'signup',
+            email: emailDestino,
+          });
+        } catch (resendErr) {
+          console.warn('Aviso: no se pudo disparar resend signup:', resendErr);
+        }
+
+        return {
+          success: true,
+          status: 'email_unconfirmed',
+          maskedEmail: isDniQuery ? maskEmail(emailDestino) : undefined,
+          message: isDniQuery
+            ? "Tu cuenta vinculada a este DNI está registrada pero aún no fue activada. Te reenviamos el correo de confirmación."
+            : "Tu cuenta se encuentra registrada pero aún no fue verificada. Te reenviamos el correo de confirmación a tu casilla para que puedas activarla.",
+        };
+      }
+    } catch (checkErr) {
+      console.warn('Aviso: no se pudo verificar estado de confirmación previo:', checkErr);
+    }
+
     // Enviar correo de restablecimiento vía Supabase Auth
     const redirectTo = `${origin}/auth/callback?next=/recuperar-password/cambiar`;
     const { error: resetError } = await supabaseAdmin.auth.resetPasswordForEmail(emailDestino, {
@@ -207,10 +238,20 @@ export async function solicitarRecuperoPasswordAction(
           message: 'Has realizado demasiados intentos. Por favor aguardá unos minutos antes de reintentar.',
         };
       }
+      if (
+        resetError.message.includes('is invalid') ||
+        resetError.message.includes('email_address_invalid')
+      ) {
+        return {
+          success: false,
+          status: 'error',
+          message: 'No pudimos procesar la solicitud para este correo. Por favor verificá que esté bien escrito o comunicate con la Oficina de Empleo.',
+        };
+      }
       return {
         success: false,
         status: 'error',
-        message: resetError.message || 'No se pudo enviar el enlace de recuperación.',
+        message: 'No se pudo enviar el enlace de recuperación. Por favor intentá nuevamente.',
       };
     }
 

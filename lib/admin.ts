@@ -1608,7 +1608,7 @@ export async function coordinarEntrevistaAdmin(params: {
         titulo: 'Entrevista Municipal Coordinada',
         mensaje: `Fuiste citado a una entrevista (${params.modalidad.toUpperCase()}) para el ${params.fecha} a las ${params.hora}. Lugar/Contacto: ${params.lugar}.`,
         tipo: 'entrevista',
-        link: '/postulante/postulaciones',
+        link: '/postulante?tab=postulaciones&postulacionId=' + params.postulacionId,
         leida: false,
       });
     } catch {

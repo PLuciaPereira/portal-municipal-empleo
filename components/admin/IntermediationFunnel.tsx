@@ -544,8 +544,8 @@ export function IntermediationFunnel({
               <thead className="bg-zinc-50/80 text-zinc-600 border-b border-zinc-200 uppercase tracking-wider font-semibold text-[11px]">
                 <tr>
                   <th className="py-3.5 px-4">Postulante</th>
-                  <th className="py-3.5 px-4">Localidad & Contacto</th>
-                  <th className="py-3.5 px-4">CV Utilizado</th>
+                  <th className="py-3.5 px-4">Localidad y contacto</th>
+                  <th className="py-3.5 px-4">CV utilizado</th>
                   <th className="py-3.5 px-4">Estado actual</th>
                   <th className="py-3.5 px-4">Fecha postulación</th>
                   <th className="py-3.5 px-4 text-right">Intermediación / Acciones</th>
@@ -695,8 +695,8 @@ export function IntermediationFunnel({
                             </Button>
                           )}
 
-                          {/* 3. Derivar formalmente a la Empresa si está en revisión o ya completó entrevista */}
-                          {(isEnRevision || isEntrevista) && (
+                          {/* 3. Derivar formalmente a la Empresa (disponible desde el inicio del proceso) */}
+                          {(isPostulado || isEnRevision || isEntrevista) && (
                             <Button
                               variant="primary"
                               size="sm"

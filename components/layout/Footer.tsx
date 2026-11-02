@@ -133,7 +133,17 @@ const PublicFooter: React.FC = () => {
               </li>
               <li>
                 <Link href="/registro/empresa" className="hover:text-brand-300 transition-colors">
-                  Espacio para empresas
+                  Registrar mi empresa
+                </Link>
+              </li>
+              <li>
+                <Link href="/login" className="hover:text-brand-300 transition-colors">
+                  Iniciar sesión
+                </Link>
+              </li>
+              <li>
+                <Link href="/login?redirect=/admin" className="hover:text-brand-300 transition-colors text-zinc-500 hover:text-zinc-300">
+                  Acceso Oficina de Empleo
                 </Link>
               </li>
             </ul>

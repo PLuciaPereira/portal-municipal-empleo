@@ -96,6 +96,9 @@ function LoginForm() {
         >
           Ingresar al Portal de Empleo
         </h1>
+        <p className="text-xs sm:text-sm text-[#4a5a52] max-w-sm">
+          Acceso para postulantes, empresas y equipo municipal
+        </p>
       </div>
 
       {/* Tarjeta blanca con bordes redondeados y sombra sutil verdosa */}

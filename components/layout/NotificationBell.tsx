@@ -230,7 +230,7 @@ export function NotificationBell() {
                             minute: '2-digit',
                           })}
                         </span>
-                        {n.link && (
+                        {n.link && n.link.trim() !== '' && n.link !== '#' && (
                           <Link
                             href={n.link}
                             onClick={() => {
