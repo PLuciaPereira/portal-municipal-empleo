@@ -17,7 +17,8 @@ import {
   enviarOfertaARevision,
 } from '@/lib/empresa';
 import { createClient } from '@/lib/supabase/client';
-import { ArrowLeft, Calendar, ShieldCheck, Check } from 'lucide-react';
+import { ArrowLeft, Calendar, ShieldCheck, Check, Building2, Laptop, Layers } from 'lucide-react';
+import { RichTextToolbar } from '@/components/ui/RichTextToolbar';
 import Link from 'next/link';
 
 interface CompanyJobFormProps {
@@ -32,6 +33,7 @@ interface FormState {
   experienciaRequerida: string;
   tipoJornada: string;
   tipoContrato: string;
+  modalidadTrabajo: string;
   ubicacion: string;
   rangoSalarial: string;
   vacantes: number;
@@ -59,6 +61,7 @@ export function CompanyJobForm({ ofertaToEdit, onSuccess }: CompanyJobFormProps)
     experienciaRequerida: ofertaToEdit?.experiencia_requerida || '',
     tipoJornada: ofertaToEdit?.tipo_jornada || 'Jornada completa',
     tipoContrato: ofertaToEdit?.tipo_contrato || 'Relación de dependencia',
+    modalidadTrabajo: ofertaToEdit?.modalidad_trabajo || 'Presencial',
     ubicacion: ofertaToEdit?.ubicacion || 'Funes, Santa Fe',
     rangoSalarial: ofertaToEdit?.rango_salarial || '',
     vacantes: ofertaToEdit?.vacantes || 1,
@@ -281,7 +284,7 @@ export function CompanyJobForm({ ofertaToEdit, onSuccess }: CompanyJobFormProps)
               className="p-2 rounded-xl border border-border hover:bg-zinc-50 text-zinc-600 hover:text-zinc-900 transition-colors flex items-center gap-1.5 text-xs font-bold"
             >
               <ArrowLeft className="w-4 h-4" />
-              <span>Volver a Mis Ofertas</span>
+              <span>Volver a mis ofertas</span>
             </Link>
             <div className="h-4 w-px bg-zinc-200" />
             <div>
@@ -336,37 +339,51 @@ export function CompanyJobForm({ ofertaToEdit, onSuccess }: CompanyJobFormProps)
                 />
               </div>
 
-              {/* Descripción de tareas */}
+              {/* Descripción de tareas con RichTextToolbar */}
               <div>
                 <label className="block text-xs font-bold text-foreground mb-1.5">
                   Descripción de tareas y responsabilidades <span className="text-rose-600">*</span>
                 </label>
+                <RichTextToolbar
+                  textareaId="job-descripcion"
+                  value={formState.descripcion}
+                  onChange={(val: string) => setFormState((prev) => ({ ...prev, descripcion: val }))}
+                  disabled={isBusy}
+                />
                 <textarea
+                  id="job-descripcion"
                   rows={4}
                   value={formState.descripcion}
                   onChange={(e) =>
                     setFormState((prev) => ({ ...prev, descripcion: e.target.value }))
                   }
-                  placeholder="Detallá las principales responsabilidades del cargo..."
-                  className="w-full text-xs sm:text-sm p-3 border border-border rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none bg-surface transition-colors"
+                  placeholder="Detallá las principales tareas del cargo. Podés usar negrita y listas..."
+                  className="w-full text-xs sm:text-sm p-3 border border-border rounded-b-xl focus:ring-2 focus:ring-brand-500 focus:outline-none bg-surface transition-colors font-sans"
                   required
                   disabled={isBusy}
                 />
               </div>
 
-              {/* Requisitos */}
+              {/* Requisitos con RichTextToolbar */}
               <div>
                 <label className="block text-xs font-bold text-foreground mb-1.5">
                   Requisitos excluyentes y deseables <span className="text-rose-600">*</span>
                 </label>
+                <RichTextToolbar
+                  textareaId="job-requisitos"
+                  value={formState.requisitos}
+                  onChange={(val: string) => setFormState((prev) => ({ ...prev, requisitos: val }))}
+                  disabled={isBusy}
+                />
                 <textarea
+                  id="job-requisitos"
                   rows={4}
                   value={formState.requisitos}
                   onChange={(e) =>
                     setFormState((prev) => ({ ...prev, requisitos: e.target.value }))
                   }
-                  placeholder="Ej: Secundario completo, carnet de conducir B1, manejo de Excel..."
-                  className="w-full text-xs sm:text-sm p-3 border border-border rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none bg-surface transition-colors"
+                  placeholder="Ej: Secundario completo, experiencia en el rubro, manejo de herramientas..."
+                  className="w-full text-xs sm:text-sm p-3 border border-border rounded-b-xl focus:ring-2 focus:ring-brand-500 focus:outline-none bg-surface transition-colors font-sans"
                   required
                   disabled={isBusy}
                 />
@@ -446,6 +463,38 @@ export function CompanyJobForm({ ofertaToEdit, onSuccess }: CompanyJobFormProps)
                 </select>
               </div>
 
+              {/* Modalidad de trabajo */}
+              <div>
+                <label className="block text-xs font-bold text-foreground mb-1.5">
+                  Modalidad de trabajo <span className="text-rose-600">*</span>
+                </label>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {[
+                    { id: 'Presencial', icon: Building2 },
+                    { id: 'Remoto', icon: Laptop },
+                    { id: 'Híbrido', icon: Layers },
+                  ].map((item) => {
+                    const IconComponent = item.icon;
+                    const isSelected = formState.modalidadTrabajo === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => setFormState((prev) => ({ ...prev, modalidadTrabajo: item.id }))}
+                        className={`py-2 px-1 rounded-xl border text-xs font-bold transition-all flex flex-col items-center justify-center gap-1 cursor-pointer ${
+                          isSelected
+                            ? 'bg-brand-900 text-white border-brand-900 shadow-2xs'
+                            : 'bg-surface border-border text-zinc-700 hover:bg-zinc-50'
+                        }`}
+                      >
+                        <IconComponent className="w-3.5 h-3.5" />
+                        <span>{item.id}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
               {/* Tipo de contrato y Vacantes en 2 columnas */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -518,67 +567,50 @@ export function CompanyJobForm({ ofertaToEdit, onSuccess }: CompanyJobFormProps)
                 />
               </div>
 
-              {/* Selector de Vigencia Mejorado y Sutil */}
-              <div className="pt-3 border-t border-border/80 space-y-2">
+              {/* Selector de Vigencia Simplificado y Preciso */}
+              <div className="pt-3 border-t border-border/80 space-y-2.5">
                 <div className="flex items-center justify-between">
                   <label className="block text-xs font-bold text-foreground">
-                    Vigencia de la oferta
+                    Duración de la publicación
                   </label>
-                  <span className="text-[11px] text-brand-800 font-semibold">30 días estándar</span>
+                  <span className="text-[11px] text-brand-800 font-bold">Oficial Funes</span>
                 </div>
 
-                {/* Botones de selección rápida */}
                 <div className="grid grid-cols-4 gap-1.5 text-xs font-bold">
-                  <button
-                    type="button"
-                    onClick={() => handleSelectDaysPreset(15)}
-                    className={`py-1.5 rounded-lg border text-xs transition-colors cursor-pointer ${
-                      vigenciaMode === 'preset' && selectedPresetDays === 15
-                        ? 'bg-brand-800 text-white border-brand-800'
-                        : 'bg-white border-border text-zinc-700 hover:bg-zinc-50'
-                    }`}
-                  >
-                    15 d
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleSelectDaysPreset(30)}
-                    className={`py-1.5 rounded-lg border text-xs transition-colors cursor-pointer ${
-                      vigenciaMode === 'preset' && selectedPresetDays === 30
-                        ? 'bg-brand-800 text-white border-brand-800'
-                        : 'bg-white border-border text-zinc-700 hover:bg-zinc-50'
-                    }`}
-                  >
-                    30 d
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleSelectDaysPreset(60)}
-                    className={`py-1.5 rounded-lg border text-xs transition-colors cursor-pointer ${
-                      vigenciaMode === 'preset' && selectedPresetDays === 60
-                        ? 'bg-brand-800 text-white border-brand-800'
-                        : 'bg-white border-border text-zinc-700 hover:bg-zinc-50'
-                    }`}
-                  >
-                    60 d
-                  </button>
+                  {[
+                    { days: 7, label: '7 días' },
+                    { days: 15, label: '15 días' },
+                    { days: 30, label: '30 días' },
+                  ].map((p) => (
+                    <button
+                      key={p.days}
+                      type="button"
+                      onClick={() => handleSelectDaysPreset(p.days)}
+                      className={`py-2 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                        vigenciaMode === 'preset' && selectedPresetDays === p.days
+                          ? 'bg-brand-800 text-white border-brand-800 shadow-2xs'
+                          : 'bg-surface border-border text-zinc-700 hover:bg-zinc-50'
+                      }`}
+                    >
+                      {p.label}
+                    </button>
+                  ))}
                   <button
                     type="button"
                     onClick={handleCustomDateMode}
-                    className={`py-1.5 rounded-lg border text-xs transition-colors cursor-pointer flex items-center justify-center gap-1 ${
+                    className={`py-2 rounded-xl border text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1 ${
                       vigenciaMode === 'custom'
-                        ? 'bg-brand-800 text-white border-brand-800'
-                        : 'bg-white border-border text-zinc-700 hover:bg-zinc-50'
+                        ? 'bg-brand-800 text-white border-brand-800 shadow-2xs'
+                        : 'bg-surface border-border text-zinc-700 hover:bg-zinc-50'
                     }`}
                   >
-                    <Calendar className="w-3 h-3" />
-                    <span>Fija</span>
+                    <Calendar className="w-3.5 h-3.5" />
+                    <span>Fecha</span>
                   </button>
                 </div>
 
-                {/* Si eligió Fecha Fija, mostrar input date nativo */}
                 {vigenciaMode === 'custom' && (
-                  <div className="pt-2 animate-fadeIn">
+                  <div className="pt-1.5">
                     <Input
                       type="date"
                       value={formState.fechaLimite}
@@ -591,14 +623,18 @@ export function CompanyJobForm({ ofertaToEdit, onSuccess }: CompanyJobFormProps)
                   </div>
                 )}
 
-                {/* Resumen de una línea */}
-                <p className="text-[11px] text-muted-foreground leading-tight pt-1">
-                  {formState.fechaLimite ? (
-                    <>Vigente hasta el <strong>{new Date(formState.fechaLimite + 'T00:00:00').toLocaleDateString('es-AR')}</strong>. Podrás renovarla antes de que expire.</>
-                  ) : (
-                    <>Validez estándar de 30 días corridos a partir de su publicación.</>
-                  )}
-                </p>
+                {/* Cartel explicativo de fecha de vencimiento clara */}
+                <div className="p-3 bg-brand-50/70 border border-brand-200/80 rounded-xl text-xs text-brand-950 flex items-start gap-2">
+                  <Calendar className="w-4 h-4 text-brand-800 shrink-0 mt-0.5" />
+                  <div className="leading-snug">
+                    <span className="font-bold block text-brand-900">Fecha de vencimiento:</span>
+                    <span>
+                      {formState.fechaLimite
+                        ? `Esta oferta finalizará el ${new Date(formState.fechaLimite + 'T00:00:00').toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}.`
+                        : 'Vigencia predeterminada de 30 días a partir de la aprobación municipal.'}
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -606,7 +642,7 @@ export function CompanyJobForm({ ofertaToEdit, onSuccess }: CompanyJobFormProps)
             <div className="p-4 bg-emerald-50/70 border border-emerald-200 rounded-2xl text-xs text-emerald-950 space-y-1">
               <span className="font-bold flex items-center gap-1.5 text-emerald-900">
                 <ShieldCheck className="w-4 h-4 text-emerald-700" />
-                Intermediación Municipal de Funes
+                Intermediación municipal de Funes
               </span>
               <p className="text-[11.5px] text-emerald-900/90 leading-relaxed">
                 Al enviar la oferta, la Oficina de Empleo de Funes verificará las condiciones y comenzará la preselección y derivación de candidatos idóneos.
@@ -640,7 +676,7 @@ export function CompanyJobForm({ ofertaToEdit, onSuccess }: CompanyJobFormProps)
               disabled={isBusy}
             >
               <SaveIcon className="w-4 h-4 mr-1.5 text-foreground" />
-              Guardar Borrador
+              Guardar borrador
             </Button>
 
             <Button
@@ -650,7 +686,7 @@ export function CompanyJobForm({ ofertaToEdit, onSuccess }: CompanyJobFormProps)
               disabled={isBusy}
             >
               <SendIcon className="w-4 h-4 mr-1.5" />
-              {ofertaToEdit ? 'Guardar y Enviar' : 'Crear y Enviar Oferta'}
+              {ofertaToEdit ? 'Guardar y Enviar' : 'Crear oferta'}
             </Button>
           </div>
         </div>

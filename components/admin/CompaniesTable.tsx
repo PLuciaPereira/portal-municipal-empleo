@@ -317,9 +317,9 @@ export function CompaniesTable({ empresas, loading, onRefresh }: CompaniesTableP
                 <tr>
                   <th className="py-3.5 px-4">Empresa</th>
                   <th className="py-3.5 px-4">CUIT y Rubro</th>
-                  <th className="py-3.5 px-4">Ubicación y Contacto</th>
+                  <th className="py-3.5 px-4">Ubicación y contacto</th>
                   <th className="py-3.5 px-4">Estado</th>
-                  <th className="py-3.5 px-4">Fecha de Alta</th>
+                  <th className="py-3.5 px-4">Fecha de alta</th>
                   <th className="py-3.5 px-4 text-right">Acciones</th>
                 </tr>
               </thead>
@@ -373,7 +373,7 @@ export function CompaniesTable({ empresas, loading, onRefresh }: CompaniesTableP
                       <CompanyStatusBadge estado={emp.estado} />
                     </td>
 
-                    {/* Fecha de Alta */}
+                    {/* Fecha de alta */}
                     <td className="py-3.5 px-4 text-zinc-500 text-[11px] whitespace-nowrap">
                       {new Date(emp.created_at).toLocaleDateString('es-AR', {
                         day: '2-digit',

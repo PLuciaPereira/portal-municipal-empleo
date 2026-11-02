@@ -145,6 +145,7 @@ export type Oferta = {
   experiencia_requerida: string | null;
   tipo_jornada: string;
   tipo_contrato: string | null;
+  modalidad_trabajo?: 'Presencial' | 'Remoto' | 'Híbrido' | null;
   ubicacion: string;
   rango_salarial: string | null;
   vacantes: number;

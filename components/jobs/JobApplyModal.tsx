@@ -362,7 +362,7 @@ export const JobApplyModal: React.FC<JobApplyModalProps> = ({
             <div>
               <div className="flex items-center gap-2 text-xs font-semibold text-emerald-700 mb-1">
                 <BriefcaseIcon className="w-4 h-4" />
-                <span>Postulación con Perfil Registrado</span>
+                <span>Postulación con perfil registrado</span>
               </div>
               <h3 className="text-xl font-bold text-zinc-900 leading-tight">
                 {job.titulo}
@@ -622,7 +622,7 @@ export const JobApplyModal: React.FC<JobApplyModalProps> = ({
                 isLoading={isLoading || isUploadingCv}
                 className="min-w-[140px]"
               >
-                Confirmar Postulación
+                Confirmar postulación
               </Button>
             </div>
           </form>

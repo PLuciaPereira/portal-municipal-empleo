@@ -93,11 +93,11 @@ export function AdminStatsView() {
       <div>
         <h3 className="text-base font-bold text-slate-900 mb-3 flex items-center gap-2">
           <MapPin className="w-5 h-5 text-[var(--color-brand-800)]" />
-          Padrón de Postulantes e Impacto Local (Prioridad Funes)
+          Padrón de postulantes e impacto local (prioridad Funes)
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card className="p-4 border-l-4 border-l-[var(--color-brand-800)] bg-white shadow-xs">
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Total Postulantes</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Total postulantes</p>
             <p className="text-3xl font-extrabold text-slate-900 mt-2">{postulantes.total}</p>
             <p className="text-xs text-slate-500 mt-1">Perfiles activos registrados</p>
           </Card>
@@ -114,13 +114,13 @@ export function AdminStatsView() {
           </Card>
 
           <Card className="p-4 border-l-4 border-l-blue-600 bg-white shadow-xs">
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Otras Localidades</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Otras localidades</p>
             <p className="text-3xl font-extrabold text-slate-900 mt-2">{postulantes.otrasLocalidades}</p>
             <p className="text-xs text-slate-500 mt-1">Zonas y ciudades aledañas</p>
           </Card>
 
           <Card className="p-4 border-l-4 border-l-purple-600 bg-white shadow-xs">
-            <p className="text-xs font-semibold uppercase tracking-wider text-purple-900">Inserciones Efectivas</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-purple-900">Inserciones efectivas</p>
             <p className="text-3xl font-extrabold text-purple-950 mt-2">{intermediacion.contratados}</p>
             <p className="text-xs text-slate-500 mt-1">Contrataciones confirmadas</p>
           </Card>
@@ -155,7 +155,7 @@ export function AdminStatsView() {
               <span className="text-[11px] text-slate-400">Total recibidas</span>
             </div>
             <div className="pt-2 sm:pt-0 sm:px-2">
-              <span className="text-xs font-semibold text-amber-700 uppercase">En Revisión</span>
+              <span className="text-xs font-semibold text-amber-700 uppercase">En revisión</span>
               <p className="text-2xl font-bold text-amber-900 mt-1">{intermediacion.enRevision}</p>
               <span className="text-[11px] text-slate-400">Por filtrar</span>
             </div>
@@ -201,7 +201,7 @@ export function AdminStatsView() {
           <div className="flex items-center justify-between">
             <h4 className="font-bold text-slate-900 flex items-center gap-2">
               <FileText className="w-4 h-4 text-[var(--color-brand-800)]" />
-              Ofertas Laborales
+              Ofertas laborales
             </h4>
             <span className="text-xs font-bold text-slate-500">Total: {ofertas.total}</span>
           </div>
@@ -234,7 +234,7 @@ export function AdminStatsView() {
           <div className="flex items-center justify-between">
             <h4 className="font-bold text-slate-900 flex items-center gap-2">
               <Building2 className="w-4 h-4 text-[var(--color-brand-800)]" />
-              Empresas Registradas
+              Empresas registradas
             </h4>
             <span className="text-xs font-bold text-slate-500">Total: {empresas.total}</span>
           </div>
@@ -259,7 +259,7 @@ export function AdminStatsView() {
           <div className="flex items-center justify-between">
             <h4 className="font-bold text-slate-900 flex items-center gap-2">
               <GraduationCap className="w-4 h-4 text-[var(--color-brand-800)]" />
-              Cursos y Formación
+              Cursos y formación
             </h4>
             <span className="text-xs font-bold text-slate-500">Total: {capacitacion.totalCursos}</span>
           </div>
@@ -283,7 +283,7 @@ export function AdminStatsView() {
       <div>
         <h3 className="text-base font-bold text-slate-900 mb-3 flex items-center gap-2">
           <TrendingUp className="w-5 h-5 text-[var(--color-brand-800)]" />
-          Demanda y Contrataciones por Rubro Laboral
+          Demanda y contrataciones por rubro laboral
         </h3>
         <Card className="p-5 bg-white shadow-xs overflow-x-auto">
           {rubroStats.length === 0 ? (
@@ -292,9 +292,9 @@ export function AdminStatsView() {
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-slate-200 text-xs font-semibold uppercase text-slate-500">
-                  <th className="pb-3">Rubro o Sector</th>
-                  <th className="pb-3 text-center">Ofertas Creadas</th>
-                  <th className="pb-3 text-center">Inserciones Logradas</th>
+                  <th className="pb-3">Rubro o sector</th>
+                  <th className="pb-3 text-center">Ofertas creadas</th>
+                  <th className="pb-3 text-center">Inserciones logradas</th>
                   <th className="pb-3 text-right">Efectividad</th>
                 </tr>
               </thead>

@@ -140,7 +140,7 @@ export default function CambiarPasswordPage() {
               fontSize: 'clamp(20px, 5.2vw, 27px)',
             }}
           >
-            Nueva Contraseña
+            Nueva contraseña
           </h1>
         </div>
 
@@ -197,7 +197,7 @@ export default function CambiarPasswordPage() {
                 </div>
               )}
 
-              {/* Nueva Contraseña */}
+              {/* Nueva contraseña */}
               <div className="flex flex-col gap-2">
                 <label htmlFor="password" className="text-sm font-semibold text-[#14231c]">
                   Nueva contraseña

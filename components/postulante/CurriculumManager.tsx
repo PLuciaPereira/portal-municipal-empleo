@@ -243,7 +243,7 @@ export const CurriculumManager: React.FC<CurriculumManagerProps> = ({
         <div className="flex-1 min-w-[280px]">
           <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-zinc-900 font-sans">
-              Mis Currículums Vitae
+              Mis currículums vitae
             </h2>
             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#E4F1E8] text-[#0A3D2A]">
               {activeCount} / {MAX_ACTIVE_CVS} activos
@@ -383,7 +383,7 @@ export const CurriculumManager: React.FC<CurriculumManagerProps> = ({
               size="sm"
               isLoading={isSubmitting}
             >
-              Guardar Currículum
+              Guardar currículum
             </Button>
           </div>
         </form>

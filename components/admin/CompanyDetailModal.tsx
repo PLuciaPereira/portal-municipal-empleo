@@ -58,7 +58,7 @@ export function CompanyDetailModal({
                 {empresa.nombre_fantasia || empresa.razon_social}
               </h2>
               <span className="text-xs text-zinc-500 font-medium">
-                Razón Social: {empresa.razon_social}
+                Razón social: {empresa.razon_social}
               </span>
             </div>
           </div>
@@ -77,7 +77,7 @@ export function CompanyDetailModal({
           <div className="p-4 rounded-xl border border-zinc-200 bg-zinc-50/50 flex items-center justify-between">
             <div>
               <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500 block">
-                Estado Actual
+                Estado actual
               </span>
               <div className="mt-1 flex items-center gap-2">
                 <CompanyStatusBadge estado={empresa.estado} />
@@ -127,7 +127,7 @@ export function CompanyDetailModal({
 
             <div className="p-3.5 rounded-xl border border-zinc-200 bg-white space-y-1">
               <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500 block">
-                Rubro Principal
+                Rubro principal
               </span>
               <p className="text-sm font-semibold text-zinc-900">
                 {empresa.rubro || 'No especificado'}
@@ -157,7 +157,7 @@ export function CompanyDetailModal({
           <div className="p-3.5 rounded-xl border border-zinc-200 bg-white space-y-3">
             <div className="flex items-center gap-2 text-xs font-bold text-zinc-700 uppercase tracking-wider">
               <User className="w-4 h-4 text-brand-800" />
-              Datos de Contacto
+              Datos de contacto
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs pt-1">
               <div className="space-y-0.5">
@@ -207,7 +207,7 @@ export function CompanyDetailModal({
               {empresa.sitio_web && (
                 <div className="text-xs flex items-center gap-1.5 text-zinc-600">
                   <Globe className="w-3.5 h-3.5 text-zinc-400" />
-                  <span>Sitio Web:</span>
+                  <span>Sitio web:</span>
                   <a
                     href={
                       empresa.sitio_web.startsWith('http')
@@ -230,7 +230,7 @@ export function CompanyDetailModal({
         <div className="px-6 py-4 bg-zinc-50/80 border-t border-zinc-100 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={onClose}>
-              Cerrar Ficha
+              Cerrar ficha
             </Button>
             {onEdit && (
               <Button
@@ -240,7 +240,7 @@ export function CompanyDetailModal({
                 className="gap-1.5"
               >
                 <Pencil className="w-3.5 h-3.5" />
-                Editar Perfil
+                Editar perfil
               </Button>
             )}
           </div>
@@ -255,7 +255,7 @@ export function CompanyDetailModal({
                   className="gap-1.5"
                 >
                   <ShieldAlert className="w-4 h-4" />
-                  Rechazar Empresa
+                  Rechazar empresa
                 </Button>
                 <Button
                   variant="primary"
@@ -264,7 +264,7 @@ export function CompanyDetailModal({
                   className="gap-1.5 bg-brand-800 hover:bg-brand-900"
                 >
                   <CheckCircle2 className="w-4 h-4" />
-                  Aprobar Empresa
+                  Aprobar empresa
                 </Button>
               </>
             )}
@@ -277,7 +277,7 @@ export function CompanyDetailModal({
                 className="gap-1.5"
               >
                 <ShieldAlert className="w-4 h-4" />
-                Inhabilitar Empresa
+                Inhabilitar empresa
               </Button>
             )}
 

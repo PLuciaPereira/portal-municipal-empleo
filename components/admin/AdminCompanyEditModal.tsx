@@ -82,7 +82,7 @@ export function AdminCompanyEditModal({
     }
 
     if (!razonSocial.trim()) {
-      setErrorMsg('La Razón Social legal es obligatoria.');
+      setErrorMsg('La razón social legal es obligatoria.');
       return;
     }
 
@@ -157,7 +157,7 @@ export function AdminCompanyEditModal({
                 id="modal-admin-company-edit-title"
                 className="text-lg font-extrabold text-[#10231B] font-display flex items-center gap-2"
               >
-                Editar Perfil de Empresa (Admin)
+                Editar perfil de empresa (admin)
               </h2>
               <p className="text-xs text-[#4B6256]">
                 Podés corregir datos fiscales protegidos y la información comercial de la empresa.
@@ -192,7 +192,7 @@ export function AdminCompanyEditModal({
               </div>
               <div className="flex-1">
                 <span className="text-xs font-bold text-emerald-950 block">
-                  Intervención Administrativa de Buena Fe
+                  Intervención administrativa de buena fe
                 </span>
                 <span className="text-[11px] text-emerald-800 leading-relaxed block mt-0.5">
                   La rectificación de datos fiscales y comerciales se realiza bajo el principio de buena fe y confidencialidad. <strong>Solo debe procederse a solicitud expresa o conformidad directa de la empresa titular</strong> ante la Oficina de Empleo.
@@ -204,7 +204,7 @@ export function AdminCompanyEditModal({
           {/* Bloque: Datos Fiscales y Legales */}
           <div className="space-y-4">
             <h3 className="text-xs font-bold uppercase tracking-wider text-[#5A7064]">
-              Datos Fiscales y Legales Registrados
+              Datos fiscales y legales registrados
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -229,7 +229,7 @@ export function AdminCompanyEditModal({
 
               <div>
                 <label className="text-xs font-bold text-zinc-800 mb-1.5 block">
-                  Razón Social Legal <span className="text-rose-500">*</span>
+                  Razón social legal <span className="text-rose-500">*</span>
                 </label>
                 <Input
                   type="text"
@@ -250,7 +250,7 @@ export function AdminCompanyEditModal({
           {/* Bloque: Datos Comerciales */}
           <div className="space-y-4">
             <h3 className="text-xs font-bold uppercase tracking-wider text-[#5A7064]">
-              Información Comercial y Pública
+              Información comercial y pública
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -270,7 +270,7 @@ export function AdminCompanyEditModal({
 
               <div>
                 <label className="text-xs font-bold text-zinc-800 mb-1.5 block">
-                  Rubro o Actividad Principal
+                  Rubro o actividad principal
                 </label>
                 <Input
                   type="text"
@@ -285,7 +285,7 @@ export function AdminCompanyEditModal({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="text-xs font-bold text-zinc-800 mb-1.5 block">
-                  Sitio Web o Red Social
+                  Sitio web o red social
                 </label>
                 <div className="relative">
                   <Globe className="w-4 h-4 text-zinc-400 absolute left-3 top-3" />
@@ -316,7 +316,7 @@ export function AdminCompanyEditModal({
 
             <div>
               <label className="text-xs font-bold text-zinc-800 mb-1.5 block">
-                Dirección Comercial o Sede
+                Dirección comercial o sede
               </label>
               <div className="relative">
                 <MapPin className="w-4 h-4 text-zinc-400 absolute left-3 top-3" />
@@ -333,7 +333,7 @@ export function AdminCompanyEditModal({
 
             <div>
               <label className="text-xs font-bold text-zinc-800 mb-1.5 block">
-                Descripción Institucional
+                Descripción institucional
               </label>
               <textarea
                 rows={3}
@@ -355,7 +355,7 @@ export function AdminCompanyEditModal({
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <label className="text-xs font-bold text-zinc-800 mb-1.5 block">
-                  Referente de Contacto <span className="text-rose-500">*</span>
+                  Referente de contacto <span className="text-rose-500">*</span>
                 </label>
                 <div className="relative">
                   <User className="w-4 h-4 text-zinc-400 absolute left-3 top-3" />
@@ -373,7 +373,7 @@ export function AdminCompanyEditModal({
 
               <div>
                 <label className="text-xs font-bold text-zinc-800 mb-1.5 block">
-                  Teléfono de Contacto <span className="text-rose-500">*</span>
+                  Teléfono de contacto <span className="text-rose-500">*</span>
                 </label>
                 <div className="relative">
                   <Phone className="w-4 h-4 text-zinc-400 absolute left-3 top-3" />
@@ -391,7 +391,7 @@ export function AdminCompanyEditModal({
 
               <div>
                 <label className="text-xs font-bold text-zinc-800 mb-1.5 block">
-                  Email de Contacto <span className="text-rose-500">*</span>
+                  Email de contacto <span className="text-rose-500">*</span>
                 </label>
                 <div className="relative">
                   <Mail className="w-4 h-4 text-zinc-400 absolute left-3 top-3" />
@@ -435,7 +435,7 @@ export function AdminCompanyEditModal({
               ) : (
                 <>
                   <CheckCircle2 className="w-4 h-4" />
-                  Guardar Modificaciones
+                  Guardar modificaciones
                 </>
               )}
             </Button>

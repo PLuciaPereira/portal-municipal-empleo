@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Calendar, Clock, MapPin, Video, Phone, Check, X, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { TimePicker } from '@/components/ui/TimePicker';
 import { agendarEntrevistaEmpresa, reprogramarEntrevistaEmpresa, cancelarEntrevistaEmpresa } from '@/lib/empresa';
 import { VistaCandidatoEmpresa } from '@/types/database';
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
@@ -143,7 +144,7 @@ export function CompanyScheduleInterviewModal({
         {isCancelView ? (
           <form onSubmit={handleCancelInterview} className="space-y-4">
             <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900">
-              Al cancelar la entrevista, el postulante recibirá una notificación y su postulación volverá al estado <strong>Presentado a Empresa</strong>.
+              Al cancelar la entrevista, el postulante recibirá una notificación y su postulación volverá al estado <strong>Presentado a empresa</strong>.
             </div>
             <div>
               <label className="block text-xs font-bold text-foreground mb-1">
@@ -164,7 +165,7 @@ export function CompanyScheduleInterviewModal({
                 Volver
               </Button>
               <Button type="submit" variant="danger" isLoading={loading}>
-                Confirmar Cancelación
+                Confirmar cancelación
               </Button>
             </div>
           </form>
@@ -189,10 +190,9 @@ export function CompanyScheduleInterviewModal({
                 <label className="block text-xs font-bold text-foreground mb-1">
                   Hora de inicio <span className="text-rose-600">*</span>
                 </label>
-                <Input
-                  type="time"
+                <TimePicker
                   value={hora}
-                  onChange={(e) => setHora(e.target.value)}
+                  onChange={setHora}
                   required
                   disabled={loading}
                 />
@@ -308,7 +308,7 @@ export function CompanyScheduleInterviewModal({
                   Cerrar
                 </Button>
                 <Button type="submit" variant="primary" isLoading={loading}>
-                  <Check className="w-4 h-4 mr-1.5" /> {isReprogramar ? 'Guardar Nueva Fecha' : 'Confirmar y Notificar'}
+                  <Check className="w-4 h-4 mr-1.5" /> {isReprogramar ? 'Guardar Nueva Fecha' : 'Confirmar entrevista'}
                 </Button>
               </div>
             </div>

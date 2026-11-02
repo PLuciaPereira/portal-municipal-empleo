@@ -344,7 +344,7 @@ export async function agendarEntrevistaEmpresaAction(
           titulo: 'Entrevista de trabajo coordinada',
           mensaje: `${empresaNombre} coordinó una entrevista para ${ofertaTitulo} el día ${fecha} a las ${hora} hs (${modalidad}). Lugar/Contacto: ${lugar.trim()}`,
           tipo: 'entrevista',
-          link: '/postulante',
+          link: `/postulante?tab=postulaciones&postulacionId=${postulacionId}`,
           leida: false,
         });
       } catch (notifErr) {
@@ -477,7 +477,7 @@ export async function reprogramarEntrevistaEmpresaAction(
           titulo: 'Entrevista reprogramada',
           mensaje: `${empresaNombre} actualizó la fecha/hora de la entrevista para ${ofertaTitulo}: nuevo horario el ${fecha} a las ${hora} hs (${modalidad}). Lugar/Contacto: ${lugar.trim()}`,
           tipo: 'entrevista',
-          link: '/postulante',
+          link: `/postulante?tab=postulaciones&postulacionId=${postulacionId}`,
           leida: false,
         });
       } catch (e) {}
@@ -593,7 +593,7 @@ export async function cancelarEntrevistaEmpresaAction(
           titulo: 'Entrevista cancelada',
           mensaje: `${empresaNombre} canceló la entrevista agendada para ${ofertaTitulo}. Motivo informado: ${motivo.trim()}`,
           tipo: 'entrevista',
-          link: '/postulante',
+          link: `/postulante?tab=postulaciones&postulacionId=${postulacionId}`,
           leida: false,
         });
       } catch (e) {}

@@ -112,14 +112,19 @@ const [motivo, setMotivo] = useState('');
           </div>
 
           {actionType === 'contratar' ? (
-            <div className="space-y-2 text-sm text-zinc-600">
-              <p>
-                Al confirmar la contratación, el candidato pasará al estado final de{' '}
-                <strong className="text-emerald-700">Contratado</strong>.
+            <div className="space-y-3 p-4 rounded-xl bg-emerald-50/60 border border-emerald-200/80 text-xs sm:text-sm text-zinc-700">
+              <div className="flex items-center gap-2 text-emerald-900 font-bold">
+                <CheckCircleIcon className="w-4 h-4 text-emerald-600" />
+                <span>Confirmación de incorporación</span>
+              </div>
+              <p className="text-zinc-700 leading-relaxed text-xs">
+                ¡Felicitaciones! Al confirmar la contratación de <strong>{nombreCompleto}</strong>:
               </p>
-              <p className="text-xs text-zinc-500">
-                La Oficina de Empleo registrará la efectiva inserción laboral y se concluirá el proceso sobre esta postulación. Por normativa de privacidad, el currículum vitae dejará de estar disponible para descarga.
-              </p>
+              <ul className="list-disc pl-4 space-y-1 text-zinc-600 text-xs">
+                <li>La Oficina de Empleo de Funes registrará el éxito de la convocatoria laboral.</li>
+                <li>La postulación pasará al estado final de <strong className="text-emerald-800">Contratado</strong>.</li>
+                <li>Por normativas de resguardo y privacidad de datos de los vecinos, el currículum descargable dejará de estar disponible.</li>
+              </ul>
             </div>
           ) : (
             <div className="space-y-3">

@@ -104,6 +104,7 @@ export type OfertaAdminItem = Oferta & {
   empresa: Pick<Empresa, 'id' | 'nombre_fantasia' | 'razon_social' | 'localidad' | 'verificada' | 'telefono' | 'email_contacto'> | null;
   rubro: Rubro | null;
   postulaciones_count?: number;
+  postulaciones_nuevas_count?: number;
 };
 
 /**
@@ -329,18 +330,21 @@ export async function getOfertasAdmin(
 
     // Intentar obtener conteo de postulaciones de forma segura sin romper la consulta de ofertas
     let postulacionesCounts: Record<string, number> = {};
+    let postulacionesNuevasCounts: Record<string, number> = {};
     try {
       const { data: postData } = await supabase
         .from('postulaciones')
-        .select('oferta_id');
+        .select('oferta_id, estado');
 
       if (postData && Array.isArray(postData)) {
-        postulacionesCounts = postData.reduce((acc, curr) => {
+        postData.forEach((curr: any) => {
           if (curr.oferta_id) {
-            acc[curr.oferta_id] = (acc[curr.oferta_id] || 0) + 1;
+            postulacionesCounts[curr.oferta_id] = (postulacionesCounts[curr.oferta_id] || 0) + 1;
+            if (curr.estado === 'postulado') {
+              postulacionesNuevasCounts[curr.oferta_id] = (postulacionesNuevasCounts[curr.oferta_id] || 0) + 1;
+            }
           }
-          return acc;
-        }, {} as Record<string, number>);
+        });
       }
     } catch {
       // Si la sesión no tiene acceso aún, mantener conteo en 0
@@ -354,6 +358,7 @@ export async function getOfertasAdmin(
         empresa: (item.empresa as OfertaAdminItem['empresa']) || null,
         rubro: (item.rubro as Rubro) || null,
         postulaciones_count: postulacionesCounts[ofertaId] || 0,
+        postulaciones_nuevas_count: postulacionesNuevasCounts[ofertaId] || 0,
       };
     });
 

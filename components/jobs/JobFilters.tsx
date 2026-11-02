@@ -104,7 +104,7 @@ export const JobFilters: React.FC<JobFiltersProps> = ({
       <div className="space-y-2">
         <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
           <ClockIcon className="w-4 h-4 text-brand-800" />
-          Jornada Laboral
+          Jornada laboral
         </label>
         <div className="space-y-1.5">
           {jornadas.map((j) => (
@@ -184,7 +184,7 @@ export const JobFilters: React.FC<JobFiltersProps> = ({
       <div className="p-3.5 rounded-xl bg-brand-100/80 border border-brand-300/70 text-xs text-brand-900 space-y-1.5">
         <div className="flex items-center gap-1.5 font-bold">
           <ShieldCheckIcon className="w-4 h-4 text-brand-800" />
-          <span>Intermediación Municipal</span>
+          <span>Intermediación municipal</span>
         </div>
         <p className="text-brand-900/90 leading-relaxed">
           Las ofertas son verificadas por la Oficina de Empleo. Tu postulación es privada y confidencial.
@@ -220,7 +220,7 @@ export const JobFilters: React.FC<JobFiltersProps> = ({
               <div className="flex items-center justify-between pb-3 border-b border-border">
                 <div className="flex items-center gap-2">
                   <FilterIcon className="w-5 h-5 text-brand-800" />
-                  <h3 className="font-bold text-foreground text-base">Filtros de Búsqueda</h3>
+                  <h3 className="font-bold text-foreground text-base">Filtros de búsqueda</h3>
                 </div>
                 <button
                   type="button"
@@ -255,7 +255,7 @@ export const JobFilters: React.FC<JobFiltersProps> = ({
           <div className="flex items-center justify-between pb-4 mb-4 border-b border-border/60">
             <div className="flex items-center gap-2">
               <FilterIcon className="w-5 h-5 text-brand-800" />
-              <h2 className="font-bold text-foreground text-sm">Filtros de Búsqueda</h2>
+              <h2 className="font-bold text-foreground text-sm">Filtros de búsqueda</h2>
             </div>
             {hasActiveFilters && (
               <button

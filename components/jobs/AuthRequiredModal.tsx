@@ -80,7 +80,7 @@ export const AuthRequiredModal: React.FC<AuthRequiredModalProps> = ({
 
           <div>
             <span className="text-xs font-semibold text-emerald-800 uppercase tracking-wider block mb-1">
-              Registro Obligatorio
+              Registro obligatorio
             </span>
             <h3 className="text-xl font-bold text-zinc-900 leading-tight">
               Iniciá sesión para postularte
@@ -99,7 +99,7 @@ export const AuthRequiredModal: React.FC<AuthRequiredModalProps> = ({
           {/* Formulario de Login Rápido */}
           <form onSubmit={handleSubmit} className="space-y-3 pt-2">
             <Input
-              label="Correo Electrónico"
+              label="Correo electrónico"
               type="email"
               placeholder="tu-correo@ejemplo.com"
               value={email}
@@ -121,7 +121,7 @@ export const AuthRequiredModal: React.FC<AuthRequiredModalProps> = ({
               className="w-full justify-center"
               isLoading={isLoading}
             >
-              Iniciar Sesión y Continuar
+              Iniciar sesión y continuar
             </Button>
           </form>
 

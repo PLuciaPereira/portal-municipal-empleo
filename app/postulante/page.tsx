@@ -36,6 +36,8 @@ import {
   Calendar,
   Camera,
   ArrowUpDown,
+  Mail,
+  MapPin,
 } from 'lucide-react';
 
 type TabKey = 'perfil' | 'postulaciones' | 'cursos';
@@ -195,54 +197,73 @@ function PostulanteDashboardContent() {
   return (
     <div className="min-h-screen bg-page text-foreground flex flex-col font-sans">
       {/* 1. Banda Verde Superior Institucional Funes Full-Width */}
-      <section className="bg-gradient-to-r from-brand-950 via-brand-900 to-brand-800 text-white py-3 sm:py-3.5 border-b border-brand-950/40 shadow-sm">
+      <section className="bg-gradient-to-r from-brand-950 via-brand-900 to-brand-800 text-white py-4 sm:py-5 border-b border-brand-950/40 shadow-sm">
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
-            <div className="flex items-center gap-3 min-w-0 flex-1">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center gap-3.5 sm:gap-4 min-w-0 flex-1">
               {/* Avatar cuadrado de 44 px */}
               {displayProfile?.avatar_url ? (
                 <img
                   src={displayProfile.avatar_url}
                   alt={displayProfile.nombre}
-                  className="w-[44px] h-[44px] rounded-xl object-cover border border-white/20 shadow-xs shrink-0"
+                  className="w-[44px] h-[44px] sm:w-[50px] sm:h-[50px] rounded-xl object-cover border border-white/20 shadow-xs shrink-0"
                 />
               ) : (
-                <div className="w-[44px] h-[44px] rounded-xl bg-white/10 border border-white/20 text-white flex items-center justify-center font-extrabold text-lg shrink-0 shadow-xs">
+                <div className="w-[44px] h-[44px] sm:w-[50px] sm:h-[50px] rounded-xl bg-white/10 border border-white/20 text-white flex items-center justify-center font-extrabold text-lg sm:text-xl shrink-0 shadow-xs">
                   {initialLetter}
                 </div>
               )}
 
-              <div className="min-w-0 flex-1">
-                {/* Identificador y residencia a 11.5 px */}
-                <div className="flex flex-wrap items-center gap-2 mb-0.5">
-                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white/10 border border-white/15 text-white/95 text-[11.5px] font-semibold backdrop-blur-xs leading-none">
+              <div className="min-w-0 flex-1 space-y-1">
+                {/* Fila de chips arriba del nombre */}
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-white/10 border border-white/15 text-white/95 text-[11.5px] font-semibold backdrop-blur-xs leading-none">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
                     Portal de Empleo · Municipalidad de Funes
                   </span>
                   {displayProfile?.es_residente_funes && (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-200 text-[11.5px] font-semibold leading-none">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-white/10 border border-white/15 text-white/95 text-[11.5px] font-semibold backdrop-blur-xs leading-none">
                       <Check className="w-3 h-3 text-emerald-300 stroke-[3]" />
                       Vecino Residente de Funes
                     </span>
                   )}
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-amber-400/15 border border-amber-300/30 text-[#ffd978] text-[11.5px] font-semibold backdrop-blur-xs leading-none">
+                    <Search className="w-3 h-3 text-[#ffd978] stroke-[2.5]" />
+                    Búsqueda activa
+                  </span>
                 </div>
 
-                {/* Nombre del postulante en una sola línea a 22 px */}
-                <div className="flex items-baseline gap-2 truncate">
-                  <h1 className="text-[20px] sm:text-[22px] font-bold tracking-tight text-white font-sans leading-tight truncate">
+                {/* Nombre grande del postulante */}
+                <div>
+                  <h1 className="text-xl sm:text-2xl md:text-[26px] font-bold tracking-tight text-white font-sans leading-tight">
                     {displayProfile?.nombre ? `${displayProfile.nombre} ${displayProfile.apellido || ''}` : 'Mi Perfil Laboral'}
                   </h1>
-                  <span className="hidden md:inline text-brand-100/80 text-xs truncate">
-                    • Legajo laboral y seguimiento de intermediaciones de Funes.
+                </div>
+
+                {/* Debajo del nombre: correo, DNI y localidad al 86% de opacidad */}
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-white/86 text-[14px]">
+                  <span className="inline-flex items-center gap-1.5">
+                    <Mail className="w-3.5 h-3.5 shrink-0 opacity-80" />
+                    <span>{user?.email || 'postulante@funes.com'}</span>
+                  </span>
+                  <span className="text-white/30 hidden sm:inline">•</span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <User className="w-3.5 h-3.5 shrink-0 opacity-80" />
+                    <span>{displayProfile?.dni || '35123456'}</span>
+                  </span>
+                  <span className="text-white/30 hidden sm:inline">•</span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 shrink-0 opacity-80" />
+                    <span>{displayProfile?.localidad || (displayProfile?.es_residente_funes ? 'Funes' : 'No informada')}</span>
                   </span>
                 </div>
               </div>
             </div>
 
-            <div className="shrink-0 flex items-center gap-3">
+            <div className="shrink-0 flex items-center gap-3 pt-2 md:pt-0">
               <Link
                 href="/ofertas"
-                className="h-10 px-4 rounded-xl bg-amber-400 hover:bg-amber-300 text-amber-950 font-bold text-xs inline-flex items-center gap-2 transition-all shadow-xs cursor-pointer shrink-0"
+                className="h-10 px-4 rounded-xl bg-amber-400 hover:bg-amber-300 text-amber-950 font-bold text-xs inline-flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer w-full sm:w-auto shrink-0"
               >
                 <Search className="w-3.5 h-3.5 stroke-[2.4]" />
                 Explorar ofertas laborales
@@ -252,23 +273,23 @@ function PostulanteDashboardContent() {
         </div>
       </section>
 
-      {/* 2. Barra de Navegación por Pestañas Segmentadas */}
-      <div className="bg-surface border-b border-zinc-200">
+      {/* 2. Barra de Navegación por Pestañas Segmentadas (Estilo unificado con Admin) */}
+      <div className="bg-surface border-b border-zinc-200 shadow-2xs">
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10">
-          <div className="flex items-center gap-1 overflow-x-auto py-1 no-scrollbar text-xs" role="tablist">
+          <div className="flex items-center gap-1 overflow-x-auto py-1.5 scroll-smooth no-scrollbar text-xs" role="tablist">
             <button
               type="button"
               role="tab"
               aria-selected={activeTab === 'perfil'}
               onClick={() => setActiveTab('perfil')}
-              className={`inline-flex items-center gap-2 px-4 py-2 border-b-2 font-bold transition-all whitespace-nowrap cursor-pointer ${
+              className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl font-bold transition-all whitespace-nowrap cursor-pointer ${
                 activeTab === 'perfil'
-                  ? 'border-brand-800 text-brand-900 font-extrabold bg-brand-50/50'
-                  : 'border-transparent text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50'
+                  ? 'bg-brand-900 text-white shadow-xs'
+                  : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
               }`}
             >
-              <User className="w-4 h-4 text-brand-800" />
-              <span>Mi Perfil y CV</span>
+              <User className="w-3.5 h-3.5" />
+              <span>Mi perfil y CV</span>
             </button>
 
             <button
@@ -276,18 +297,18 @@ function PostulanteDashboardContent() {
               role="tab"
               aria-selected={activeTab === 'postulaciones'}
               onClick={() => setActiveTab('postulaciones')}
-              className={`inline-flex items-center gap-2 px-4 py-2 border-b-2 font-bold transition-all whitespace-nowrap cursor-pointer ${
+              className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl font-bold transition-all whitespace-nowrap cursor-pointer ${
                 activeTab === 'postulaciones'
-                  ? 'border-brand-800 text-brand-900 font-extrabold bg-brand-50/50'
-                  : 'border-transparent text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50'
+                  ? 'bg-brand-900 text-white shadow-xs'
+                  : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
               }`}
             >
-              <Inbox className="w-4 h-4 text-brand-800" />
-              <span>Mis Postulaciones</span>
+              <Inbox className="w-3.5 h-3.5" />
+              <span>Mis postulaciones</span>
               <span
-                className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                className={`text-[10px] px-1.5 py-0.2 rounded-full font-extrabold leading-none transition-colors ${
                   activeTab === 'postulaciones'
-                    ? 'bg-brand-100 text-brand-900'
+                    ? 'bg-white/20 text-white'
                     : 'bg-zinc-100 text-zinc-700'
                 }`}
               >
@@ -300,15 +321,21 @@ function PostulanteDashboardContent() {
               role="tab"
               aria-selected={activeTab === 'cursos'}
               onClick={() => setActiveTab('cursos')}
-              className={`inline-flex items-center gap-2 px-4 py-2 border-b-2 font-bold transition-all whitespace-nowrap cursor-pointer ${
+              className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl font-bold transition-all whitespace-nowrap cursor-pointer ${
                 activeTab === 'cursos'
-                  ? 'border-brand-800 text-brand-900 font-extrabold bg-brand-50/50'
-                  : 'border-transparent text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50'
+                  ? 'bg-brand-900 text-white shadow-xs'
+                  : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
               }`}
             >
-              <Award className="w-4 h-4 text-zinc-600" />
-              <span>Cursos y Talleres</span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-zinc-100 text-zinc-700">
+              <Award className="w-3.5 h-3.5" />
+              <span>Cursos y talleres</span>
+              <span
+                className={`text-[10px] px-1.5 py-0.2 rounded-full font-extrabold leading-none transition-colors ${
+                  activeTab === 'cursos'
+                    ? 'bg-white/20 text-white'
+                    : 'bg-zinc-100 text-zinc-700'
+                }`}
+              >
                 {courses.length}
               </span>
             </button>
@@ -388,185 +415,103 @@ function PostulanteDashboardContent() {
         )}
 
         {/* ============================================================== */}
-        {/* PESTAÑA 1: MI PERFIL (Pantalla inicial y prioritaria)         */}
+        {/* PESTAÑA 1: MI PERFIL (HOJA CONTINUA ATS - IDÉNTICA A EMPRESA) */}
         {/* ============================================================== */}
         {activeTab === 'perfil' && (
-          <div className="space-y-8 w-full">
-            {/* 1. Módulo de Datos Personales (Lienzo Continuo) */}
-            <section className="space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-zinc-200">
-                <div className="flex items-center gap-4">
-                  <div className="relative w-14 h-14 shrink-0 group">
-                    {displayProfile?.avatar_url ? (
-                      <img
-                        src={displayProfile.avatar_url}
-                        alt={displayProfile.nombre}
-                        className="w-14 h-14 rounded-2xl object-cover shadow-2xs border border-zinc-200"
-                      />
-                    ) : (
-                      <div className="w-14 h-14 rounded-2xl bg-brand-100 text-brand-900 flex items-center justify-center font-extrabold text-xl font-sans shadow-2xs border border-brand-200">
-                        {initialLetter}
-                      </div>
-                    )}
-                    <label
-                      title="Subir o cambiar foto de perfil directamente"
-                      className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-brand-700 text-white flex items-center justify-center shadow-md hover:bg-brand-800 transition-transform active:scale-95 border-2 border-white cursor-pointer"
-                    >
-                      <Camera className="w-3 h-3" />
-                      <input
-                        type="file"
-                        accept="image/png,image/jpeg,image/webp"
-                        className="hidden"
-                        onChange={handleDirectAvatarUpload}
-                      />
-                    </label>
-                  </div>
-                  <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h2 className="font-extrabold text-xl sm:text-2xl text-zinc-900 leading-tight font-sans">
-                        {displayProfile?.nombre} {displayProfile?.apellido}
-                      </h2>
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-brand-100 text-brand-900 text-xs font-bold">
-                        <Sparkles className="w-3 h-3" />
-                        Búsqueda activa
-                      </span>
-                    </div>
-                    <div className="text-xs text-zinc-500 mt-1 flex flex-wrap items-center gap-3">
-                      <span>{user?.email || 'Postulante registrado'}</span>
-                      <span>•</span>
-                      <span>DNI: <strong className="text-zinc-700 font-semibold tabular-nums">{displayProfile?.dni || 'No informado'}</strong></span>
-                      <span>•</span>
-                      <span>Localidad: <strong className="text-zinc-700 font-semibold">{displayProfile?.localidad || (displayProfile?.es_residente_funes ? 'Funes' : 'No informada')}</strong></span>
-                    </div>
-                  </div>
+          <div className="w-full bg-surface border border-zinc-200/90 rounded-2xl shadow-xs divide-y divide-zinc-200/80 overflow-hidden font-sans">
+            {/* Canales de contacto y residencia (4 columnas ordenadas ATS) con acción de editar */}
+            <div className="p-6 sm:p-8 space-y-4">
+              <div className="flex items-center justify-between gap-4">
+                <h3 className="text-[11px] font-extrabold uppercase tracking-wider text-zinc-400">
+                  Canales de contacto y residencia
+                </h3>
+                {displayProfile && (
+                  <button
+                    type="button"
+                    onClick={() => setIsPersonalModalOpen(true)}
+                    className="h-8.5 px-3.5 rounded-full border border-zinc-200 bg-white hover:bg-zinc-50 font-bold text-xs text-zinc-700 transition-all shadow-2xs flex items-center gap-2 cursor-pointer"
+                    aria-label="Editar legajo y contacto"
+                  >
+                    <Edit3 className="w-3.5 h-3.5 text-brand-800" />
+                    <span>Editar legajo y contacto</span>
+                  </button>
+                )}
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div>
+                  <span className="text-xs font-semibold text-zinc-500 block mb-1">Teléfono / WhatsApp</span>
+                  <span className="font-bold text-sm text-zinc-900 block">{displayProfile?.telefono || 'No informado'}</span>
                 </div>
-
-                <div className="shrink-0 flex items-center gap-3">
-                  {displayProfile && (
-                    <button
-                      type="button"
-                      onClick={() => setIsPersonalModalOpen(true)}
-                      className="h-9 px-4 rounded-xl border border-zinc-200 bg-white hover:bg-zinc-50 font-bold text-xs text-zinc-800 transition-all shadow-2xs flex items-center gap-2 cursor-pointer"
-                    >
-                      <Edit3 className="w-3.5 h-3.5 text-brand-800" />
-                      <span>Editar Legajo y Contacto</span>
-                    </button>
-                  )}
+                <div>
+                  <span className="text-xs font-semibold text-zinc-500 block mb-1">Domicilio</span>
+                  <span className="font-bold text-sm text-zinc-900 block">{displayProfile?.direccion || 'No especificado'}</span>
+                </div>
+                <div>
+                  <span className="text-xs font-semibold text-zinc-500 block mb-1">Padrón de residencia</span>
+                  <span className="font-bold text-sm text-brand-900 block">{displayProfile?.es_residente_funes ? 'Residente oficial en Funes' : 'Otras localidades'}</span>
+                </div>
+                <div>
+                  <span className="text-xs font-semibold text-zinc-500 block mb-1">Resguardo municipal</span>
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-800 mt-1">
+                    <ShieldCheck className="w-4 h-4 text-emerald-700 shrink-0" />
+                    <span>Oficina de Empleo de Funes</span>
+                  </div>
                 </div>
               </div>
+            </div>
 
-              {/* Fila de Datos Rápidos de Contacto y Resguardo */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
-                <div className="p-3.5 rounded-xl bg-white border border-zinc-200/80 shadow-2xs flex flex-col gap-0.5">
-                  <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">Teléfono / WhatsApp</span>
-                  <span className="font-bold text-sm text-zinc-900 mt-0.5">{displayProfile?.telefono || 'No informado'}</span>
-                </div>
-                <div className="p-3.5 rounded-xl bg-white border border-zinc-200/80 shadow-2xs flex flex-col gap-0.5">
-                  <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">Domicilio</span>
-                  <span className="font-bold text-sm text-zinc-900 mt-0.5">{displayProfile?.direccion || 'No especificado'}</span>
-                </div>
-                <div className="p-3.5 rounded-xl bg-white border border-zinc-200/80 shadow-2xs flex flex-col gap-0.5">
-                  <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">Residencia Municipal</span>
-                  <span className="font-bold text-sm text-brand-900 mt-0.5">{displayProfile?.es_residente_funes ? 'Residente verificado en Funes' : 'Otras localidades'}</span>
-                </div>
-                <div className="p-3.5 rounded-xl bg-brand-50/50 border border-brand-200/70 shadow-2xs flex items-center gap-2.5 text-brand-950">
-                  <ShieldCheck className="w-5 h-5 text-brand-800 shrink-0" />
-                  <span className="text-[11.5px] leading-tight">Legajo resguardado por la Oficina de Empleo de Funes.</span>
-                </div>
-              </div>
-            </section>
-
-            {/* 2. Módulo de Trayectoria, Formación y Habilidades (Lienzo Continuo) */}
-            <section className="space-y-4 pt-6 border-t border-zinc-200/80">
-              <div className="flex items-center justify-between gap-4 pb-3 border-b border-zinc-200">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-brand-50 text-brand-800 flex items-center justify-center shrink-0">
-                    <GraduationCap className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h2 className="text-lg sm:text-xl font-bold tracking-tight text-zinc-900 font-sans">
-                      Perfil Laboral y Competencias
-                    </h2>
-                    <p className="text-xs text-zinc-500">
-                      Experiencia previa, disponibilidad horaria y oficios declarados ante el Municipio.
-                    </p>
-                  </div>
-                </div>
-
+            {/* 3. Perfil Laboral y Trayectoria */}
+            <div className="p-6 sm:p-8 space-y-5">
+              <div className="flex items-center justify-between gap-4">
+                <h3 className="text-[11px] font-extrabold uppercase tracking-wider text-zinc-400">
+                  Perfil laboral y competencias
+                </h3>
                 <button
                   type="button"
                   onClick={() => setIsLaboralModalOpen(true)}
                   className="h-8.5 px-3.5 rounded-xl border border-zinc-200 hover:bg-zinc-50 font-semibold text-xs text-zinc-700 transition-colors cursor-pointer shrink-0 shadow-2xs"
                 >
-                  Modificar Perfil Laboral
+                  Modificar perfil laboral
                 </button>
               </div>
 
-              {/* Resumen de Experiencia */}
-              <div className="p-4 rounded-xl bg-white border border-zinc-200/80 shadow-2xs">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400 block">
-                  Resumen de Trayectoria
-                </span>
-                <p className="text-sm mt-1 text-zinc-800 leading-relaxed font-sans">
-                  {displayProfile?.experiencia_resumen ||
-                    'Aún no registraste una descripción de tu trayectoria laboral.'}
+              {/* Resumen de trayectoria */}
+              <div>
+                <span className="text-xs font-semibold text-zinc-500 block mb-1">Resumen de trayectoria y experiencia</span>
+                <p className="text-sm text-zinc-800 leading-relaxed font-sans bg-zinc-50/70 p-4 rounded-xl border border-zinc-200/70">
+                  {displayProfile?.experiencia_resumen || 'Aún no registraste una descripción de tu trayectoria laboral.'}
                 </p>
               </div>
 
-              {/* Grid Horizontal de Atributos */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                <div className="p-3.5 rounded-xl border border-zinc-200/80 bg-white shadow-2xs flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-brand-50 text-brand-800 flex items-center justify-center shrink-0 mt-0.5">
-                    <GraduationCap className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <span className="text-[11px] text-zinc-400 font-semibold uppercase tracking-wider block">Educación</span>
-                    <span className="font-bold text-sm text-zinc-900 mt-0.5 block">{displayProfile?.nivel_educativo || 'No especificado'}</span>
-                  </div>
+              {/* Atributos clave en 4 columnas */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 pt-2">
+                <div>
+                  <span className="text-xs font-semibold text-zinc-500 block mb-1">Nivel educativo</span>
+                  <span className="font-bold text-sm text-zinc-900 block">{displayProfile?.nivel_educativo || 'No especificado'}</span>
                 </div>
-
-                <div className="p-3.5 rounded-xl border border-zinc-200/80 bg-white shadow-2xs flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-brand-50 text-brand-800 flex items-center justify-center shrink-0 mt-0.5">
-                    <Briefcase className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <span className="text-[11px] text-zinc-400 font-semibold uppercase tracking-wider block">Situación Laboral</span>
-                    <span className="font-bold text-sm text-zinc-900 mt-0.5 block">{displayProfile?.situacion_laboral_actual || 'No informada'}</span>
-                  </div>
+                <div>
+                  <span className="text-xs font-semibold text-zinc-500 block mb-1">Situación laboral</span>
+                  <span className="font-bold text-sm text-zinc-900 block">{displayProfile?.situacion_laboral_actual || 'No informada'}</span>
                 </div>
-
-                <div className="p-3.5 rounded-xl border border-zinc-200/80 bg-white shadow-2xs flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-brand-50 text-brand-800 flex items-center justify-center shrink-0 mt-0.5">
-                    <Clock className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <span className="text-[11px] text-zinc-400 font-semibold uppercase tracking-wider block">Disponibilidad</span>
-                    <span className="font-bold text-sm text-zinc-900 mt-0.5 block">{displayProfile?.disponibilidad_horaria || 'No informada'}</span>
-                  </div>
+                <div>
+                  <span className="text-xs font-semibold text-zinc-500 block mb-1">Disponibilidad horaria</span>
+                  <span className="font-bold text-sm text-zinc-900 block">{displayProfile?.disponibilidad_horaria || 'No informada'}</span>
                 </div>
-
-                <div className="p-3.5 rounded-xl border border-zinc-200/80 bg-white shadow-2xs flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-brand-50 text-brand-800 flex items-center justify-center shrink-0 mt-0.5">
-                    <CheckCircle2 className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <span className="text-[11px] text-zinc-400 font-semibold uppercase tracking-wider block">Movilidad</span>
-                    <span className="font-bold text-sm text-zinc-900 mt-0.5 block">{displayProfile?.movilidad_propia ? 'Con movilidad' : 'Sin movilidad'}</span>
-                  </div>
+                <div>
+                  <span className="text-xs font-semibold text-zinc-500 block mb-1">Movilidad propia</span>
+                  <span className="font-bold text-sm text-zinc-900 block">{displayProfile?.movilidad_propia ? 'Con movilidad' : 'Sin movilidad'}</span>
                 </div>
               </div>
 
               {/* Habilidades y Oficios */}
-              <div className="pt-3 border-t border-zinc-100">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400 block mb-2">
-                  Habilidades y Oficios Declarados
-                </span>
+              <div className="pt-4 border-t border-zinc-100">
+                <span className="text-xs font-semibold text-zinc-500 block mb-2">Habilidades y oficios declarados</span>
                 <div className="flex flex-wrap gap-2">
                   {displayProfile?.habilidades && displayProfile.habilidades.length > 0 ? (
                     displayProfile.habilidades.map((h, i) => (
                       <span
                         key={i}
-                        className="px-3 py-1 rounded-lg border border-zinc-200 text-xs font-semibold text-zinc-800 bg-white shadow-2xs"
+                        className="px-3 py-1 rounded-lg border border-zinc-200 text-xs font-semibold text-zinc-800 bg-zinc-50/60 shadow-2xs"
                       >
                         {h}
                       </span>
@@ -578,10 +523,8 @@ function PostulanteDashboardContent() {
               </div>
 
               {/* Rubros de Interés */}
-              <div className="pt-3 border-t border-zinc-100">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400 block mb-2">
-                  Rubros de Interés en Funes
-                </span>
+              <div className="pt-4 border-t border-zinc-100">
+                <span className="text-xs font-semibold text-zinc-500 block mb-2">Rubros de interés en Funes</span>
                 <div className="flex flex-wrap gap-2">
                   {displayProfile?.rubros && displayProfile.rubros.length > 0 ? (
                     displayProfile.rubros.map((r) => (
@@ -597,10 +540,10 @@ function PostulanteDashboardContent() {
                   )}
                 </div>
               </div>
-            </section>
+            </div>
 
-            {/* 3. Módulo de Currículums Vitae (Lienzo Continuo) */}
-            <div className="pt-6 border-t border-zinc-200/80">
+            {/* 4. Módulo de Currículum Vitae Integrado */}
+            <div className="p-6 sm:p-8">
               <CurriculumManager
                 curriculums={profileFull?.curriculums || []}
                 isLoading={isLoadingData}
@@ -632,7 +575,7 @@ function PostulanteDashboardContent() {
               <div>
                 <div className="flex items-center gap-3">
                   <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-zinc-900 font-sans">
-                    Mis Cursos y Capacitaciones Municipales
+                    Mis cursos y capacitaciones municipales
                   </h2>
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#E6F0FB] text-[#174F93]">
                     {courses.length} {courses.length === 1 ? 'asignado' : 'asignados'}

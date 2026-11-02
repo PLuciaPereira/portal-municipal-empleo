@@ -128,7 +128,7 @@ const [customCursoId, setCustomCursoId] = useState<string | null>(null);
             </div>
             <div>
               <h2 className="text-base font-bold text-zinc-900">
-                Derivar Postulante a Capacitación
+                Derivar postulante a capacitación
               </h2>
               <p className="text-xs text-zinc-500">
                 Asigná una vacante formativa para fortalecer las competencias laborales del candidato.
@@ -179,7 +179,7 @@ const [customCursoId, setCustomCursoId] = useState<string | null>(null);
           {/* Búsqueda y Selección de Postulante */}
           <div className="space-y-2">
             <label className="block text-xs font-bold text-zinc-700">
-              Seleccionar Postulante <span className="text-red-500">*</span>
+              Seleccionar postulante <span className="text-red-500">*</span>
             </label>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">

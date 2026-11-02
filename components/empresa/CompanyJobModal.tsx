@@ -60,6 +60,7 @@ const [rubros, setRubros] = useState<Rubro[]>([]);
     experienciaRequerida: ofertaToEdit?.experiencia_requerida || '',
     tipoJornada: ofertaToEdit?.tipo_jornada || 'Jornada completa',
     tipoContrato: ofertaToEdit?.tipo_contrato || 'Relación de dependencia',
+    modalidadTrabajo: ofertaToEdit?.modalidad_trabajo || 'Presencial',
     ubicacion: ofertaToEdit?.ubicacion || 'Funes, Santa Fe',
     rangoSalarial: ofertaToEdit?.rango_salarial || '',
     vacantes: ofertaToEdit?.vacantes || 1,
@@ -526,7 +527,7 @@ const [rubros, setRubros] = useState<Rubro[]>([]);
                 disabled={isBusy}
               >
                 <SendIcon className="w-4 h-4 mr-1.5" />
-                Crear Oferta
+                Crear oferta
               </Button>
             </div>
           </div>

@@ -176,143 +176,60 @@ function AdminDashboardContent() {
 
   return (
     <div className="min-h-screen bg-page text-foreground flex flex-col font-sans">
-      {/* 1. Header Maestro Delgado: 72px de Alto con Indicadores Integrados */}
-      <section className="bg-gradient-to-r from-brand-950 via-brand-900 to-brand-800 text-white border-b border-brand-950/40 shadow-sm py-3 sm:py-3.5 min-h-[72px] flex items-center">
+      {/* 1. Header Maestro Institucional Delgado y Nítido */}
+      <section className="bg-gradient-to-r from-brand-950 via-brand-900 to-brand-800 text-white border-b border-brand-950/40 shadow-sm py-3 sm:py-3.5">
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 w-full">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
             
-            {/* Lado Izquierdo: Avatar 44px + Chip y Título en 22px */}
+            {/* Lado Izquierdo: Avatar 42px + Chip y Título */}
             <div className="flex items-center gap-3 min-w-0 flex-1">
-              {/* Avatar cuadrado de 44 px institucional */}
-              <div className="w-[44px] h-[44px] rounded-xl bg-white/10 border border-white/20 text-white flex items-center justify-center shrink-0 shadow-xs p-1">
+              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white/10 border border-white/20 text-white flex items-center justify-center shrink-0 shadow-xs p-1">
                 <Image
                   src="/escudo-funes-blanco.png"
                   alt="Municipalidad de Funes"
                   width={28}
                   height={28}
-                  className="w-7 h-7 object-contain opacity-95"
+                  className="w-6 h-6 sm:w-7 sm:h-7 object-contain opacity-95"
                 />
               </div>
 
               <div className="min-w-0 flex-1">
-                {/* Chip identificador a 11.5 px */}
                 <div className="flex items-center gap-2 mb-0.5">
-                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white/10 border border-white/15 text-white/95 text-[11.5px] font-semibold backdrop-blur-xs leading-none">
+                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white/10 border border-white/15 text-white/95 text-[11px] font-semibold backdrop-blur-xs leading-none">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_#34d399]"></span>
                     Oficina de Empleo · Municipalidad de Funes
                   </span>
                 </div>
 
-                {/* Título y descripción compacta */}
                 <div className="flex items-baseline gap-2 truncate">
-                  <h1 className="text-[20px] sm:text-[22px] font-bold tracking-tight leading-tight text-white font-sans truncate">
-                    Panel de Gestión y Moderación Municipal
+                  <h1 className="text-lg sm:text-xl lg:text-[22px] font-bold tracking-tight leading-tight text-white font-sans truncate">
+                    Panel de Gestión Municipal
                   </h1>
-                  <span className="hidden xl:inline text-brand-100/80 text-xs truncate">
-                    • Intermediación laboral, moderación de vacantes y padrón general de Funes.
+                  <span className="hidden xl:inline text-brand-100/75 text-xs truncate">
+                    • Intermediación laboral, moderación de vacantes y padrón de Funes
                   </span>
                 </div>
               </div>
             </div>
 
-            {/* Lado Derecho: Indicadores discretos en fila + botón sincronizar de solo ícono */}
-            <div className="flex items-center gap-3 overflow-x-auto no-scrollbar py-0.5 shrink-0 self-start lg:self-auto">
-              <div className="flex items-center bg-black/15 border border-white/10 rounded-xl px-2 h-10 shadow-2xs">
-                
-                {/* 1. Ofertas por aprobar */}
-                <div
-                  onClick={() => setActiveTab('ofertas')}
-                  className="flex flex-col justify-center px-3 cursor-pointer hover:opacity-90 transition-opacity relative border-r border-white/12 h-full"
-                  title="Ver ofertas pendientes de moderación"
-                >
-                  <div className="flex items-baseline gap-1.5">
-                    <span className="text-[17px] sm:text-[18px] font-extrabold text-white leading-none font-sans tabular-nums">
-                      {counts.ofertasPendientes}
-                    </span>
-                    <span className="text-[11px] font-medium text-emerald-200/90 whitespace-nowrap">
-                      Ofertas por aprobar
-                    </span>
-                  </div>
-                  {counts.ofertasPendientes > 0 && (
-                    <div className="inline-flex items-center gap-1 text-[9.5px] font-bold text-amber-300 leading-none mt-0.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse shadow-[0_0_6px_#f59e0b]"></span>
-                      <span>Acción requerida</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* 2. Empresas nuevas */}
-                <div
-                  onClick={() => setActiveTab('empresas')}
-                  className="flex flex-col justify-center px-3 cursor-pointer hover:opacity-90 transition-opacity relative border-r border-white/12 h-full"
-                  title="Ver empresas pendientes de verificación"
-                >
-                  <div className="flex items-baseline gap-1.5">
-                    <span className="text-[17px] sm:text-[18px] font-extrabold text-white leading-none font-sans tabular-nums">
-                      {counts.empresasPendientes}
-                    </span>
-                    <span className="text-[11px] font-medium text-emerald-200/90 whitespace-nowrap">
-                      Empresas nuevas
-                    </span>
-                  </div>
-                  {counts.empresasPendientes > 0 && (
-                    <div className="inline-flex items-center gap-1 text-[9.5px] font-bold text-amber-300 leading-none mt-0.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse shadow-[0_0_6px_#f59e0b]"></span>
-                      <span>Acción requerida</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* 3. Padrón de postulantes */}
-                <div
-                  onClick={() => setActiveTab('postulantes')}
-                  className="flex flex-col justify-center px-3 cursor-pointer hover:opacity-90 transition-opacity relative border-r border-white/12 h-full"
-                  title="Ver padrón general de postulantes"
-                >
-                  <div className="flex items-baseline gap-1.5">
-                    <span className="text-[17px] sm:text-[18px] font-extrabold text-white leading-none font-sans tabular-nums">
-                      {counts.postulantesActivos}
-                    </span>
-                    <span className="text-[11px] font-medium text-emerald-200/90 whitespace-nowrap">
-                      Postulantes
-                    </span>
-                  </div>
-                </div>
-
-                {/* 4. Intermediaciones activas */}
-                <div
-                  onClick={() => setActiveTab('ofertas')}
-                  className="flex flex-col justify-center px-3 cursor-pointer hover:opacity-90 transition-opacity h-full"
-                  title="Candidatos en proceso de derivación o entrevista"
-                >
-                  <div className="flex items-baseline gap-1.5">
-                    <span className="text-[17px] sm:text-[18px] font-extrabold text-white leading-none font-sans tabular-nums">
-                      {counts.intermediacionesActivas}
-                    </span>
-                    <span className="text-[11px] font-medium text-emerald-200/90 whitespace-nowrap">
-                      Intermediaciones
-                    </span>
-                  </div>
-                </div>
-
-              </div>
-
-              {/* Botón Sincronizar solo con ícono (40px) */}
+            {/* Lado Derecho: Botón Sincronizar Accesible */}
+            <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
               <button
                 type="button"
                 onClick={handleRefreshAll}
                 disabled={loadingEmpresas || loadingOfertas || loadingPostulantes || refreshingCounts}
-                className="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white flex items-center justify-center transition-all shadow-xs cursor-pointer disabled:opacity-50 shrink-0"
-                title="Sincronizar Panel de Gestión"
-                aria-label="Sincronizar Panel de Gestión"
+                className="h-9 px-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white flex items-center gap-2 text-xs font-semibold transition-all shadow-xs cursor-pointer disabled:opacity-50"
+                title="Sincronizar datos del panel"
+                aria-label="Sincronizar datos del panel"
               >
                 <RefreshCw
-                  className={`w-4 h-4 text-emerald-100 ${
+                  className={`w-3.5 h-3.5 text-emerald-200 ${
                     loadingEmpresas || loadingOfertas || loadingPostulantes || refreshingCounts
                       ? 'animate-spin'
                       : ''
                   }`}
                 />
+                <span className="hidden sm:inline">Actualizar</span>
               </button>
             </div>
 
@@ -320,25 +237,33 @@ function AdminDashboardContent() {
         </div>
       </section>
 
-      {/* 2. Barra de Navegación por Pestañas Segmentadas Integrada */}
-      <div className="bg-surface border-b border-zinc-200">
+      {/* 2. Barra de Navegación por Pestañas Segmentadas (Con scroll horizontal asistido) */}
+      <div className="bg-surface border-b border-zinc-200 shadow-2xs">
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10">
-          <div className="flex items-center gap-1 overflow-x-auto py-1.5 no-scrollbar text-xs" role="tablist">
+          <div className="flex items-center gap-1 overflow-x-auto py-1.5 scroll-smooth no-scrollbar text-xs" role="tablist">
             
             {/* Ofertas */}
             <button
               type="button"
               role="tab"
               aria-selected={activeTab === 'ofertas'}
-              onClick={() => setActiveTab('ofertas')}
-              className={`inline-flex items-center gap-2 px-4 py-2.5 border-b-2 font-bold transition-all whitespace-nowrap cursor-pointer ${
+              onClick={() => {
+                setActiveTab('ofertas');
+                setSelectedOfertaFunnelId(null);
+              }}
+              className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl font-bold transition-all whitespace-nowrap cursor-pointer ${
                 activeTab === 'ofertas'
-                  ? 'border-brand-800 text-brand-900 font-extrabold bg-brand-50/50'
-                  : 'border-transparent text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50'
+                  ? 'bg-brand-900 text-white shadow-xs'
+                  : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
               }`}
             >
-              <Briefcase className="w-4 h-4 text-brand-800" />
-              <span>Ofertas Laborales</span>
+              <Briefcase className="w-3.5 h-3.5" />
+              <span>Ofertas laborales</span>
+              {counts.ofertasPendientes > 0 && (
+                <span className="px-1.5 py-0.2 rounded-full bg-amber-400 text-zinc-900 text-[10px] font-extrabold leading-none">
+                  {counts.ofertasPendientes}
+                </span>
+              )}
             </button>
 
             {/* Empresas */}
@@ -347,14 +272,19 @@ function AdminDashboardContent() {
               role="tab"
               aria-selected={activeTab === 'empresas'}
               onClick={() => setActiveTab('empresas')}
-              className={`inline-flex items-center gap-2 px-4 py-2.5 border-b-2 font-bold transition-all whitespace-nowrap cursor-pointer ${
+              className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl font-bold transition-all whitespace-nowrap cursor-pointer ${
                 activeTab === 'empresas'
-                  ? 'border-brand-800 text-brand-900 font-extrabold bg-brand-50/50'
-                  : 'border-transparent text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50'
+                  ? 'bg-brand-900 text-white shadow-xs'
+                  : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
               }`}
             >
-              <Building2 className="w-4 h-4 text-brand-800" />
-              <span>Validación de Empresas</span>
+              <Building2 className="w-3.5 h-3.5" />
+              <span>Validación de empresas</span>
+              {counts.empresasPendientes > 0 && (
+                <span className="px-1.5 py-0.2 rounded-full bg-amber-400 text-zinc-900 text-[10px] font-extrabold leading-none">
+                  {counts.empresasPendientes}
+                </span>
+              )}
             </button>
 
             {/* Postulantes */}
@@ -363,14 +293,14 @@ function AdminDashboardContent() {
               role="tab"
               aria-selected={activeTab === 'postulantes'}
               onClick={() => setActiveTab('postulantes')}
-              className={`inline-flex items-center gap-2 px-4 py-2.5 border-b-2 font-bold transition-all whitespace-nowrap cursor-pointer ${
+              className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl font-bold transition-all whitespace-nowrap cursor-pointer ${
                 activeTab === 'postulantes'
-                  ? 'border-brand-800 text-brand-900 font-extrabold bg-brand-50/50'
-                  : 'border-transparent text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50'
+                  ? 'bg-brand-900 text-white shadow-xs'
+                  : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
               }`}
             >
-              <Users className="w-4 h-4 text-brand-800" />
-              <span>Padrón de Postulantes</span>
+              <Users className="w-3.5 h-3.5" />
+              <span>Padrón de postulantes</span>
             </button>
 
             {/* Registro Asistido */}
@@ -379,29 +309,30 @@ function AdminDashboardContent() {
               role="tab"
               aria-selected={activeTab === 'registro_asistido'}
               onClick={() => setActiveTab('registro_asistido')}
-              className={`inline-flex items-center gap-2 px-4 py-2.5 border-b-2 font-bold transition-all whitespace-nowrap cursor-pointer ${
+              className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl font-bold transition-all whitespace-nowrap cursor-pointer ${
                 activeTab === 'registro_asistido'
-                  ? 'border-emerald-700 text-emerald-900 font-extrabold bg-emerald-50/60'
-                  : 'border-transparent text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50'
+                  ? 'bg-emerald-800 text-white shadow-xs'
+                  : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
               }`}
             >
-              <UserPlus className="w-4 h-4 text-emerald-700" />
-              <span>Registro Asistido</span>
+              <UserPlus className="w-3.5 h-3.5" />
+              <span>Registro asistido</span>
             </button>
+
             {/* Capacitaciones */}
             <button
               type="button"
               role="tab"
               aria-selected={activeTab === 'capacitaciones'}
               onClick={() => setActiveTab('capacitaciones')}
-              className={`inline-flex items-center gap-2 px-4 py-2.5 border-b-2 font-bold transition-all whitespace-nowrap cursor-pointer ${
+              className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl font-bold transition-all whitespace-nowrap cursor-pointer ${
                 activeTab === 'capacitaciones'
-                  ? 'border-brand-800 text-brand-900 font-extrabold bg-brand-50/50'
-                  : 'border-transparent text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50'
+                  ? 'bg-brand-900 text-white shadow-xs'
+                  : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
               }`}
             >
-              <GraduationCap className="w-4 h-4 text-zinc-600" />
-              <span>Cursos y Formación</span>
+              <GraduationCap className="w-3.5 h-3.5" />
+              <span>Cursos y formación</span>
             </button>
 
             {/* Estadísticas */}
@@ -410,29 +341,30 @@ function AdminDashboardContent() {
               role="tab"
               aria-selected={activeTab === 'estadisticas'}
               onClick={() => setActiveTab('estadisticas')}
-              className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+              className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl font-bold transition-all whitespace-nowrap cursor-pointer ${
                 activeTab === 'estadisticas'
-                  ? 'bg-[#0E4D36] text-white shadow-xs'
-                  : 'text-[#4B6256] hover:text-[#10231B] hover:bg-[#F4F8F4]'
+                  ? 'bg-emerald-900 text-white shadow-xs'
+                  : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
               }`}
             >
-              <TrendingUp className="w-4 h-4" />
+              <TrendingUp className="w-3.5 h-3.5" />
               <span>Estadísticas</span>
             </button>
+
             {/* Administradores */}
             <button
               type="button"
               role="tab"
               aria-selected={activeTab === 'administradores'}
               onClick={() => setActiveTab('administradores')}
-              className={`inline-flex items-center gap-2 px-4 py-2.5 border-b-2 font-bold transition-all whitespace-nowrap cursor-pointer ${
+              className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl font-bold transition-all whitespace-nowrap cursor-pointer ${
                 activeTab === 'administradores'
-                  ? 'border-brand-800 text-brand-900 font-extrabold bg-brand-50/50'
-                  : 'border-transparent text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50'
+                  ? 'bg-brand-900 text-white shadow-xs'
+                  : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
               }`}
             >
-              <UserCog className="w-4 h-4 text-zinc-600" />
-              <span>Equipo Operativo</span>
+              <UserCog className="w-3.5 h-3.5" />
+              <span>Equipo operativo</span>
             </button>
 
           </div>
@@ -440,7 +372,135 @@ function AdminDashboardContent() {
       </div>
 
       {/* 3. Contenedor Principal Full-Width (hasta 1600px) */}
-      <main className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 py-6 sm:py-8 w-full space-y-6 flex-1">
+      <main className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 py-4 sm:py-6 w-full space-y-5 flex-1">
+        {/* TARJETAS INDICADORAS COMPACTAS (Baja altura ~75-80px, responsive 2 cols móvil / 4 cols desktop) */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5">
+          
+          {/* 1. Ofertas por moderar */}
+          <div
+            onClick={() => {
+              setActiveTab('ofertas');
+              setSelectedOfertaFunnelId(null);
+            }}
+            className={`p-3 sm:p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 shadow-2xs hover:shadow-xs group ${
+              counts.ofertasPendientes > 0
+                ? 'bg-white border-amber-300 hover:border-amber-400'
+                : 'bg-white border-zinc-200/80 hover:border-zinc-300'
+            }`}
+            title="Ver ofertas pendientes de moderación"
+          >
+            <div className="min-w-0 flex-1">
+              <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider block truncate">
+                Ofertas por aprobar
+              </span>
+              <div className="flex items-baseline gap-2 mt-0.5">
+                <span className="text-xl sm:text-2xl font-extrabold text-zinc-900 tabular-nums leading-none">
+                  {counts.ofertasPendientes}
+                </span>
+                {counts.ofertasPendientes > 0 && (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-800 bg-amber-50 border border-amber-200/80 px-1.5 py-0.5 rounded-md leading-none">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                    Acción requerida
+                  </span>
+                )}
+              </div>
+            </div>
+            <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 border ${
+              counts.ofertasPendientes > 0
+                ? 'bg-amber-50 text-amber-700 border-amber-200'
+                : 'bg-zinc-50 text-zinc-600 border-zinc-200'
+            }`}>
+              <Briefcase className="w-4 h-4" />
+            </div>
+          </div>
+
+          {/* 2. Empresas nuevas */}
+          <div
+            onClick={() => setActiveTab('empresas')}
+            className={`p-3 sm:p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 shadow-2xs hover:shadow-xs group ${
+              counts.empresasPendientes > 0
+                ? 'bg-white border-amber-300 hover:border-amber-400'
+                : 'bg-white border-zinc-200/80 hover:border-zinc-300'
+            }`}
+            title="Ver empresas pendientes de verificación"
+          >
+            <div className="min-w-0 flex-1">
+              <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider block truncate">
+                Empresas nuevas
+              </span>
+              <div className="flex items-baseline gap-2 mt-0.5">
+                <span className="text-xl sm:text-2xl font-extrabold text-zinc-900 tabular-nums leading-none">
+                  {counts.empresasPendientes}
+                </span>
+                {counts.empresasPendientes > 0 && (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-800 bg-amber-50 border border-amber-200/80 px-1.5 py-0.5 rounded-md leading-none">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                    Por verificar
+                  </span>
+                )}
+              </div>
+            </div>
+            <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 border ${
+              counts.empresasPendientes > 0
+                ? 'bg-amber-50 text-amber-700 border-amber-200'
+                : 'bg-zinc-50 text-zinc-600 border-zinc-200'
+            }`}>
+              <Building2 className="w-4 h-4" />
+            </div>
+          </div>
+
+          {/* 3. Padrón de Postulantes */}
+          <div
+            onClick={() => setActiveTab('postulantes')}
+            className="p-3 sm:p-3.5 rounded-2xl border border-zinc-200/80 bg-white hover:border-zinc-300 transition-all cursor-pointer flex items-center justify-between gap-3 shadow-2xs hover:shadow-xs group"
+            title="Ver padrón general de postulantes"
+          >
+            <div className="min-w-0 flex-1">
+              <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider block truncate">
+                Postulantes
+              </span>
+              <div className="flex items-baseline gap-2 mt-0.5">
+                <span className="text-xl sm:text-2xl font-extrabold text-zinc-900 tabular-nums leading-none">
+                  {counts.postulantesActivos}
+                </span>
+                <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded-md leading-none border border-emerald-200/60">
+                  Padrón Funes
+                </span>
+              </div>
+            </div>
+            <div className="w-8 h-8 rounded-xl bg-zinc-50 text-zinc-600 border border-zinc-200 flex items-center justify-center shrink-0">
+              <Users className="w-4 h-4" />
+            </div>
+          </div>
+
+          {/* 4. Intermediaciones Activas */}
+          <div
+            onClick={() => {
+              setActiveTab('ofertas');
+              setSelectedOfertaFunnelId(null);
+            }}
+            className="p-3 sm:p-3.5 rounded-2xl border border-zinc-200/80 bg-white hover:border-zinc-300 transition-all cursor-pointer flex items-center justify-between gap-3 shadow-2xs hover:shadow-xs group"
+            title="Candidatos en proceso de derivación o entrevista"
+          >
+            <div className="min-w-0 flex-1">
+              <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider block truncate">
+                Intermediaciones
+              </span>
+              <div className="flex items-baseline gap-2 mt-0.5">
+                <span className="text-xl sm:text-2xl font-extrabold text-zinc-900 tabular-nums leading-none">
+                  {counts.intermediacionesActivas}
+                </span>
+                <span className="text-[10px] font-bold text-brand-900 bg-brand-50 px-1.5 py-0.5 rounded-md leading-none border border-brand-200/60">
+                  En circuito
+                </span>
+              </div>
+            </div>
+            <div className="w-8 h-8 rounded-xl bg-zinc-50 text-zinc-600 border border-zinc-200 flex items-center justify-center shrink-0">
+              <TrendingUp className="w-4 h-4" />
+            </div>
+          </div>
+
+        </div>
 
         {/* ============================================================== */}
         {/* SECCIÓN 1: OFERTAS LABORALES Y FUNNEL DE DERIVACIÓN            */}
@@ -486,7 +546,7 @@ function AdminDashboardContent() {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-1">
                   <div>
                     <h2 className="text-lg font-bold text-zinc-900 tracking-tight">
-                      Moderación y Publicación de Ofertas Laborales
+                      Moderación y publicación de ofertas laborales
                     </h2>
                     <p className="text-xs text-zinc-500">
                       Revise las vacantes cargadas por las empresas, autorice su publicación en el catálogo público o gestione el embudo de postulaciones recibidas.
@@ -519,7 +579,7 @@ function AdminDashboardContent() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-1">
               <div>
                 <h2 className="text-lg font-bold text-zinc-900 tracking-tight">
-                  Habilitación y Control de Empresas
+                  Habilitación y control de empresas
                 </h2>
                 <p className="text-xs text-zinc-500">
                   Verifique las razones sociales, CUIT y habilitaciones de las firmas que solicitan publicar ofertas en la ciudad de Funes.
@@ -546,7 +606,7 @@ function AdminDashboardContent() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-1">
               <div>
                 <h2 className="text-lg font-bold text-zinc-900 tracking-tight">
-                  Padrón General de Postulantes de Funes
+                  Padrón general de postulantes de Funes
                 </h2>
                 <p className="text-xs text-zinc-500">
                   Explore la base de datos municipal, encuentre perfiles según sus características y consulte sus legajos laborales y currículums digitales.

@@ -123,7 +123,7 @@ export function NotificationBell() {
           if (!isOpen) void loadNotifications();
         }}
         aria-label={`Notificaciones (${noLeidas} no leídas)`}
-        title="Centro de Notificaciones y Avisos"
+        title="Centro de notificaciones y avisos"
         className="relative p-2 rounded-xl text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 transition-colors cursor-pointer"
       >
         <Bell className="w-5 h-5" />
@@ -140,7 +140,7 @@ export function NotificationBell() {
           <div className="px-4 py-2.5 border-b border-zinc-100 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <h4 className="text-xs font-bold text-zinc-900 uppercase tracking-wider">
-                Avisos y Novedades
+                Avisos y novedades
               </h4>
               {noLeidas > 0 ? (
                 <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-900">

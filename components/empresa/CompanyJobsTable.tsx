@@ -155,7 +155,7 @@ export function CompanyJobsTable({
         <BriefcaseIcon className="w-12 h-12 text-zinc-400 mx-auto mb-3" />
         <h4 className="text-sm font-bold text-zinc-800">No tenés búsquedas laborales registradas</h4>
         <p className="text-xs text-zinc-500 max-w-md mx-auto mt-1">
-          Hacé clic en &quot;Crear Oferta&quot; para publicar una nueva vacante laboral y que la Oficina de Empleo la revise y presente postulantes calificados.
+          Hacé clic en &quot;Crear oferta&quot; para publicar una nueva vacante laboral y que la Oficina de Empleo la revise y presente postulantes calificados.
         </p>
       </div>
     );
@@ -283,7 +283,7 @@ export function CompanyJobsTable({
         </div>
       ) : (
         /* LISTADO PLANO Y ORDENADO: Contenedor continuo tipo ATS sin tarjetas cortadas */
-        <div className="bg-white rounded-2xl border border-zinc-200 divide-y divide-zinc-100 overflow-hidden shadow-xs">
+        <div className="bg-white rounded-2xl border border-zinc-200 divide-y divide-zinc-100 shadow-xs">
           {filteredOfertas.map((o) => {
           const isBorrador = o.estado === 'borrador';
           const isPendiente = o.estado === 'pendiente_revision';
@@ -385,21 +385,23 @@ export function CompanyJobsTable({
                 <div className="flex items-center gap-2 shrink-0 flex-wrap">
                   {onViewCandidates && !isDeleted && (
                     isPendiente ? (
-                      <div className="relative group inline-block">
+                      <div className="relative group inline-flex">
                         <Button
                           size="sm"
                           variant="outline"
                           disabled
-                          className="h-8 px-3 rounded-lg opacity-50 cursor-not-allowed text-zinc-400 border-zinc-200 text-xs font-bold"
+                          className="h-8 px-3 rounded-lg opacity-60 cursor-not-allowed text-zinc-400 border-zinc-200 text-xs font-bold"
+                          title="Estará disponible cuando la oferta sea aprobada por la Oficina de Empleo."
                         >
                           <UsersIcon className="w-3.5 h-3.5 mr-1 text-zinc-400" />
-                          Ver Candidatos
+                          Ver candidatos
                         </Button>
-                        <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:flex flex-col items-center z-30 w-56">
-                          <div className="bg-zinc-900 text-white text-[11px] font-medium rounded-lg px-2.5 py-1.5 text-center shadow-lg leading-snug">
-                            Estará disponible cuando la oferta sea aprobada por la Oficina de Empleo.
+                        {/* Tooltip seguro anclado a la derecha superior sin desbordar el contenedor */}
+                        <div className="pointer-events-none absolute bottom-full right-0 mb-2 hidden group-hover:flex flex-col items-end z-50 w-64 shadow-xl">
+                          <div className="bg-zinc-900 text-white text-[11px] font-medium rounded-xl px-3 py-2 text-left shadow-lg leading-relaxed border border-zinc-700">
+                            🔒 Los candidatos estarán disponibles una vez aprobada la oferta por la Oficina de Empleo de Funes.
                           </div>
-                          <div className="w-2 h-2 bg-zinc-900 rotate-45 -mt-1" />
+                          <div className="w-2.5 h-2.5 bg-zinc-900 rotate-45 -mt-1.5 mr-6 border-r border-b border-zinc-700" />
                         </div>
                       </div>
                     ) : (
@@ -409,7 +411,7 @@ export function CompanyJobsTable({
                         className="h-8 px-3 rounded-lg border border-zinc-200 hover:bg-zinc-50 text-xs font-bold text-zinc-700 flex items-center gap-1.5 transition-colors cursor-pointer"
                       >
                         <UsersIcon className="w-3.5 h-3.5 text-zinc-600" />
-                        Ver Candidatos
+                        Ver candidatos
                       </button>
                     )
                   )}
@@ -423,7 +425,7 @@ export function CompanyJobsTable({
                         className="h-8 px-3 rounded-lg bg-brand-800 text-white text-xs font-bold hover:bg-brand-900 flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
                       >
                         <SendIcon className="w-3.5 h-3.5" />
-                        Enviar a Revisión
+                        Enviar a revisión
                       </button>
                       <Link
                         href={`/empresa/ofertas/${o.id}/editar`}
@@ -441,7 +443,7 @@ export function CompanyJobsTable({
                       className="h-8 px-3 rounded-lg bg-brand-800 hover:bg-brand-900 text-white text-xs font-bold inline-flex items-center gap-1 shadow-xs transition-colors"
                     >
                       <PencilIcon className="w-3 h-3" />
-                      Corregir Oferta
+                      Corregir oferta
                     </Link>
                   )}
 

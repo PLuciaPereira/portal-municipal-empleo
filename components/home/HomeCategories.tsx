@@ -79,7 +79,7 @@ export const HomeCategories: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4 border-b border-border pb-4">
         <div className="space-y-1.5">
           <Badge variant="brand" size="sm">
-            Mercado Laboral en Funes
+            Mercado laboral en Funes
           </Badge>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-foreground">
             Principales rubros de empleo en la ciudad

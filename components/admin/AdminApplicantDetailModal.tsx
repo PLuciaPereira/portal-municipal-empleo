@@ -63,7 +63,7 @@ export function AdminApplicantDetailModal({
       aria-labelledby="modal-postulante-title"
       className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150 font-sans"
     >
-      <div className="relative w-full max-w-4xl bg-white rounded-2xl shadow-2xl border border-zinc-200 overflow-hidden my-8">
+      <div className="relative w-full max-w-4xl max-h-[92dvh] flex flex-col bg-white rounded-2xl shadow-2xl border border-zinc-200 overflow-hidden my-auto">
         {/* Cabecera */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100 bg-zinc-50/70">
           <div className="flex items-center gap-3">
@@ -83,7 +83,7 @@ export function AdminApplicantDetailModal({
                 )}
                 {postulante.registro_asistido && (
                   <Badge variant="zinc" className="text-[10px]">
-                    Registro Asistido
+                    Registro asistido
                   </Badge>
                 )}
               </div>
@@ -103,7 +103,7 @@ export function AdminApplicantDetailModal({
         </div>
 
         {/* Contenido */}
-        <div className="p-6 space-y-6 max-h-[calc(85vh-130px)] overflow-y-auto">
+        <div className="p-4 sm:p-6 space-y-5 overflow-y-auto flex-1 scroll-smooth">
           {/* Mensaje de error al abrir CV si ocurre */}
           {cvError && (
             <div className="p-3.5 rounded-xl border border-rose-200 bg-rose-50 text-xs text-rose-800 flex items-center gap-2">
@@ -156,7 +156,7 @@ export function AdminApplicantDetailModal({
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
             <div className="p-3 rounded-xl border border-zinc-200 bg-white space-y-1">
               <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 block">
-                Nivel Educativo
+                Nivel educativo
               </span>
               <p className="font-bold text-zinc-900 truncate">
                 {postulante.nivel_educativo || 'No especificado'}
@@ -165,7 +165,7 @@ export function AdminApplicantDetailModal({
 
             <div className="p-3 rounded-xl border border-zinc-200 bg-white space-y-1">
               <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 block">
-                Situación Laboral
+                Situación laboral
               </span>
               <p className="font-bold text-zinc-900 truncate">
                 {postulante.situacion_laboral_actual || 'No informada'}
@@ -183,7 +183,7 @@ export function AdminApplicantDetailModal({
 
             <div className="p-3 rounded-xl border border-zinc-200 bg-white space-y-1">
               <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 block">
-                Movilidad Propia
+                Movilidad propia
               </span>
               <p className="font-bold text-zinc-900">
                 {postulante.movilidad_propia ? 'Posee movilidad' : 'No'}
@@ -191,12 +191,12 @@ export function AdminApplicantDetailModal({
             </div>
           </div>
 
-          {/* Resumen de Experiencia Laboral */}
+          {/* Resumen de experiencia laboral */}
           {postulante.experiencia_resumen && (
             <div className="p-4 rounded-xl border border-zinc-200 bg-white space-y-2">
               <h3 className="text-xs font-bold text-zinc-900 uppercase tracking-wider flex items-center gap-1.5">
                 <Briefcase className="w-4 h-4 text-brand-800" />
-                Resumen de Experiencia Laboral
+                Resumen de experiencia laboral
               </h3>
               <p className="text-xs text-zinc-700 whitespace-pre-wrap leading-relaxed">
                 {postulante.experiencia_resumen}
@@ -209,7 +209,7 @@ export function AdminApplicantDetailModal({
             <div className="p-4 rounded-xl border border-zinc-200 bg-white space-y-2">
               <h3 className="text-xs font-bold text-zinc-900 uppercase tracking-wider flex items-center gap-1.5">
                 <CheckCircle2 className="w-4 h-4 text-brand-800" />
-                Habilidades y Competencias Declaradas
+                Habilidades y competencias declaradas
               </h3>
               <div className="flex flex-wrap gap-1.5 pt-1">
                 {postulante.habilidades.map((hab, idx) => (
@@ -278,7 +278,7 @@ export function AdminApplicantDetailModal({
         </div>
 
         {/* Pie de Acciones */}
-        <div className="px-6 py-4 bg-zinc-50/80 border-t border-zinc-100 flex items-center justify-between">
+        <div className="px-4 sm:px-6 py-3.5 bg-zinc-50/80 border-t border-zinc-100 flex items-center justify-between shrink-0">
           <div>
             {onOpenHistory && (
               <Button
@@ -290,12 +290,12 @@ export function AdminApplicantDetailModal({
                 }}
                 className="text-xs text-brand-900 hover:bg-brand-50 border-brand-200"
               >
-                Ver Historial de Postulaciones
+                Ver historial de postulaciones
               </Button>
             )}
           </div>
           <Button variant="primary" size="sm" onClick={onClose} className="bg-brand-800 hover:bg-brand-900 text-xs">
-            Cerrar Legajo
+            Cerrar legajo
           </Button>
         </div>
       </div>

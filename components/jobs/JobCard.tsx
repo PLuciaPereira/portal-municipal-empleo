@@ -17,11 +17,17 @@ interface JobCardProps {
 }
 
 export const JobCard: React.FC<JobCardProps> = ({ job }) => {
-  // Formateo de fecha de publicación
-  const formattedDate = new Date(job.created_at).toLocaleDateString('es-AR', {
-    day: 'numeric',
-    month: 'short',
-  });
+  // Formateo de fecha de publicación efectiva (fecha_revision o created_at)
+  const effectiveDate = job.fecha_revision || job.created_at;
+  const dateObj = new Date(effectiveDate);
+  const isToday =
+    new Date().toDateString() === dateObj.toDateString();
+  const formattedDate = isToday
+    ? 'Hoy'
+    : dateObj.toLocaleDateString('es-AR', {
+        day: 'numeric',
+        month: 'short',
+      });
 
   return (
     <article className="group bg-surface rounded-2xl border border-zinc-200/90 hover:border-brand-700/60 hover:shadow-xs transition-all duration-150 p-5 sm:p-6 flex flex-col justify-between space-y-4">
@@ -50,9 +56,9 @@ export const JobCard: React.FC<JobCardProps> = ({ job }) => {
               </Badge>
             )}
           </div>
-          <span className="text-xs text-zinc-400 flex items-center gap-1 font-medium">
+          <span className="text-xs text-zinc-500 flex items-center gap-1 font-medium bg-zinc-50 px-2 py-0.5 rounded-md border border-zinc-200/60">
             <CalendarIcon className="w-3.5 h-3.5 text-zinc-400" />
-            {formattedDate}
+            <span>Publicada: {formattedDate}</span>
           </span>
         </div>
 
@@ -89,6 +95,11 @@ export const JobCard: React.FC<JobCardProps> = ({ job }) => {
             <ClockIcon className="w-4 h-4 text-zinc-400 shrink-0" />
             <span>{job.tipo_jornada}</span>
           </div>
+          {job.modalidad_trabajo && (
+            <div className="flex items-center gap-1.5 text-brand-900 font-semibold bg-brand-50/70 border border-brand-200/60 px-2 py-0.5 rounded-md text-[11px]">
+              <span>{job.modalidad_trabajo}</span>
+            </div>
+          )}
           {job.experiencia_requerida && (
             <div className="flex items-center gap-1.5 text-zinc-600">
               <span className="font-semibold text-zinc-700">Exp:</span>
@@ -115,7 +126,7 @@ export const JobCard: React.FC<JobCardProps> = ({ job }) => {
           variant="primary"
           className="shrink-0 font-bold text-xs"
         >
-          Ver y Postularme →
+          Ver y postularme →
         </Button>
       </div>
     </article>

@@ -9,8 +9,15 @@ import { getJobs } from '@/lib/jobs';
 export const dynamic = 'force-dynamic';
 
 export default async function Home() {
-  const { jobs: featuredJobs } = await getJobs({ destacadasOnly: true });
-  const topJobs = featuredJobs.slice(0, 3);
+  // Obtener ofertas públicas y ordenar por fecha efectiva (la última publicada primero)
+  const { jobs } = await getJobs();
+  const topJobs = [...jobs]
+    .sort((a, b) => {
+      const timeA = new Date(a.fecha_revision || a.created_at).getTime() || 0;
+      const timeB = new Date(b.fecha_revision || b.created_at).getTime() || 0;
+      return timeB - timeA;
+    })
+    .slice(0, 3);
 
   return (
     <div className="space-y-16 pb-16">

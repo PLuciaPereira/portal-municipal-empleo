@@ -230,7 +230,7 @@ export function ManualProfileRegister({ onCreated }: { onCreated?: () => void })
       {/* Banner Compacto de Una Sola Línea */}
       <div className="h-[44px] bg-gradient-to-r from-emerald-900 to-emerald-800 text-white rounded-[12px] px-4 shadow-xs flex items-center gap-3 overflow-hidden">
         <h2 className="text-[15px] font-bold text-white shrink-0 tracking-tight">
-          Carga Manual Asistida de Perfil
+          Carga manual asistida de perfil
         </h2>
         <span className="w-1 h-1 rounded-full bg-white/50 shrink-0" aria-hidden="true" />
         <p className="text-[13px] text-emerald-100/90 truncate font-normal">
@@ -338,7 +338,7 @@ export function ManualProfileRegister({ onCreated }: { onCreated?: () => void })
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 items-end">
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">Nivel Educativo *</label>
+              <label className="block text-xs font-bold text-slate-700 mb-1.5">Nivel educativo *</label>
               <select
                 required
                 value={nivelEducativo}
@@ -354,7 +354,7 @@ export function ManualProfileRegister({ onCreated }: { onCreated?: () => void })
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">Situación Laboral Actual *</label>
+              <label className="block text-xs font-bold text-slate-700 mb-1.5">Situación laboral actual *</label>
               <select
                 required
                 value={situacionLaboral}
@@ -370,7 +370,7 @@ export function ManualProfileRegister({ onCreated }: { onCreated?: () => void })
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">Disponibilidad Horaria *</label>
+              <label className="block text-xs font-bold text-slate-700 mb-1.5">Disponibilidad horaria *</label>
               <select
                 required
                 value={disponibilidadHoraria}

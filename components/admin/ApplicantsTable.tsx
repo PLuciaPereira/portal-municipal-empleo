@@ -255,10 +255,10 @@ export function ApplicantsTable({
               <thead className="bg-zinc-50/80 text-zinc-600 border-b border-zinc-200 uppercase tracking-wider font-semibold text-[11px]">
                 <tr>
                   <th className="py-3.5 px-4">Postulante</th>
-                  <th className="py-3.5 px-4">Localidad y Contacto</th>
-                  <th className="py-3.5 px-4">Nivel Educativo</th>
-                  <th className="py-3.5 px-4">Situación Laboral</th>
-                  <th className="py-3.5 px-4">Postulaciones y Rechazos</th>
+                  <th className="py-3.5 px-4">Localidad y contacto</th>
+                  <th className="py-3.5 px-4">Nivel educativo</th>
+                  <th className="py-3.5 px-4">Situación laboral</th>
+                  <th className="py-3.5 px-4">Postulaciones y rechazos</th>
                   <th className="py-3.5 px-4">Currículums</th>
                   <th className="py-3.5 px-4 text-right">Acciones</th>
                 </tr>
@@ -316,7 +316,7 @@ export function ApplicantsTable({
                         </Badge>
                       </td>
 
-                      {/* Postulaciones y Rechazos (Interactiva y con rechazos en rojo) */}
+                      {/* Postulaciones y rechazos (Interactiva y con rechazos en rojo) */}
                       <td className="py-3.5 px-4">
                         <button
                           type="button"

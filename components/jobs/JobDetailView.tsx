@@ -9,6 +9,7 @@ import { AuthRequiredModal } from './AuthRequiredModal';
 import { JobCard } from './JobCard';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
+import { FormattedText } from '@/components/ui/FormattedText';
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -80,7 +81,8 @@ export const JobDetailView: React.FC<JobDetailViewProps> = ({
     }
   };
 
-  const formattedDate = new Date(job.created_at).toLocaleDateString('es-AR', {
+  const effectiveDate = job.fecha_revision || job.created_at;
+  const formattedDate = new Date(effectiveDate).toLocaleDateString('es-AR', {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
@@ -103,7 +105,7 @@ export const JobDetailView: React.FC<JobDetailViewProps> = ({
           </Link>
           <ChevronRightIcon className="w-3.5 h-3.5 text-zinc-400" />
           <Link href="/ofertas" className="hover:text-emerald-700 transition-colors">
-            Ofertas Laborales
+            Ofertas laborales
           </Link>
           <ChevronRightIcon className="w-3.5 h-3.5 text-zinc-400" />
           <span className="text-zinc-900 font-medium truncate max-w-[200px] sm:max-w-xs">
@@ -139,15 +141,20 @@ export const JobDetailView: React.FC<JobDetailViewProps> = ({
               <Badge variant="zinc" size="md">
                 {job.tipo_jornada}
               </Badge>
+              {job.modalidad_trabajo && (
+                <Badge variant="blue" size="md" className="font-semibold">
+                  {job.modalidad_trabajo}
+                </Badge>
+              )}
               {job.destacada && (
                 <Badge variant="emerald" size="md" className="gap-1 font-semibold">
                   <SparklesIcon className="w-3.5 h-3.5 text-emerald-600" />
-                  Búsqueda Destacada
+                  Búsqueda destacada
                 </Badge>
               )}
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                Convocatoria Abierta
+                Convocatoria abierta
               </span>
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-900 border border-amber-200">
                 <MapPinIcon className="w-3.5 h-3.5 text-amber-700" />
@@ -203,7 +210,7 @@ export const JobDetailView: React.FC<JobDetailViewProps> = ({
                 onClick={handleApplyClick}
                 className="shadow-sm"
               >
-                Postularme Ahora
+                Postularme ahora
               </Button>
             )}
           </div>
@@ -234,8 +241,8 @@ export const JobDetailView: React.FC<JobDetailViewProps> = ({
             <h2 className="text-lg sm:text-xl font-bold text-zinc-900 border-b border-zinc-100 pb-3">
               Descripción del puesto y tareas
             </h2>
-            <div className="text-sm sm:text-base text-zinc-700 leading-relaxed space-y-3 whitespace-pre-line">
-              {job.descripcion}
+            <div className="text-sm sm:text-base text-zinc-700 leading-relaxed">
+              <FormattedText content={job.descripcion} />
             </div>
           </section>
 
@@ -244,8 +251,8 @@ export const JobDetailView: React.FC<JobDetailViewProps> = ({
             <h2 className="text-lg sm:text-xl font-bold text-zinc-900 border-b border-zinc-100 pb-3">
               Requisitos del perfil
             </h2>
-            <div className="text-sm sm:text-base text-zinc-700 leading-relaxed whitespace-pre-line space-y-2">
-              {job.requisitos}
+            <div className="text-sm sm:text-base text-zinc-700 leading-relaxed">
+              <FormattedText content={job.requisitos} />
             </div>
 
             {/* Detalles estructurados */}
@@ -296,7 +303,7 @@ export const JobDetailView: React.FC<JobDetailViewProps> = ({
           <section className="bg-emerald-900 text-white rounded-2xl p-6 sm:p-8 space-y-4">
             <div className="flex items-center gap-2 text-emerald-300 font-semibold text-xs tracking-wider uppercase">
               <ShieldCheckIcon className="w-4 h-4" />
-              <span>Intermediación Oficial de la Oficina de Empleo</span>
+              <span>Intermediación oficial de la Oficina de Empleo</span>
             </div>
             <h3 className="text-xl font-bold">¿Cómo es el proceso de selección de esta oferta?</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2 text-xs sm:text-sm text-emerald-100/90">
@@ -322,7 +329,7 @@ export const JobDetailView: React.FC<JobDetailViewProps> = ({
           <div className="bg-white rounded-2xl border-2 border-emerald-600/30 p-6 shadow-sm space-y-5">
             <div className="space-y-1">
               <span className="text-xs uppercase font-bold tracking-wider text-emerald-800">
-                Postulación Requerida
+                Postulación requerida
               </span>
               <h3 className="text-lg font-bold text-zinc-900">
                 ¿Querés postularte a este puesto?
@@ -340,7 +347,7 @@ export const JobDetailView: React.FC<JobDetailViewProps> = ({
               <div className="p-3.5 bg-emerald-50 rounded-xl border border-emerald-200 text-center space-y-2">
                 <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-900">
                   <CheckCircleIcon className="w-4 h-4 text-emerald-700" />
-                  Postulación Enviada
+                  Postulación enviada
                 </span>
                 <p className="text-xs text-emerald-800">
                   No se admiten postulaciones reiteradas a la misma búsqueda.
@@ -362,7 +369,7 @@ export const JobDetailView: React.FC<JobDetailViewProps> = ({
                 onClick={handleApplyClick}
                 className="w-full justify-center text-base py-3"
               >
-                {isAuthenticated ? 'Postularme Ahora' : 'Iniciar Sesión'}
+                {isAuthenticated ? 'Postularme ahora' : 'Iniciar sesión'}
               </Button>
             )}
 
@@ -406,7 +413,7 @@ export const JobDetailView: React.FC<JobDetailViewProps> = ({
           <div className="bg-zinc-50 rounded-2xl border border-zinc-200/80 p-5 space-y-3 text-xs text-zinc-600">
             <div className="flex items-center gap-2 font-bold text-zinc-900">
               <ShieldCheckIcon className="w-5 h-5 text-emerald-700" />
-              <span>Privacidad Garantizada</span>
+              <span>Privacidad garantizada</span>
             </div>
             <p className="leading-relaxed">
               Las empresas asociadas no acceden directamente a tu historial ni a la base general. La Oficina de Empleo intermedia cada postulación para proteger tus datos personales.

@@ -66,7 +66,7 @@ function RecuperarPasswordForm() {
             fontSize: 'clamp(20px, 5.2vw, 27px)',
           }}
         >
-          Recuperar Contraseña
+          Recuperar contraseña
         </h1>
       </div>
 
@@ -79,7 +79,7 @@ function RecuperarPasswordForm() {
             </div>
 
             <h2 className="text-xl font-bold text-[#14231c]">
-              Legajo de Registro Asistido
+              Legajo de registro asistido
             </h2>
 
             <p className="text-sm text-[#4a5a52] leading-relaxed">
