@@ -22,7 +22,7 @@ Históricamente, los procesos de intermediación dependían de la recepción dis
 | Recurso | Enlace / Estado |
 | :--- | :--- |
 | **Repositorio GitHub** | [https://github.com/PLuciaPereira/portal-municipal-empleo](https://github.com/PLuciaPereira/portal-municipal-empleo) |
-| **Aplicación en Producción (Vercel)** | https://portal-municipal-empleo-pd67-9fm5lt8p1-lutech.vercel.app |
+| **Aplicación en Producción (Vercel)** | https://portal-municipal-empleo.vercel.app/ |
 
 ---
 
@@ -129,7 +129,7 @@ Para la evaluación del sistema se han dispuesto cuentas de prueba precargadas c
 
 ## 🧭 Guía Rápida para Probar el Sistema
 
-1. **Ingreso general:** Acceda a la URL del portal publicado ([https://portal-municipal-empleo-cung.vercel.app/](https://portal-municipal-empleo-cung.vercel.app/)). En la página de inicio podrá visualizar las búsquedas laborales vigentes.
+1. **Ingreso general:** Acceda a la URL del portal publicado ([https://portal-municipal-empleo.vercel.app/](https://portal-municipal-empleo.vercel.app/)). En la página de inicio podrá visualizar las búsquedas laborales vigentes.
 2. **Exploración de ofertas:** Utilice el buscador para filtrar ofertas por rubro o tipo de puesto e ingrese al detalle de cualquiera de ellas.
 3. **Inicio de sesión:** Presione en el botón **"Ingresar"** en la barra superior y utilice alguna de las cuentas de prueba proporcionadas según el rol que desee evaluar.
 4. **Navegación según rol:**
