@@ -135,11 +135,7 @@ Para la evaluación del sistema se han dispuesto cuentas de prueba precargadas c
 4. **Navegación según rol:**
    - Como **Postulante**, ingrese a *"Mi Perfil"* y *"Mis Postulaciones"*.
    - Como **Empresa**, acceda a *"Mis Ofertas"* para ver las búsquedas activas y candidatos presentados.
-<<<<<<< HEAD
-   - Como **Municipalidad**, ingrese al módulo de administración para explorar las solicitudes pendientes, las ternas de candidatos y las métricas.
-=======
    - Como **Municipalidad**, ingrese al módulo de administración para explorar las solicitudes pendientes, las ternas de candidatos, los cursos de capacitación y el tablero de estadísticas con datos reales.
->>>>>>> develop
 
 ---
 
