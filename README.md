@@ -22,7 +22,7 @@ Históricamente, los procesos de intermediación dependían de la recepción dis
 | Recurso | Enlace / Estado |
 | :--- | :--- |
 | **Repositorio GitHub** | [https://github.com/PLuciaPereira/portal-municipal-empleo](https://github.com/PLuciaPereira/portal-municipal-empleo) |
-| **Aplicación en Producción (Vercel)** | https://portal-municipal-empleo-cung.vercel.app/ |
+| **Aplicación en Producción (Vercel)** | https://portal-municipal-empleo-pd67-9fm5lt8p1-lutech.vercel.app |
 
 ---
 
