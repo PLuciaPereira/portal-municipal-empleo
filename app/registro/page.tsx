@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { LocalidadSelect } from '@/components/ui/LocalidadSelect';
 import { Checkbox } from '@/components/ui/Checkbox';
 import { TermsAndPrivacyModal } from '@/components/shared/TermsAndPrivacyModal';
 import {
@@ -549,20 +550,17 @@ function RegisterPostulanteForm() {
                   required
                 />
 
-                <Input
-                  ref={localidadRef}
+                <LocalidadSelect
                   id="localidad"
                   name="localidad"
-                  autoComplete="address-level2"
                   label={
                     <span>
                       Localidad <span className="text-destructive">*</span>
                     </span>
                   }
-                  placeholder="Ej: Funes"
                   value={formData.localidad}
-                  onChange={(e) => {
-                    setFormData({ ...formData, localidad: e.target.value });
+                  onChangeValue={(val) => {
+                    setFormData({ ...formData, localidad: val });
                     if (errors.localidad) setErrors({ ...errors, localidad: undefined });
                   }}
                   error={errors.localidad}

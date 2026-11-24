@@ -6,6 +6,7 @@ import { Curriculum, Job } from '@/types/database';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { LocalidadSelect } from '@/components/ui/LocalidadSelect';
 import { Badge } from '@/components/ui/Badge';
 import {
   XMarkIcon,
@@ -433,11 +434,11 @@ export const JobApplyModal: React.FC<JobApplyModalProps> = ({
                   onChange={(e) => setFormData({ ...formData, telefono: e.target.value.replace(/\D/g, '') })}
                   required
                 />
-                <Input
+                <LocalidadSelect
                   label="Localidad de residencia *"
-                  placeholder="Ej: Funes, Rosario, Roldán"
+                  labelVariant="compact"
                   value={currentLocalidad}
-                  onChange={(e) => setFormData({ ...formData, localidad: e.target.value })}
+                  onChangeValue={(val) => setFormData({ ...formData, localidad: val })}
                   required
                 />
               </div>

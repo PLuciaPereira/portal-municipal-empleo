@@ -108,6 +108,29 @@ export async function crearNotificacionInterna(params: {
 }
 
 /**
+ * Sanitiza el tipo de notificación para garantizar que cumpla con la restricción
+ * CHECK de PostgreSQL: ('sistema', 'postulacion', 'entrevista', 'curso', 'empresa', 'oferta')
+ */
+export function normalizarTipoNotificacion(tipo: string): TipoNotificacion {
+  switch (tipo) {
+    case 'postulacion':
+    case 'entrevista':
+    case 'curso':
+    case 'empresa':
+    case 'oferta':
+      return tipo;
+    case 'invitacion':
+      return 'oferta';
+    case 'info':
+    case 'alerta':
+    case 'vencimiento':
+    case 'sistema':
+    default:
+      return 'sistema';
+  }
+}
+
+/**
  * Crea una notificación garantizando que no se duplique en una ventana temporal si posee agrupadorKey
  */
 export async function crearNotificacionDeduplicada(params: {
@@ -121,6 +144,7 @@ export async function crearNotificacionDeduplicada(params: {
   diasVentana?: number;
 }): Promise<boolean> {
   const supabase = createClient();
+  const tipoSanitizado = normalizarTipoNotificacion(params.tipo);
   try {
     // 1. Intentar vía función RPC crear_notificacion_deduplicada (migración 019)
     if (params.agrupadorKey) {
@@ -128,7 +152,7 @@ export async function crearNotificacionDeduplicada(params: {
         p_user_id: params.userId,
         p_titulo: params.titulo,
         p_mensaje: params.mensaje,
-        p_tipo: params.tipo,
+        p_tipo: tipoSanitizado,
         p_link: params.link || null,
         p_agrupador_key: params.agrupadorKey,
         p_metadata: params.metadata || {},
@@ -143,7 +167,7 @@ export async function crearNotificacionDeduplicada(params: {
       user_id: params.userId,
       titulo: params.titulo,
       mensaje: params.mensaje,
-      tipo: params.tipo,
+      tipo: tipoSanitizado,
       link: params.link || null,
       agrupador_key: params.agrupadorKey || null,
       metadata: params.metadata || {},
@@ -170,12 +194,13 @@ export async function notificarAdmins(params: {
   diasVentana?: number;
 }): Promise<void> {
   const supabase = createClient();
+  const tipoSanitizado = normalizarTipoNotificacion(params.tipo || 'sistema');
   try {
     // 1. Intentar vía función RPC SECURITY DEFINER extendida (migración 019)
     const { error: rpcErrExt } = await (supabase.rpc as any)('notificar_administradores', {
       p_titulo: params.titulo,
       p_mensaje: params.mensaje,
-      p_tipo: params.tipo || 'sistema',
+      p_tipo: tipoSanitizado,
       p_link: params.link || null,
       p_agrupador_key: params.agrupadorKey || null,
       p_metadata: params.metadata || {},
@@ -188,7 +213,7 @@ export async function notificarAdmins(params: {
     const { error: rpcErrBase } = await (supabase.rpc as any)('notificar_administradores', {
       p_titulo: params.titulo,
       p_mensaje: params.mensaje,
-      p_tipo: params.tipo || 'sistema',
+      p_tipo: tipoSanitizado,
       p_link: params.link || null,
     });
 
@@ -209,7 +234,7 @@ export async function notificarAdmins(params: {
         userId: adm.id,
         titulo: params.titulo,
         mensaje: params.mensaje,
-        tipo: params.tipo || 'sistema',
+        tipo: tipoSanitizado,
         link: params.link,
         agrupadorKey: params.agrupadorKey ? `${adm.id}_${params.agrupadorKey}` : undefined,
         metadata: params.metadata,

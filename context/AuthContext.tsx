@@ -406,10 +406,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
 
         const supabase = createClient();
+        const origin = typeof window !== 'undefined' ? window.location.origin : '';
+        const emailRedirectTo = origin ? `${origin}/auth/callback?next=/postulante` : undefined;
+
         const { data: signUpData, error } = await supabase.auth.signUp({
           email: data.email.trim(),
           password: data.password,
           options: {
+            emailRedirectTo,
             data: {
               rol: 'postulante',
               nombre: data.nombre.trim(),
@@ -442,24 +446,38 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           return { success: false, error: errorMsg };
         }
 
-        if (signUpData.session && signUpData.user) {
+        // Blindaje: Solo dar sesión inmediata si el correo ya figura formalmente confirmado.
+        // Si Supabase emitió sesión pero el correo no está confirmado, cerramos sesión preventivamente
+        // y exigimos al usuario verificar su casilla de correo.
+        const isEmailConfirmed = Boolean(signUpData.user?.email_confirmed_at);
+
+        if (signUpData.session && signUpData.user && isEmailConfirmed) {
           await loadUserData(signUpData.user.id, data.email);
           setIsLoading(false);
           // Notificar a los administradores sobre nuevo postulante registrado
-        try {
-          const hoy = new Date().toISOString().split('T')[0];
-          await notificarAdmins({
-            titulo: 'Nuevos postulantes en el portal',
-            mensaje: 'Nuevos vecinos se han registrado en el Portal de Empleo Funes.',
-            tipo: 'info',
-            link: '/admin?tab=postulantes',
-            agrupadorKey: 'resumen_postulantes_' + hoy,
-          });
-        } catch (e) {
-          console.warn('Aviso: no se pudo notificar nuevo postulante:', e);
+          try {
+            const hoy = new Date().toISOString().split('T')[0];
+            await notificarAdmins({
+              titulo: 'Nuevos postulantes en el portal',
+              mensaje: 'Nuevos vecinos se han registrado en el Portal de Empleo Funes.',
+              tipo: 'info',
+              link: '/admin?tab=postulantes',
+              agrupadorKey: 'resumen_postulantes_' + hoy,
+            });
+          } catch (e) {
+            console.warn('Aviso: no se pudo notificar nuevo postulante:', e);
+          }
+
+          return { success: true, requiresEmailConfirmation: false };
         }
 
-        return { success: true, requiresEmailConfirmation: false };
+        // Si el correo no fue confirmado aún, asegurar que no queden tokens de sesión huérfanos
+        if (signUpData.session) {
+          try {
+            await supabase.auth.signOut();
+          } catch {
+            // Ignorar error al limpiar sesión no confirmada
+          }
         }
 
         setIsLoading(false);
@@ -494,10 +512,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
 
         const supabase = createClient();
+        const origin = typeof window !== 'undefined' ? window.location.origin : '';
+        const emailRedirectTo = origin ? `${origin}/auth/callback?next=/empresa` : undefined;
+
         const { data: signUpData, error } = await supabase.auth.signUp({
           email: data.email.trim(),
           password: data.password,
           options: {
+            emailRedirectTo,
             data: {
               rol: 'empresa',
               nombre: data.persona_contacto.trim(),
@@ -532,24 +554,38 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           return { success: false, error: errorMsg };
         }
 
-        if (signUpData.session && signUpData.user) {
+        // Blindaje: Solo dar sesión inmediata si el correo ya figura formalmente confirmado.
+        // Si Supabase emitió sesión pero el correo no está confirmado, cerramos sesión preventivamente
+        // y exigimos a la empresa verificar su casilla de correo.
+        const isEmailConfirmed = Boolean(signUpData.user?.email_confirmed_at);
+
+        if (signUpData.session && signUpData.user && isEmailConfirmed) {
           await loadUserData(signUpData.user.id, data.email);
           setIsLoading(false);
           // Notificar a los administradores sobre nueva empresa para revisión
-        try {
-          const nombreEmpresa = data.nombre_fantasia?.trim() || data.razon_social.trim();
-          await notificarAdmins({
-            titulo: 'Nueva empresa para revisión',
-            mensaje: `La empresa "${nombreEmpresa}" se ha registrado en el portal y espera verificación.`,
-            tipo: 'empresa',
-            link: '/admin?tab=empresas&estado=pendiente',
-            agrupadorKey: 'empresa_revision_' + (signUpData.user ? signUpData.user.id : data.cuit.trim()),
-          });
-        } catch (e) {
-          console.warn('Aviso: no se pudo notificar nueva empresa:', e);
+          try {
+            const nombreEmpresa = data.nombre_fantasia?.trim() || data.razon_social.trim();
+            await notificarAdmins({
+              titulo: 'Nueva empresa para revisión',
+              mensaje: `La empresa "${nombreEmpresa}" se ha registrado en el portal y espera verificación.`,
+              tipo: 'empresa',
+              link: '/admin?tab=empresas&estado=pendiente',
+              agrupadorKey: 'empresa_revision_' + (signUpData.user ? signUpData.user.id : data.cuit.trim()),
+            });
+          } catch (e) {
+            console.warn('Aviso: no se pudo notificar nueva empresa:', e);
+          }
+
+          return { success: true, requiresEmailConfirmation: false };
         }
 
-        return { success: true, requiresEmailConfirmation: false };
+        // Si el correo no fue confirmado aún, asegurar que no queden tokens de sesión huérfanos
+        if (signUpData.session) {
+          try {
+            await supabase.auth.signOut();
+          } catch {
+            // Ignorar error al limpiar sesión no confirmada
+          }
         }
 
         setIsLoading(false);

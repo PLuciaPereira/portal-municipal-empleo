@@ -2,7 +2,8 @@
 
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 import { useState, useEffect } from 'react';
-import { Curso, Perfil } from '@/types/database';
+import { Curso, Perfil, Localidad } from '@/types/database';
+import { getLocalidades, LOCALIDADES_CANONICAS_DEFAULT } from '@/lib/localidades';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { getPostulantesAdmin } from '@/lib/admin';
@@ -81,12 +82,24 @@ const [customCursoId, setCustomCursoId] = useState<string | null>(null);
     };
   }, [isOpen, searchPostulante, localidadFiltro]);
 
+  const [localidadesMaestras, setLocalidadesMaestras] = useState<Localidad[]>(LOCALIDADES_CANONICAS_DEFAULT);
+
+  useEffect(() => {
+    let isMounted = true;
+    void getLocalidades().then((data) => {
+      if (isMounted && data && data.length > 0) {
+        setLocalidadesMaestras(data);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   if (!isOpen) return null;
 
-  // Localidades únicas para el filtro estándar
-  const localidadesDisponibles = Array.from(
-    new Set(postulantes.map((p) => p.localidad).filter((loc): loc is string => Boolean(loc)))
-  ).sort();
+  // Localidades canónicas para el filtro estándar
+  const localidadesDisponibles = localidadesMaestras.map((l) => l.nombre);
 
   const handleConfirm = async (e: React.FormEvent) => {
     e.preventDefault();

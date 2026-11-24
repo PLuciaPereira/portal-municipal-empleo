@@ -149,35 +149,49 @@ export async function darDeBajaOfertaEmpresaAction(input: DarDeBajaOfertaInput):
     const estadoTexto = oferta.estado === 'pendiente_revision' ? 'en revisión' : 'publicada';
 
     try {
-      // 1. Intentar vía RPC SECURITY DEFINER
+      // 1. Intentar vía RPC SECURITY DEFINER extendida con agrupador y ventana
       const { error: rpcError } = await (adminSupabase.rpc as any)('notificar_administradores', {
         p_titulo: 'Oferta dada de baja por la empresa',
         p_mensaje: `La empresa "${empresaNombre}" dio de baja la oferta "${ofertaTitulo}" (${estadoTexto}). Motivo: ${motivo.trim()}`,
-        p_tipo: 'empresa',
+        p_tipo: 'oferta',
         p_link: '/admin?tab=ofertas&filtro=bajas',
+        p_agrupador_key: 'baja_oferta_empresa_' + ofertaId,
+        p_metadata: { motivo: motivo.trim() },
+        p_dias_ventana: 1,
       });
 
-      // 2. Fallback directo si la RPC no responde
+      // 2. Fallback si no está la RPC extendida: intentar RPC estándar de 4 parámetros
       if (rpcError) {
-        const { data: admins } = await adminSupabase
-          .from('perfil')
-          .select('id')
-          .eq('rol', 'admin')
-          .eq('activo', true)
-          .is('deleted_at', null);
+        const { error: rpcErrorBase } = await (adminSupabase.rpc as any)('notificar_administradores', {
+          p_titulo: 'Oferta dada de baja por la empresa',
+          p_mensaje: `La empresa "${empresaNombre}" dio de baja la oferta "${ofertaTitulo}" (${estadoTexto}). Motivo: ${motivo.trim()}`,
+          p_tipo: 'oferta',
+          p_link: '/admin?tab=ofertas&filtro=bajas',
+        });
 
-        if (admins && admins.length > 0) {
-          const notifs = admins.map((adm) => ({
-            user_id: adm.id,
-            titulo: 'Oferta dada de baja por la empresa',
-            mensaje: `La empresa "${empresaNombre}" dio de baja la oferta "${ofertaTitulo}" (${estadoTexto}). Motivo: ${motivo.trim()}`,
-            tipo: 'empresa' as const,
-            link: '/admin?tab=ofertas&filtro=bajas',
-            metadata: { motivo: motivo.trim() },
-            leida: false,
-          }));
+        // 3. Fallback directo consultando administradores activos
+        if (rpcErrorBase) {
+          const { data: admins } = await adminSupabase
+            .from('perfil')
+            .select('id')
+            .eq('rol', 'admin')
+            .eq('activo', true)
+            .is('deleted_at', null);
 
-          await adminSupabase.from('notificaciones').insert(notifs);
+          if (admins && admins.length > 0) {
+            const notifs = admins.map((adm) => ({
+              user_id: adm.id,
+              titulo: 'Oferta dada de baja por la empresa',
+              mensaje: `La empresa "${empresaNombre}" dio de baja la oferta "${ofertaTitulo}" (${estadoTexto}). Motivo: ${motivo.trim()}`,
+              tipo: 'oferta' as const,
+              link: '/admin?tab=ofertas&filtro=bajas',
+              agrupador_key: `${adm.id}_baja_oferta_${ofertaId}`,
+              metadata: { motivo: motivo.trim() },
+              leida: false,
+            }));
+
+            await adminSupabase.from('notificaciones').insert(notifs);
+          }
         }
       }
     } catch (notifErr) {
@@ -333,20 +347,36 @@ export async function agendarEntrevistaEmpresaAction(
       console.warn('Aviso: No se pudo registrar en historial_postulacion:', histErr);
     }
 
-    // 7. Notificar al postulante
+    // 7. Notificar al postulante con deduplicación
     if (post.postulante_id) {
       try {
         const empresaNombre = empresa.nombre_fantasia || empresa.razon_social || 'La empresa';
         const ofertaTitulo = ofertaAsoc?.titulo || 'la búsqueda laboral';
 
-        await adminSupabase.from('notificaciones').insert({
-          user_id: post.postulante_id,
-          titulo: 'Entrevista de trabajo coordinada',
-          mensaje: `${empresaNombre} coordinó una entrevista para ${ofertaTitulo} el día ${fecha} a las ${hora} hs (${modalidad}). Lugar/Contacto: ${lugar.trim()}`,
-          tipo: 'entrevista',
-          link: `/postulante?tab=postulaciones&postulacionId=${postulacionId}`,
-          leida: false,
+        // Intentar primero RPC deduplicada si existe
+        const { error: rpcErr } = await (adminSupabase.rpc as any)('crear_notificacion_deduplicada', {
+          p_user_id: post.postulante_id,
+          p_titulo: 'Entrevista de trabajo coordinada',
+          p_mensaje: `${empresaNombre} coordinó una entrevista para ${ofertaTitulo} el día ${fecha} a las ${hora} hs (${modalidad}). Lugar/Contacto: ${lugar.trim()}`,
+          p_tipo: 'entrevista',
+          p_link: `/postulante?tab=postulaciones&postulacionId=${postulacionId}`,
+          p_agrupador_key: `entrevista_agendada_${postulacionId}_${fecha}`,
+          p_metadata: { postulacionId, fecha, hora, modalidad, lugar: lugar.trim() },
+          p_dias_ventana: 3,
         });
+
+        if (rpcErr) {
+          await adminSupabase.from('notificaciones').insert({
+            user_id: post.postulante_id,
+            titulo: 'Entrevista de trabajo coordinada',
+            mensaje: `${empresaNombre} coordinó una entrevista para ${ofertaTitulo} el día ${fecha} a las ${hora} hs (${modalidad}). Lugar/Contacto: ${lugar.trim()}`,
+            tipo: 'entrevista',
+            link: `/postulante?tab=postulaciones&postulacionId=${postulacionId}`,
+            agrupador_key: `entrevista_agendada_${postulacionId}_${fecha}`,
+            metadata: { postulacionId, fecha, hora, modalidad, lugar: lugar.trim() },
+            leida: false,
+          });
+        }
       } catch (notifErr) {
         console.warn('Aviso: No se pudo crear notificación al postulante:', notifErr);
       }
@@ -472,14 +502,29 @@ export async function reprogramarEntrevistaEmpresaAction(
         const empresaNombre = empresa.nombre_fantasia || empresa.razon_social || 'La empresa';
         const ofertaTitulo = ofertaAsoc?.titulo || 'la búsqueda laboral';
 
-        await adminSupabase.from('notificaciones').insert({
-          user_id: post.postulante_id,
-          titulo: 'Entrevista reprogramada',
-          mensaje: `${empresaNombre} actualizó la fecha/hora de la entrevista para ${ofertaTitulo}: nuevo horario el ${fecha} a las ${hora} hs (${modalidad}). Lugar/Contacto: ${lugar.trim()}`,
-          tipo: 'entrevista',
-          link: `/postulante?tab=postulaciones&postulacionId=${postulacionId}`,
-          leida: false,
+        const { error: rpcErr } = await (adminSupabase.rpc as any)('crear_notificacion_deduplicada', {
+          p_user_id: post.postulante_id,
+          p_titulo: 'Entrevista reprogramada',
+          p_mensaje: `${empresaNombre} actualizó la fecha/hora de la entrevista para ${ofertaTitulo}: nuevo horario el ${fecha} a las ${hora} hs (${modalidad}). Lugar/Contacto: ${lugar.trim()}`,
+          p_tipo: 'entrevista',
+          p_link: `/postulante?tab=postulaciones&postulacionId=${postulacionId}`,
+          p_agrupador_key: `entrevista_reprogramada_${postulacionId}_${fecha}`,
+          p_metadata: { postulacionId, fecha, hora, modalidad, lugar: lugar.trim() },
+          p_dias_ventana: 2,
         });
+
+        if (rpcErr) {
+          await adminSupabase.from('notificaciones').insert({
+            user_id: post.postulante_id,
+            titulo: 'Entrevista reprogramada',
+            mensaje: `${empresaNombre} actualizó la fecha/hora de la entrevista para ${ofertaTitulo}: nuevo horario el ${fecha} a las ${hora} hs (${modalidad}). Lugar/Contacto: ${lugar.trim()}`,
+            tipo: 'entrevista',
+            link: `/postulante?tab=postulaciones&postulacionId=${postulacionId}`,
+            agrupador_key: `entrevista_reprogramada_${postulacionId}_${fecha}`,
+            metadata: { postulacionId, fecha, hora, modalidad, lugar: lugar.trim() },
+            leida: false,
+          });
+        }
       } catch (e) {}
     }
 
@@ -588,14 +633,29 @@ export async function cancelarEntrevistaEmpresaAction(
         const empresaNombre = empresa.nombre_fantasia || empresa.razon_social || 'La empresa';
         const ofertaTitulo = ofertaAsoc?.titulo || 'la búsqueda laboral';
 
-        await adminSupabase.from('notificaciones').insert({
-          user_id: post.postulante_id,
-          titulo: 'Entrevista cancelada',
-          mensaje: `${empresaNombre} canceló la entrevista agendada para ${ofertaTitulo}. Motivo informado: ${motivo.trim()}`,
-          tipo: 'entrevista',
-          link: `/postulante?tab=postulaciones&postulacionId=${postulacionId}`,
-          leida: false,
+        const { error: rpcErr } = await (adminSupabase.rpc as any)('crear_notificacion_deduplicada', {
+          p_user_id: post.postulante_id,
+          p_titulo: 'Entrevista cancelada',
+          p_mensaje: `${empresaNombre} canceló la entrevista agendada para ${ofertaTitulo}. Motivo informado: ${motivo.trim()}`,
+          p_tipo: 'entrevista',
+          p_link: `/postulante?tab=postulaciones&postulacionId=${postulacionId}`,
+          p_agrupador_key: `entrevista_cancelada_${postulacionId}`,
+          p_metadata: { postulacionId, motivo: motivo.trim() },
+          p_dias_ventana: 3,
         });
+
+        if (rpcErr) {
+          await adminSupabase.from('notificaciones').insert({
+            user_id: post.postulante_id,
+            titulo: 'Entrevista cancelada',
+            mensaje: `${empresaNombre} canceló la entrevista agendada para ${ofertaTitulo}. Motivo informado: ${motivo.trim()}`,
+            tipo: 'entrevista',
+            link: `/postulante?tab=postulaciones&postulacionId=${postulacionId}`,
+            agrupador_key: `entrevista_cancelada_${postulacionId}`,
+            metadata: { postulacionId, motivo: motivo.trim() },
+            leida: false,
+          });
+        }
       } catch (e) {}
     }
 

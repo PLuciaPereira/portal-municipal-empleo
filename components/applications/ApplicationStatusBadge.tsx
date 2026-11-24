@@ -10,48 +10,48 @@ export interface ApplicationStatusConfig {
 
 export const APPLICATION_STATUS_CONFIG: Record<ApplicationStatus, ApplicationStatusConfig> = {
   postulado: {
-    label: 'Recibido por Oficina de Empleo',
-    description: 'Tu postulación fue registrada y está aguardando revisión técnica municipal.',
+    label: 'Postulado',
+    description: 'Tu postulación fue registrada exitosamente y se encuentra a la espera de evaluación.',
     variant: 'blue',
   },
   en_revision: {
-    label: 'En evaluación técnica',
-    description: 'El equipo de la Oficina de Empleo está analizando tu perfil laboral y CV.',
+    label: 'En revisión',
+    description: 'Tu perfil laboral y antecedentes se encuentran actualmente en evaluación.',
     variant: 'amber',
   },
   preseleccionado: {
-    label: 'Preseleccionado',
-    description: 'Tu perfil cumple con los requisitos preliminares de la búsqueda.',
-    variant: 'emerald',
+    label: 'En revisión',
+    description: 'Tu postulación superó las etapas iniciales y continúa en evaluación técnica.',
+    variant: 'amber',
   },
   entrevista: {
-    label: 'Instancia de entrevista',
-    description: 'Fuiste convocado a una entrevista de orientación o preselección.',
-    variant: 'purple',
+    label: 'En revisión',
+    description: 'Tu postulación se encuentra en instancia de entrevista y evaluación.',
+    variant: 'amber',
   },
   presentado_a_empresa: {
-    label: 'Derivado a la empresa',
-    description: 'La Oficina de Empleo presentó formalmente tu perfil ante la empresa solicitante.',
-    variant: 'brand',
+    label: 'En revisión',
+    description: 'Tu perfil fue considerado apto y continúa en proceso de evaluación avanzada.',
+    variant: 'amber',
   },
   seleccionado: {
-    label: 'Seleccionado por empresa',
-    description: 'La empresa seleccionó tu perfil para avanzar en el proceso final.',
+    label: 'Contratado',
+    description: 'Has sido seleccionado e incorporado para cubrir el puesto laboral.',
     variant: 'emerald',
   },
   contratado: {
     label: 'Contratado',
-    description: 'Fuiste incorporado exitosamente al puesto laboral.',
+    description: 'Has sido incorporado exitosamente al puesto laboral.',
     variant: 'emerald',
   },
   no_seleccionado: {
-    label: 'Proceso finalizado',
-    description: 'En esta oportunidad se priorizaron otros perfiles para la vacante.',
-    variant: 'zinc',
+    label: 'Rechazado',
+    description: 'El proceso de selección para esta búsqueda ha finalizado en esta oportunidad.',
+    variant: 'rose',
   },
   rechazado_por_empresa: {
-    label: 'No seleccionado por empresa',
-    description: 'La empresa finalizó la revisión de candidatos derivados para esta búsqueda.',
+    label: 'Rechazado',
+    description: 'El proceso de selección para esta búsqueda ha finalizado en esta oportunidad.',
     variant: 'rose',
   },
   retirado_por_postulante: {
@@ -64,9 +64,9 @@ export const APPLICATION_STATUS_CONFIG: Record<ApplicationStatus, ApplicationSta
 export function getApplicationStatusConfig(status: ApplicationStatus | string): ApplicationStatusConfig {
   if (status === 'no_derivado') {
     return {
-      label: 'No derivado',
-      description: 'La Oficina de Empleo no derivó esta postulación a la empresa.',
-      variant: 'amber',
+      label: 'Rechazado',
+      description: 'El proceso de selección para esta búsqueda ha finalizado en esta oportunidad.',
+      variant: 'rose',
     };
   }
   return (

@@ -91,6 +91,9 @@ export type PostulacionAdminItem = {
     | 'experiencia_resumen'
   > | null;
   cv: Curriculum | null;
+  oferta?: (Oferta & {
+    empresa: Pick<Empresa, 'id' | 'nombre_fantasia' | 'razon_social' | 'localidad' | 'verificada' | 'telefono' | 'email_contacto'> | null;
+  }) | null;
 };
 
 export interface AdminCounts {
@@ -98,6 +101,7 @@ export interface AdminCounts {
   ofertasPendientes: number;
   postulantesActivos: number;
   intermediacionesActivas: number;
+  postulacionesNuevas: number;
 }
 
 export type OfertaAdminItem = Oferta & {
@@ -257,7 +261,7 @@ export async function rechazarEmpresa(
           userId: emp.user_id,
           titulo: 'Solicitud de empresa observada / rechazada',
           mensaje: 'La Oficina de Empleo revisó tu solicitud y requiere atención: ' + motivo.trim(),
-          tipo: 'alerta',
+          tipo: 'empresa',
           link: '/empresa',
           metadata: { motivo: motivo.trim() },
           agrupadorKey: 'empresa_rechazada_' + empresaId,
@@ -426,7 +430,7 @@ export async function aprobarOfertaAdmin(
           userId: empresaUserId,
           titulo: 'Tu oferta laboral ha sido publicada',
           mensaje: 'Tu búsqueda "' + (ofData?.titulo || '') + '" fue aprobada y ya se encuentra visible públicamente.',
-          tipo: 'postulacion',
+          tipo: 'oferta',
           link: '/empresa',
           agrupadorKey: 'oferta_aprobada_' + ofertaId,
         });
@@ -500,7 +504,7 @@ export async function rechazarOfertaAdmin(
           userId: empresaUserId,
           titulo: 'Oferta laboral observada / rechazada',
           mensaje: 'La búsqueda "' + (ofData?.titulo || '') + '" requiere correcciones antes de publicarse.',
-          tipo: 'alerta',
+          tipo: 'oferta',
           link: '/empresa',
           metadata: { motivo: motivo.trim() },
           agrupadorKey: 'oferta_rechazada_' + ofertaId,
@@ -562,7 +566,7 @@ export async function darDeBajaOfertaAdmin(
           userId: empresaUserId,
           titulo: 'Oferta dada de baja por administración',
           mensaje: 'Tu búsqueda "' + (ofData?.titulo || '') + '" fue dada de baja por la Oficina de Empleo.',
-          tipo: 'alerta',
+          tipo: 'oferta',
           link: '/empresa',
           metadata: { motivo: motivo.trim() },
           agrupadorKey: 'oferta_baja_admin_' + ofertaId,
@@ -802,6 +806,105 @@ export async function getPostulacionesPorOfertaAdmin(
 }
 
 /**
+ * Obtener postulaciones para la gestión transversal municipal
+ * Permite filtrar por todas las activas, solo nuevas o en revisión técnica.
+ */
+export async function getPostulacionesGestionAdmin(params?: {
+  filtro?: 'todas' | 'nuevas' | 'en_revision' | 'entrevista';
+  query?: string;
+  localidad?: string;
+}): Promise<{ data: PostulacionAdminItem[] | null; error: string | null }> {
+  try {
+    const supabase = createClient();
+
+    let query = supabase
+      .from('postulaciones')
+      .select(`
+        *,
+        postulante:perfil!applications_postulante_id_fkey (
+          id,
+          nombre,
+          apellido,
+          dni,
+          telefono,
+          direccion,
+          localidad,
+          nivel_educativo,
+          habilidades,
+          experiencia_resumen
+        ),
+        cv:curriculums!postulaciones_cv_id_fkey (
+          id,
+          postulante_id,
+          nombre_cv,
+          archivo_url,
+          es_principal,
+          activo,
+          created_at,
+          updated_at,
+          deleted_at
+        ),
+        oferta:ofertas!postulaciones_oferta_id_fkey (
+          *,
+          empresa:empresas!ofertas_empresa_id_fkey (
+            id,
+            nombre_fantasia,
+            razon_social,
+            localidad,
+            verificada,
+            telefono,
+            email_contacto
+          )
+        )
+      `)
+      .order('created_at', { ascending: false });
+
+    // Filtrar por estados del embudo previo municipal
+    if (params?.filtro === 'nuevas') {
+      query = query.eq('estado', 'postulado');
+    } else if (params?.filtro === 'en_revision') {
+      query = query.in('estado', ['en_revision', 'preseleccionado']);
+    } else if (params?.filtro === 'entrevista') {
+      query = query.eq('estado', 'entrevista');
+    } else {
+      // 'todas': incluir postulaciones en circuito de selección previa municipal
+      query = query.in('estado', [
+        'postulado',
+        'en_revision',
+        'preseleccionado',
+        'entrevista',
+        'presentado_a_empresa',
+      ]);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('Error al obtener postulaciones para gestión admin:', error);
+      return { data: null, error: error.message };
+    }
+
+    const formatted: PostulacionAdminItem[] = ((data || []) as unknown[]).map((raw) => {
+      const item = raw as Record<string, unknown>;
+      return {
+        ...(item as unknown as PostulacionAdminItem),
+        postulante: (item.postulante as PostulacionAdminItem['postulante']) || null,
+        cv: (item.cv as Curriculum) || null,
+        oferta: (item.oferta as PostulacionAdminItem['oferta']) || null,
+      };
+    });
+
+    return { data: formatted, error: null };
+  } catch (err: unknown) {
+    console.error('Error inesperado en getPostulacionesGestionAdmin:', err);
+    return {
+      data: null,
+      error: err instanceof Error ? err.message : 'Error al cargar las postulaciones.',
+    };
+  }
+}
+
+/**
  * Cambiar estado de una postulación en el embudo de intermediación municipal
  */
 export async function cambiarEstadoPostulacionAdmin(
@@ -890,17 +993,8 @@ export async function cambiarEstadoPostulacionAdmin(
         const empresaNombre = (postInfo.oferta as any)?.empresa?.nombre_fantasia || (postInfo.oferta as any)?.empresa?.razon_social || 'la empresa';
 
         if (nuevoEstado === 'presentado_a_empresa') {
-          // A) Notificar al postulante sobre su derivación
-          await crearNotificacionDeduplicada({
-            userId: postulanteId,
-            titulo: 'Tu postulación fue derivada a la empresa',
-            mensaje: 'La Oficina de Empleo derivó tu perfil a ' + empresaNombre + ' para el puesto "' + ofertaTitulo + '".',
-            tipo: 'postulacion',
-            link: '/postulante?tab=postulaciones',
-            agrupadorKey: 'derivado_postulante_' + postulacionId,
-          });
-
-          // B) Notificar a la empresa sobre el nuevo candidato presentado con link directo al candidato
+          // Regla de intermediación: no se notifica al postulante sobre la derivación intermedia.
+          // Notificar únicamente a la empresa sobre el nuevo candidato presentado con link directo a la pestaña de candidatos.
           if (empresaUser) {
             await crearNotificacionDeduplicada({
               userId: empresaUser,
@@ -913,15 +1007,13 @@ export async function cambiarEstadoPostulacionAdmin(
             });
           }
         } else if (nuevoEstado === 'no_seleccionado') {
-          // Notificar al postulante con observaciones si existen
-          const detalleObs = payload?.notasOficina ? ': ' + payload.notasOficina : '.';
+          // Notificar al postulante de forma neutral e institucional cuando su proceso finaliza sin ser seleccionado
           await crearNotificacionDeduplicada({
             userId: postulanteId,
-            titulo: 'Novedad sobre tu postulación',
-            mensaje: 'Para la búsqueda "' + ofertaTitulo + '" tu perfil no fue seleccionado en esta oportunidad' + detalleObs,
-            tipo: 'info',
+            titulo: 'Actualización sobre tu postulación',
+            mensaje: 'El proceso de selección para la búsqueda "' + ofertaTitulo + '" ha finalizado en esta oportunidad. Agradecemos tu participación y te invitamos a postularte a nuevas ofertas disponibles.',
+            tipo: 'postulacion',
             link: '/postulante?tab=postulaciones',
-            metadata: payload?.notasOficina ? { motivo: payload.notasOficina } : undefined,
             agrupadorKey: 'no_seleccionado_' + postulacionId,
           });
         }
@@ -949,12 +1041,13 @@ export async function getAdminCounts(): Promise<AdminCounts> {
     ofertasPendientes: 0,
     postulantesActivos: 0,
     intermediacionesActivas: 0,
+    postulacionesNuevas: 0,
   };
 
   try {
     const supabase = createClient();
 
-    const [resEmpresas, resOfertas, resPostulantes, resIntermediaciones] = await Promise.all([
+    const [resEmpresas, resOfertas, resPostulantes, resIntermediaciones, resNuevas] = await Promise.all([
       supabase
         .from('empresas')
         .select('*', { count: 'exact', head: true })
@@ -974,12 +1067,17 @@ export async function getAdminCounts(): Promise<AdminCounts> {
         .from('postulaciones')
         .select('*', { count: 'exact', head: true })
         .in('estado', ['en_revision', 'preseleccionado', 'entrevista', 'presentado_a_empresa']),
+      supabase
+        .from('postulaciones')
+        .select('*', { count: 'exact', head: true })
+        .eq('estado', 'postulado'),
     ]);
 
     counts.empresasPendientes = resEmpresas.count || 0;
     counts.ofertasPendientes = resOfertas.count || 0;
     counts.postulantesActivos = resPostulantes.count || 0;
     counts.intermediacionesActivas = resIntermediaciones.count || 0;
+    counts.postulacionesNuevas = resNuevas.count || 0;
   } catch (err) {
     console.error('Error al obtener contadores administrativos:', err);
   }
@@ -1601,15 +1699,15 @@ export async function coordinarEntrevistaAdmin(params: {
       return { success: false, message: 'Error actualizando postulación: ' + error.message };
     }
 
-    // Crear notificación para el postulante
+    // Crear notificación para el postulante con deduplicación
     try {
-      await supabase.from('notificaciones').insert({
-        user_id: params.postulanteId,
+      await crearNotificacionDeduplicada({
+        userId: params.postulanteId,
         titulo: 'Entrevista Municipal Coordinada',
         mensaje: `Fuiste citado a una entrevista (${params.modalidad.toUpperCase()}) para el ${params.fecha} a las ${params.hora}. Lugar/Contacto: ${params.lugar}.`,
         tipo: 'entrevista',
         link: '/postulante?tab=postulaciones&postulacionId=' + params.postulacionId,
-        leida: false,
+        agrupadorKey: `entrevista_muni_${params.postulacionId}_${params.fecha}`,
       });
     } catch {
       // Ignorar si la tabla de notificaciones aún no fue migrada en el backend remoto
@@ -1641,18 +1739,18 @@ export async function invitarPostulanteAOferta(params: {
 
     const ofertaTitulo = oferta?.titulo || 'Oferta laboral activa';
 
-    // Crear notificación directa para el postulante
-    const { error } = await supabase.from('notificaciones').insert({
-      user_id: params.postulanteId,
+    // Crear notificación deduplicada para el postulante
+    const ok = await crearNotificacionDeduplicada({
+      userId: params.postulanteId,
       titulo: 'Sugerencia de Empleo de la Oficina de Empleo',
       mensaje: `La Oficina de Empleo te invita a postularte a la búsqueda: "${ofertaTitulo}". Mensaje: ${params.mensaje}`,
-      tipo: 'invitacion',
-      link: `/ofertas/${params.ofertaId}`,
-      leida: false,
+      tipo: 'oferta',
+      link: `/empleos/${params.ofertaId}`,
+      agrupadorKey: `sugerencia_oferta_${params.postulanteId}_${params.ofertaId}`,
     });
 
-    if (error) {
-      console.warn('Error al insertar notificación de invitación:', error);
+    if (!ok) {
+      console.warn('Aviso: no se pudo registrar la notificación de invitación.');
     }
 
     return { success: true, message: `Invitación enviada al postulante para la oferta "${ofertaTitulo}".` };

@@ -44,26 +44,32 @@ export async function proxy(request: NextRequest) {
       } = await supabase.auth.getUser();
 
       if (authUser) {
-        user = authUser;
+        // Blindaje: si el usuario no tiene su correo confirmado, no permitir acceso como autenticado
+        if (!authUser.email_confirmed_at) {
+          user = null;
+          userRole = null;
+        } else {
+          user = authUser;
 
-        // Consultar rol verificado y vigencia en perfil de base de datos
-        try {
-          const { data: perfilData } = await supabase
-            .from('perfil')
-            .select('rol, activo, deleted_at')
-            .eq('id', authUser.id)
-            .is('deleted_at', null)
-            .eq('activo', true)
-            .maybeSingle();
+          // Consultar rol verificado y vigencia en perfil de base de datos
+          try {
+            const { data: perfilData } = await supabase
+              .from('perfil')
+              .select('rol, activo, deleted_at')
+              .eq('id', authUser.id)
+              .is('deleted_at', null)
+              .eq('activo', true)
+              .maybeSingle();
 
-          if (perfilData?.rol) {
-            userRole = perfilData.rol;
-          } else {
-            // Perfil inexistente, inactivo o con baja lógica
+            if (perfilData?.rol) {
+              userRole = perfilData.rol;
+            } else {
+              // Perfil inexistente, inactivo o con baja lógica
+              userRole = null;
+            }
+          } catch {
             userRole = null;
           }
-        } catch {
-          userRole = null;
         }
       }
     } catch {
@@ -97,21 +103,35 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(targetUrl);
   }
 
-  // 4. Rutas públicas de autenticación (Login / Registro):
-  // Si el usuario ya está autenticado, redirigir directamente a su panel correspondiente.
-  // Rutas como /recuperar-password, /recuperar-password/cambiar y /auth/callback no redirigen automáticamente
-  // para permitir completar la recuperación o solicitarla sin bloqueos.
+  // 4. Redirección de usuarios autenticados fuera del entorno público:
+  // Si el usuario ya está autenticado y tiene un rol asignado:
+  // - La página de inicio pública (/) redirige directamente a su panel privado.
+  // - Las rutas de login o registro (/login, /registro, etc.) redirigen a su panel.
+  // - Las rutas del catálogo público (/ofertas) redirigen al panel de empresa/admin si no es postulante.
   const isAuthRoute =
     pathname === '/login' ||
     pathname === '/registro' ||
     pathname === '/registro/empresa';
 
-  if (isAuthRoute && user && userRole) {
+  if (user && userRole) {
     let dashboardUrl = '/postulante';
     if (userRole === 'empresa') dashboardUrl = '/empresa';
     if (userRole === 'admin') dashboardUrl = '/admin';
 
-    return NextResponse.redirect(new URL(dashboardUrl, request.url));
+    // Acceso a la página principal pública mientras está autenticado
+    if (pathname === '/') {
+      return NextResponse.redirect(new URL(dashboardUrl, request.url));
+    }
+
+    // Acceso a login o registro mientras está autenticado
+    if (isAuthRoute) {
+      return NextResponse.redirect(new URL(dashboardUrl, request.url));
+    }
+
+    // Acceso al catálogo de ofertas públicas: sólo postulantes o anónimos
+    if (pathname.startsWith('/ofertas') && userRole !== 'postulante') {
+      return NextResponse.redirect(new URL(dashboardUrl, request.url));
+    }
   }
 
   // 5. Rutas protegidas por Rol

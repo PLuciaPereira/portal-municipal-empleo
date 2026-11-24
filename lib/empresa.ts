@@ -326,7 +326,7 @@ export async function enviarOfertaARevision(ofertaId: string): Promise<{
     await notificarAdmins({
       titulo: 'Nueva oferta para revisión',
       mensaje: `La empresa "${nombreEmp}" envió a revisión la oferta "${tituloOferta}".`,
-      tipo: 'postulacion',
+      tipo: 'oferta',
       link: '/admin?tab=ofertas&estado=pendiente_revision',
       agrupadorKey: 'oferta_revision_' + ofertaId,
     });
@@ -337,7 +337,7 @@ export async function enviarOfertaARevision(ofertaId: string): Promise<{
         userId: empUserId,
         titulo: 'Oferta enviada a revisión técnica',
         mensaje: `Tu oferta "${tituloOferta}" fue enviada a la Oficina de Empleo para su revisión y aprobación.`,
-        tipo: 'info',
+        tipo: 'oferta',
         link: '/empresa',
         agrupadorKey: 'empresa_confirma_revision_' + ofertaId,
       });
@@ -440,6 +440,19 @@ export async function getCandidatosPresentados(
     return true;
   });
 
+  // 4. Ordenamiento cronológico garantizado: del más reciente al más antiguo por fecha de derivación
+  sanitizedList.sort((a, b) => {
+    const parseTime = (dateStr?: string | null) => {
+      if (!dateStr) return 0;
+      const t = new Date(dateStr).getTime();
+      return isNaN(t) ? 0 : t;
+    };
+
+    const timeA = parseTime(a.fecha_derivacion) || parseTime(a.fecha_postulacion);
+    const timeB = parseTime(b.fecha_derivacion) || parseTime(b.fecha_postulacion);
+    return timeB - timeA;
+  });
+
   return { data: sanitizedList };
 }
 
@@ -478,12 +491,12 @@ export async function rechazarCandidatoEmpresa(
       const ofTitulo = (postInfo.oferta as any)?.titulo || 'la búsqueda laboral';
       const empNombre = (postInfo.oferta as any)?.empresa?.nombre_fantasia || (postInfo.oferta as any)?.empresa?.razon_social || 'La empresa';
 
-      // Al postulante
+      // Al postulante (notificación de proceso concluido por parte de la empresa)
       await crearNotificacionDeduplicada({
         userId: postInfo.postulante_id,
         titulo: 'Postulación no seleccionada por la empresa',
         mensaje: `${empNombre} ha concluido el proceso para "${ofTitulo}" y no avanzará con tu postulación en esta ocasión.`,
-        tipo: 'alerta',
+        tipo: 'postulacion',
         link: '/postulante?tab=postulaciones',
         metadata: { motivo: motivoRechazo.trim() },
         agrupadorKey: 'rechazo_empresa_' + postulacionId,
@@ -493,7 +506,7 @@ export async function rechazarCandidatoEmpresa(
       await notificarAdmins({
         titulo: 'Candidato rechazado por empresa',
         mensaje: `${empNombre} rechazó un candidato derivado para "${ofTitulo}". Motivo: ${motivoRechazo.trim()}`,
-        tipo: 'alerta',
+        tipo: 'postulacion',
         link: '/admin?tab=ofertas',
         metadata: { motivo: motivoRechazo.trim() },
         agrupadorKey: 'admin_rechazo_candidato_' + postulacionId,

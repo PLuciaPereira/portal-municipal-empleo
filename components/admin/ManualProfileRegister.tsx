@@ -12,6 +12,7 @@ import {
   Briefcase,
 } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
+import { LocalidadSelect } from '@/components/ui/LocalidadSelect';
 import { Button } from '@/components/ui/Button';
 import { Checkbox } from '@/components/ui/Checkbox';
 import { Rubro } from '@/types/database';
@@ -311,12 +312,12 @@ export function ManualProfileRegister({ onCreated }: { onCreated?: () => void })
               value={fechaNacimiento}
               onChange={(e) => setFechaNacimiento(e.target.value)}
             />
-            <Input
+            <LocalidadSelect
               label="Localidad de residencia *"
+              labelVariant="compact"
               required
               value={localidad}
-              onChange={(e) => setLocalidad(e.target.value)}
-              placeholder="Ej: Funes"
+              onChangeValue={(val) => setLocalidad(val)}
             />
             <div className="md:col-span-2">
               <Input

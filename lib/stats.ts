@@ -17,6 +17,7 @@ export interface MunicipalStats {
   };
   intermediacion: {
     totalPostulaciones: number;
+    postuladasNuevas: number;
     enRevision: number;
     preseleccionados: number;
     entrevistasRegistradas: number;
@@ -56,6 +57,7 @@ export async function getMunicipalStats(): Promise<MunicipalStats> {
     ofertas: { total: 0, publicadas: 0, pendientesRevision: 0, borradores: 0, finalizadas: 0, dadasDeBaja: 0 },
     intermediacion: {
       totalPostulaciones: 0,
+      postuladasNuevas: 0,
       enRevision: 0,
       preseleccionados: 0,
       entrevistasRegistradas: 0,
@@ -69,11 +71,12 @@ export async function getMunicipalStats(): Promise<MunicipalStats> {
   };
 
   try {
-    // 1. Postulantes
+    // 1. Postulantes (alineado con padrón activo de admin)
     const { data: perfiles } = await supabase
       .from('perfil')
       .select('es_residente_funes, localidad, deleted_at, activo')
       .eq('rol', 'postulante')
+      .eq('activo', true)
       .is('deleted_at', null);
 
     const postulantesList = perfiles || [];
@@ -105,21 +108,22 @@ export async function getMunicipalStats(): Promise<MunicipalStats> {
     const publicadas = ofertasList.filter((o) => o.estado === 'publicada' && !o.deleted_at).length;
     const pendientesRevision = ofertasList.filter((o) => o.estado === 'pendiente_revision' && !o.deleted_at).length;
     const borradores = ofertasList.filter((o) => o.estado === 'borrador' && !o.deleted_at).length;
-    const finalizadas = ofertasList.filter((o) => o.estado === 'finalizada').length;
+    const finalizadas = ofertasList.filter((o) => o.estado === 'finalizada' && !o.deleted_at).length;
     const dadasDeBaja = ofertasList.filter((o) => o.deleted_at !== null).length;
 
     // 4. Intermediación y Postulaciones
     const { data: postulacionesData } = await supabase
       .from('postulaciones')
-      .select('estado, notas_oficina_empleo');
+      .select('estado, fecha_entrevista');
 
     const postulacionesList = postulacionesData || [];
     const totalPostulaciones = postulacionesList.length;
+    const postuladasNuevas = postulacionesList.filter((p) => p.estado === 'postulado').length;
     const enRevision = postulacionesList.filter((p) => p.estado === 'en_revision').length;
     const preseleccionados = postulacionesList.filter((p) => p.estado === 'preseleccionado').length;
-    // Entrevistas: postulaciones que tienen notas confidenciales registradas o han avanzado por esa instancia
+    // Entrevistas: postulaciones en estado 'entrevista' o con fecha formal de entrevista coordinada
     const entrevistasRegistradas = postulacionesList.filter(
-      (p) => Boolean(p.notas_oficina_empleo && p.notas_oficina_empleo.trim().length > 0)
+      (p) => p.estado === 'entrevista' || Boolean(p.fecha_entrevista)
     ).length;
     const presentadosAEmpresa = postulacionesList.filter(
       (p) => p.estado === 'presentado_a_empresa' || p.estado === 'seleccionado' || p.estado === 'contratado' || p.estado === 'rechazado_por_empresa'
@@ -158,6 +162,7 @@ export async function getMunicipalStats(): Promise<MunicipalStats> {
       },
       intermediacion: {
         totalPostulaciones,
+        postuladasNuevas,
         enRevision,
         preseleccionados,
         entrevistasRegistradas,
@@ -232,12 +237,23 @@ export async function getRubroDistributionStats(): Promise<RubroDistributionStat
       }
     });
 
-    return rubrosData.map((r) => ({
-      rubroId: r.id,
-      nombreRubro: r.nombre,
-      totalOfertas: ofertasPorRubro.get(r.id) || 0,
-      totalContratados: contratacionesPorRubro.get(r.id) || 0,
-    }));
+    return rubrosData
+      .map((r) => ({
+        rubroId: r.id,
+        nombreRubro: r.nombre,
+        totalOfertas: ofertasPorRubro.get(r.id) || 0,
+        totalContratados: contratacionesPorRubro.get(r.id) || 0,
+      }))
+      .sort((a, b) => {
+        // Ordenar primero por mayor inserciones, luego por ofertas y alfabético
+        if (b.totalContratados !== a.totalContratados) {
+          return b.totalContratados - a.totalContratados;
+        }
+        if (b.totalOfertas !== a.totalOfertas) {
+          return b.totalOfertas - a.totalOfertas;
+        }
+        return a.nombreRubro.localeCompare(b.nombreRubro);
+      });
   } catch (err) {
     console.error('Error al obtener distribución por rubros:', err);
     return [];

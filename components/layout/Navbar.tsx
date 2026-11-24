@@ -18,6 +18,9 @@ import { LogIn, PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { NotificationBell } from '@/components/layout/NotificationBell';
+import { PostulanteNavbar } from '@/components/layout/PostulanteNavbar';
+import { AdminNavbar } from '@/components/layout/AdminNavbar';
+import { EmpresaNavbar } from '@/components/layout/EmpresaNavbar';
 
 export const Navbar: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -64,6 +67,15 @@ export const Navbar: React.FC = () => {
   const pathname = usePathname();
   const { user, empresa, isAuthenticated, logout } = useAuth();
 
+  // Si la ruta actual es un panel privado, cada panel cuenta con su propio layout y navbar dedicado
+  if (
+    pathname.startsWith('/postulante') ||
+    pathname.startsWith('/empresa') ||
+    pathname.startsWith('/admin')
+  ) {
+    return null;
+  }
+
   const navLinks = [
     { label: 'Ofertas laborales', href: '/ofertas' },
     { label: 'Rubros', href: '/#rubros' },
@@ -103,6 +115,21 @@ export const Navbar: React.FC = () => {
   };
 
   const role = user?.rol || user?.role;
+
+  // Si el usuario es un postulante autenticado, mostrar su navbar propio con pestañas y navegación adaptada
+  if (isAuthenticated && role === 'postulante') {
+    return <PostulanteNavbar />;
+  }
+
+  // Si el usuario es una empresa autenticada, mostrar su navbar propio con pestañas de empresa
+  if (isAuthenticated && role === 'empresa') {
+    return <EmpresaNavbar />;
+  }
+
+  // Si el usuario es un administrador autenticado, mostrar su navbar propio con pestañas de gestión
+  if (isAuthenticated && role === 'admin') {
+    return <AdminNavbar />;
+  }
 
   const roleLabel =
     role === 'postulante'

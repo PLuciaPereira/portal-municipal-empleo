@@ -100,8 +100,11 @@ export const JobDetailView: React.FC<JobDetailViewProps> = ({
       {/* Navegación y Breadcrumbs */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs sm:text-sm text-zinc-500">
-          <Link href="/" className="hover:text-emerald-700 transition-colors">
-            Inicio
+          <Link
+            href={isAuthenticated && role === 'postulante' ? '/postulante' : '/'}
+            className="hover:text-emerald-700 transition-colors"
+          >
+            {isAuthenticated && role === 'postulante' ? 'Mi Panel' : 'Inicio'}
           </Link>
           <ChevronRightIcon className="w-3.5 h-3.5 text-zinc-400" />
           <Link href="/ofertas" className="hover:text-emerald-700 transition-colors">

@@ -7,6 +7,7 @@ import { updateEmpresaProfile, subirLogoEmpresa, reenviarSolicitudEmpresa } from
 import { Camera, Trash2, Upload, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { LocalidadSelect } from '@/components/ui/LocalidadSelect';
 import { XMarkIcon, BuildingIcon } from '@/components/ui/Icons';
 import { Lock } from 'lucide-react';
 
@@ -351,16 +352,12 @@ export const CompanyProfileEditModal: React.FC<CompanyProfileEditModalProps> = (
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-zinc-700 mb-1">
-                  Localidad
-                </label>
-                <Input
-                  value={localidad}
-                  onChange={(e) => setLocalidad(e.target.value)}
-                  placeholder="Funes"
-                />
-              </div>
+              <LocalidadSelect
+                label="Localidad"
+                labelVariant="compact"
+                value={localidad}
+                onChangeValue={(val) => setLocalidad(val)}
+              />
             </div>
 
             <div>

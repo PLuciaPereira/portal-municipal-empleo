@@ -6,6 +6,7 @@ import { Empresa } from '@/types/database';
 import { updateEmpresaAdmin } from '@/lib/admin';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { LocalidadSelect } from '@/components/ui/LocalidadSelect';
 import {
   Building2,
   X,
@@ -157,7 +158,7 @@ export function AdminCompanyEditModal({
                 id="modal-admin-company-edit-title"
                 className="text-lg font-extrabold text-[#10231B] font-display flex items-center gap-2"
               >
-                Editar perfil de empresa (admin)
+                Editar perfil de empresa
               </h2>
               <p className="text-xs text-[#4B6256]">
                 Podés corregir datos fiscales protegidos y la información comercial de la empresa.
@@ -300,18 +301,13 @@ export function AdminCompanyEditModal({
                 </div>
               </div>
 
-              <div>
-                <label className="text-xs font-bold text-zinc-800 mb-1.5 block">
-                  Localidad
-                </label>
-                <Input
-                  type="text"
-                  value={localidad}
-                  onChange={(e) => setLocalidad(e.target.value)}
-                  placeholder="Funes"
-                  disabled={saving}
-                />
-              </div>
+              <LocalidadSelect
+                label="Localidad"
+                labelVariant="compact"
+                value={localidad}
+                onChangeValue={(val) => setLocalidad(val)}
+                disabled={saving}
+              />
             </div>
 
             <div>

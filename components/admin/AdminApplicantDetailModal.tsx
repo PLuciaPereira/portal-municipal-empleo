@@ -7,7 +7,7 @@ import {
   getCurriculumSignedUrlAdmin,
 } from '@/lib/admin';
 import { Button } from '@/components/ui/Button';
-import { Perfil } from '@/types/database';
+import { Perfil, Oferta, Empresa } from '@/types/database';
 import { Badge } from '@/components/ui/Badge';
 import {
   X,
@@ -18,6 +18,10 @@ import {
   Download,
   CheckCircle2,
   AlertCircle,
+  Building2,
+  ExternalLink,
+  GraduationCap,
+  Clock,
 } from 'lucide-react';
 
 interface AdminApplicantDetailModalProps {
@@ -25,6 +29,9 @@ interface AdminApplicantDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   onOpenHistory?: () => void;
+  ofertaComparativa?: (Partial<Oferta> & {
+    empresa?: Partial<Empresa> | null;
+  }) | null;
 }
 
 export function AdminApplicantDetailModal({
@@ -32,6 +39,7 @@ export function AdminApplicantDetailModal({
   isOpen,
   onClose,
   onOpenHistory,
+  ofertaComparativa,
 }: AdminApplicantDetailModalProps) {
   useBodyScrollLock(Boolean(isOpen));
   const [downloadingCvId, setDownloadingCvId] = useState<string | null>(null);
@@ -109,6 +117,125 @@ export function AdminApplicantDetailModal({
             <div className="p-3.5 rounded-xl border border-rose-200 bg-rose-50 text-xs text-rose-800 flex items-center gap-2">
               <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
               <span>{cvError}</span>
+            </div>
+          )}
+
+          {/* Panel Comparativo: Búsqueda Laboral vs Perfil del Postulante */}
+          {ofertaComparativa && (
+            <div className="rounded-2xl border border-zinc-200 bg-zinc-50/70 overflow-hidden text-xs">
+              {/* Cabecera de la Comparativa */}
+              <div className="px-4 py-3 bg-zinc-100/80 border-b border-zinc-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-md bg-brand-900 text-white flex items-center justify-center shrink-0">
+                    <Briefcase className="w-3.5 h-3.5" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 block leading-tight">
+                      Comparativa con la oferta postulada
+                    </span>
+                    <h3 className="text-xs sm:text-sm font-bold text-zinc-900 leading-tight">
+                      {ofertaComparativa.titulo}
+                    </h3>
+                  </div>
+                </div>
+
+                <div className="text-left sm:text-right text-[11px] text-zinc-600">
+                  <span className="font-semibold text-zinc-800 block">
+                    {ofertaComparativa.empresa?.nombre_fantasia || ofertaComparativa.empresa?.razon_social || 'Empresa'}
+                  </span>
+                  <span>
+                    {ofertaComparativa.tipo_jornada || 'Jornada no informada'}
+                    {ofertaComparativa.ubicacion && ` · ${ofertaComparativa.ubicacion}`}
+                  </span>
+                </div>
+              </div>
+
+              {/* Grilla Comparativa en Dos Columnas Paralelas y Simétricas */}
+              <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-zinc-200 bg-white">
+                {/* Columna Izquierda: Requerimientos fijados por la Empresa */}
+                <div className="p-4 space-y-3">
+                  <span className="text-[11px] font-bold text-zinc-600 uppercase tracking-wider block">
+                    Requisitos solicitados por la empresa
+                  </span>
+
+                  <div className="space-y-2.5">
+                    <div>
+                      <span className="text-[11px] font-medium text-zinc-500 block">Requisitos del puesto:</span>
+                      <p className="text-zinc-800 whitespace-pre-line leading-relaxed text-xs mt-0.5">
+                        {ofertaComparativa.requisitos || 'No se registraron requisitos específicos.'}
+                      </p>
+                    </div>
+
+                    <div className="pt-2 border-t border-zinc-100 flex items-center justify-between">
+                      <span className="text-[11px] font-medium text-zinc-500">Experiencia requerida:</span>
+                      <span className="font-semibold text-zinc-900">
+                        {ofertaComparativa.experiencia_requerida || 'No especificada'}
+                      </span>
+                    </div>
+
+                    <div className="pt-2 border-t border-zinc-100 flex items-center justify-between">
+                      <span className="text-[11px] font-medium text-zinc-500">Localidad de la vacante:</span>
+                      <span className="font-semibold text-zinc-900">
+                        {ofertaComparativa.ubicacion || 'Funes'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Columna Derecha: Antecedentes del Postulante */}
+                <div className="p-4 space-y-3">
+                  <span className="text-[11px] font-bold text-zinc-600 uppercase tracking-wider block">
+                    Perfil del postulante registrado
+                  </span>
+
+                  <div className="space-y-2.5">
+                    <div>
+                      <span className="text-[11px] font-medium text-zinc-500 block">Nivel educativo:</span>
+                      <span className="font-semibold text-zinc-900 block text-xs mt-0.5">
+                        {postulante.nivel_educativo || 'Sin nivel educativo informado'}
+                      </span>
+                    </div>
+
+                    <div className="pt-2 border-t border-zinc-100">
+                      <span className="text-[11px] font-medium text-zinc-500 block">Habilidades declaradas:</span>
+                      {postulante.habilidades && postulante.habilidades.length > 0 ? (
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {postulante.habilidades.map((hab, idx) => (
+                            <span
+                              key={idx}
+                              className="px-2 py-0.5 rounded-md bg-zinc-100 text-zinc-800 text-[11px] font-medium border border-zinc-200"
+                            >
+                              {hab}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-zinc-500 text-xs italic block mt-0.5">
+                          Sin habilidades detalladas
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="pt-2 border-t border-zinc-100 flex items-center justify-between">
+                      <span className="text-[11px] font-medium text-zinc-500">Residencia del postulante:</span>
+                      <span className="font-semibold text-zinc-900">
+                        {postulante.es_residente_funes
+                          ? 'Residente en Funes'
+                          : postulante.localidad || 'Otra localidad'}
+                      </span>
+                    </div>
+
+                    {postulante.experiencia_resumen && (
+                      <div className="pt-2 border-t border-zinc-100">
+                        <span className="text-[11px] font-medium text-zinc-500 block">Resumen de experiencia:</span>
+                        <p className="text-zinc-700 leading-relaxed text-xs mt-0.5 line-clamp-3" title={postulante.experiencia_resumen}>
+                          {postulante.experiencia_resumen}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 

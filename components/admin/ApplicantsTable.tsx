@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { getLocalidades, LOCALIDADES_CANONICAS_DEFAULT } from '@/lib/localidades';
+import type { Localidad } from '@/types/database';
 import { PostulanteAdminItem } from '@/lib/admin';
 import { AdminApplicantDetailModal } from './AdminApplicantDetailModal';
 import { AdminApplicantHistoryModal } from './AdminApplicantHistoryModal';
@@ -10,6 +12,8 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { Pagination } from '@/components/ui/Pagination';
+import { TableSkeleton } from '@/components/ui/TableSkeleton';
 import {
   Search,
   Eye,
@@ -20,6 +24,7 @@ import {
   Send,
   Clock,
   AlertTriangle,
+  ArrowUpDown,
 } from 'lucide-react';
 
 interface ApplicantsTableProps {
@@ -38,27 +43,43 @@ export function ApplicantsTable({
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLocalidad, setSelectedLocalidad] = useState<string>('todas');
   const [selectedNivelEducativo, setSelectedNivelEducativo] = useState<string>('todos');
+  const [filterHabilidad, setFilterHabilidad] = useState('');
+  const [sortOrder, setSortOrder] = useState<'recientes' | 'antiguas' | 'titulo'>('recientes');
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const PAGE_SIZE = 5;
+
+  // Resetear paginación al cambiar filtros o criterio de ordenamiento
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedLocalidad, selectedNivelEducativo, filterHabilidad, sortOrder]);
 
   // Modal de detalle
   // Modal de invitación
   const [postulanteToInvite, setPostulanteToInvite] = useState<PostulanteAdminItem | null>(null);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
-  const [filterHabilidad, setFilterHabilidad] = useState('');
   const [selectedPostulante, setSelectedPostulante] = useState<PostulanteAdminItem | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [postulanteHistory, setPostulanteHistory] = useState<PostulanteAdminItem | null>(null);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
 
-  // Obtener lista dinámica de localidades únicas registradas
-  const localidadesDisponibles = useMemo(() => {
-    const locSet = new Set<string>();
-    postulantes.forEach((p) => {
-      if (p.localidad && p.localidad.trim()) {
-        locSet.add(p.localidad.trim());
+  // Obtener lista canónica de localidades
+  const [localidadesMaestras, setLocalidadesMaestras] = useState<Localidad[]>(LOCALIDADES_CANONICAS_DEFAULT);
+
+  useEffect(() => {
+    let isMounted = true;
+    void getLocalidades().then((data) => {
+      if (isMounted && data && data.length > 0) {
+        setLocalidadesMaestras(data);
       }
     });
-    return Array.from(locSet).sort((a, b) => a.localeCompare(b));
-  }, [postulantes]);
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const localidadesDisponibles = useMemo(() => {
+    return localidadesMaestras.map((l) => l.nombre);
+  }, [localidadesMaestras]);
 
   // Obtener lista dinámica de niveles educativos únicos
   const nivelesDisponibles = useMemo(() => {
@@ -127,8 +148,28 @@ export function ApplicantsTable({
       }
 
       return true;
+    }).sort((a, b) => {
+      if (sortOrder === 'titulo') {
+        const nameA = `${a.apellido || ''} ${a.nombre || ''}`.trim();
+        const nameB = `${b.apellido || ''} ${b.nombre || ''}`.trim();
+        return nameA.localeCompare(nameB, 'es', { sensitivity: 'base' });
+      }
+      const timeA = new Date(a.created_at).getTime() || 0;
+      const timeB = new Date(b.created_at).getTime() || 0;
+      if (sortOrder === 'antiguas') {
+        return timeA - timeB;
+      }
+      if (timeB !== timeA) return timeB - timeA;
+      return (b.id || '').localeCompare(a.id || '');
     });
-  }, [postulantes, selectedLocalidad, selectedNivelEducativo, searchTerm, filterHabilidad]);
+  }, [postulantes, selectedLocalidad, selectedNivelEducativo, searchTerm, filterHabilidad, sortOrder]);
+
+  const totalPages = Math.ceil(filteredPostulantes.length / PAGE_SIZE) || 1;
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const paginatedPostulantes = useMemo(() => {
+    const start = (safeCurrentPage - 1) * PAGE_SIZE;
+    return filteredPostulantes.slice(start, start + PAGE_SIZE);
+  }, [filteredPostulantes, safeCurrentPage, PAGE_SIZE]);
 
   const handleOpenDetail = (p: PostulanteAdminItem) => {
     setSelectedPostulante(p);
@@ -148,23 +189,23 @@ export function ApplicantsTable({
   return (
     <div className="space-y-4">
       {/* Barra de Filtros y Búsqueda */}
-      <div className="bg-white p-4 rounded-2xl border border-zinc-200 shadow-xs space-y-3">
-        <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+      <div className="bg-white p-2.5 sm:p-3 rounded-xl border border-zinc-200 shadow-xs space-y-2 mb-3">
+        <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2.5">
           {/* Buscador */}
           <div className="relative flex-1 max-w-md">
-            <Search className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
             <Input
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Buscar por DNI, nombre, nivel educativo, localidad, oficio..."
-              className="pl-9 h-10 text-xs w-full bg-zinc-50 border-zinc-200"
+              className="pl-8 h-8 text-xs w-full bg-zinc-50 border-zinc-200"
             />
           </div>
 
           {/* Selectores de Filtro */}
           <div className="flex flex-wrap items-center gap-2">
             {/* Filtro por Localidad */}
-            <div className="flex items-center gap-1.5 bg-zinc-50 px-2.5 py-1 rounded-xl border border-zinc-200 text-xs">
+            <div className="flex items-center gap-1.5 bg-zinc-50 px-2 h-8 rounded-lg border border-zinc-200 text-xs">
               <MapPin className="w-3.5 h-3.5 text-zinc-500" />
               <span className="text-zinc-500 font-medium">Localidad:</span>
               <select
@@ -182,7 +223,7 @@ export function ApplicantsTable({
             </div>
 
             {/* Filtro por Nivel Educativo */}
-            <div className="flex items-center gap-1.5 bg-zinc-50 px-2.5 py-1 rounded-xl border border-zinc-200 text-xs">
+            <div className="flex items-center gap-1.5 bg-zinc-50 px-2 h-8 rounded-lg border border-zinc-200 text-xs">
               <GraduationCap className="w-3.5 h-3.5 text-zinc-500" />
               <span className="text-zinc-500 font-medium">Estudios:</span>
               <select
@@ -196,6 +237,21 @@ export function ApplicantsTable({
                     {niv}
                   </option>
                 ))}
+              </select>
+            </div>
+
+            {/* Selector de Orden */}
+            <div className="flex items-center gap-1.5 bg-zinc-50 px-2 h-8 rounded-lg border border-zinc-200 text-xs">
+              <ArrowUpDown className="w-3.5 h-3.5 text-zinc-500" />
+              <span className="text-zinc-500 font-medium hidden sm:inline">Orden:</span>
+              <select
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value as 'recientes' | 'antiguas' | 'titulo')}
+                className="bg-transparent text-zinc-800 font-semibold focus:outline-none cursor-pointer text-xs"
+              >
+                <option value="recientes">Más reciente primero</option>
+                <option value="antiguas">Más antiguo primero</option>
+                <option value="titulo">Título (A-Z)</option>
               </select>
             </div>
 
@@ -225,10 +281,7 @@ export function ApplicantsTable({
       {/* Tabla de Postulantes */}
       <div className="bg-white rounded-2xl border border-zinc-200 shadow-xs overflow-hidden">
         {loading ? (
-          <div className="p-12 text-center text-zinc-500 text-sm space-y-3">
-            <div className="w-8 h-8 border-2 border-brand-800 border-t-transparent rounded-full animate-spin mx-auto" />
-            <p>Cargando padrón de postulantes...</p>
-          </div>
+          <TableSkeleton rows={6} cols={5} />
         ) : filteredPostulantes.length === 0 ? (
           <div className="p-8">
             <EmptyState
@@ -250,21 +303,24 @@ export function ApplicantsTable({
             />
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+          <div className="overflow-x-auto scroll-smooth">
+            <table className="w-full min-w-[950px] text-left text-xs">
               <thead className="bg-zinc-50/80 text-zinc-600 border-b border-zinc-200 uppercase tracking-wider font-semibold text-[11px]">
                 <tr>
-                  <th className="py-3.5 px-4">Postulante</th>
-                  <th className="py-3.5 px-4">Localidad y contacto</th>
-                  <th className="py-3.5 px-4">Nivel educativo</th>
-                  <th className="py-3.5 px-4">Situación laboral</th>
-                  <th className="py-3.5 px-4">Postulaciones y rechazos</th>
-                  <th className="py-3.5 px-4">Currículums</th>
-                  <th className="py-3.5 px-4 text-right">Acciones</th>
+                  <th className="py-3 px-3.5">Postulante</th>
+                  <th className="py-3 px-3">Localidad y contacto</th>
+                  <th className="py-3 px-3">Nivel educativo</th>
+                  <th className="py-3 px-3">Situación laboral</th>
+                  <th className="py-3 px-3">Postulaciones y rechazos</th>
+                  <th className="py-3 px-3">Currículums</th>
+                  {/* Columnas independientes sin título de encabezado */}
+                  <th className="py-3 px-1.5 w-24 text-center"></th>
+                  <th className="py-3 px-1.5 w-28 text-center"></th>
+                  <th className="py-3 px-1.5 w-24 text-center"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-100 text-zinc-700">
-                {filteredPostulantes.map((postulante) => {
+                {paginatedPostulantes.map((postulante) => {
                   const cvCount = postulante.curriculums?.length || 0;
 
                   return (
@@ -273,7 +329,7 @@ export function ApplicantsTable({
                       className="hover:bg-zinc-50/60 transition-colors group"
                     >
                       {/* Postulante */}
-                      <td className="py-3.5 px-4 font-medium text-zinc-900">
+                      <td className="py-3 px-3.5 font-medium text-zinc-900">
                         <div className="flex items-center gap-2.5">
                           <div className="w-8 h-8 rounded-lg bg-brand-50 text-brand-900 flex items-center justify-center font-bold text-xs shrink-0">
                             {postulante.nombre.charAt(0)}
@@ -291,7 +347,7 @@ export function ApplicantsTable({
                       </td>
 
                       {/* Localidad & Contacto */}
-                      <td className="py-3.5 px-4 space-y-0.5">
+                      <td className="py-3 px-3 space-y-0.5">
                         <div className="flex items-center gap-1 font-semibold text-zinc-800">
                           <MapPin className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
                           <span>{postulante.localidad || 'Funes'}</span>
@@ -303,21 +359,21 @@ export function ApplicantsTable({
                       </td>
 
                       {/* Nivel Educativo */}
-                      <td className="py-3.5 px-4">
+                      <td className="py-3 px-3">
                         <span className="text-zinc-800 block font-medium">
                           {postulante.nivel_educativo || 'No especificado'}
                         </span>
                       </td>
 
                       {/* Situación Laboral */}
-                      <td className="py-3.5 px-4">
+                      <td className="py-3 px-3">
                         <Badge variant="zinc" className="text-[11px]">
                           {postulante.situacion_laboral_actual || 'No informada'}
                         </Badge>
                       </td>
 
                       {/* Postulaciones y rechazos (Interactiva y con rechazos en rojo) */}
-                      <td className="py-3.5 px-4">
+                      <td className="py-3 px-3">
                         <button
                           type="button"
                           onClick={() => {
@@ -342,7 +398,7 @@ export function ApplicantsTable({
                       </td>
 
                       {/* Currículums */}
-                      <td className="py-3.5 px-4">
+                      <td className="py-3 px-3">
                         <div className="flex items-center gap-1.5">
                           <FileText className="w-3.5 h-3.5 text-zinc-400" />
                           <span className="font-semibold text-zinc-800">
@@ -351,52 +407,71 @@ export function ApplicantsTable({
                         </div>
                       </td>
 
-                      {/* Acciones */}
-                      <td className="py-3.5 px-4 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              setPostulanteToInvite(postulante);
-                              setIsInviteModalOpen(true);
-                            }}
-                            className="h-8 px-2 text-brand-900 hover:bg-brand-50 gap-1 text-xs font-semibold"
-                            title="Invitar a una búsqueda laboral activa"
-                          >
-                            <Send className="w-3.5 h-3.5 text-brand-800" />
-                            <span className="hidden sm:inline">Invitar</span>
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              setPostulanteHistory(postulante);
-                              setIsHistoryModalOpen(true);
-                            }}
-                            className="h-8 px-2 text-zinc-700 hover:text-zinc-900 hover:bg-zinc-100 gap-1 text-xs"
-                            title="Ver historial de postulaciones y rechazos"
-                          >
-                            <Clock className="w-3.5 h-3.5 text-zinc-500" />
-                            <span className="hidden lg:inline">Historial</span>
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleOpenDetail(postulante)}
-                            className="h-8 px-2 text-zinc-600 hover:text-zinc-900 gap-1 text-xs"
-                            title="Ver legajo completo del postulante"
-                          >
-                            <Eye className="w-3.5 h-3.5" />
-                            <span className="hidden sm:inline">Legajo</span>
-                          </Button>
-                        </div>
+                      {/* Columna Acción 1: Legajo */}
+                      <td className="py-3 px-1.5 text-center whitespace-nowrap">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleOpenDetail(postulante)}
+                          className="h-8 px-2.5 text-zinc-600 hover:text-zinc-900 gap-1 text-xs w-full justify-center"
+                          title="Ver legajo completo del postulante"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>Legajo</span>
+                        </Button>
+                      </td>
+
+                      {/* Columna Acción 2: Historial */}
+                      <td className="py-3 px-1.5 text-center whitespace-nowrap">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setPostulanteHistory(postulante);
+                            setIsHistoryModalOpen(true);
+                          }}
+                          className="h-8 px-2.5 text-zinc-700 hover:text-zinc-900 hover:bg-zinc-100 gap-1 text-xs w-full justify-center"
+                          title="Ver historial de postulaciones y rechazos"
+                        >
+                          <Clock className="w-3.5 h-3.5 text-zinc-500" />
+                          <span>Historial</span>
+                        </Button>
+                      </td>
+
+                      {/* Columna Acción 3: Invitar */}
+                      <td className="py-3 px-1.5 text-center whitespace-nowrap">
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          onClick={() => {
+                            setPostulanteToInvite(postulante);
+                            setIsInviteModalOpen(true);
+                          }}
+                          className="h-8 px-2.5 bg-brand-800 hover:bg-brand-900 text-white gap-1 text-xs font-semibold shadow-2xs w-full justify-center"
+                          title="Invitar a una búsqueda laboral activa"
+                        >
+                          <Send className="w-3.5 h-3.5" />
+                          <span>Invitar</span>
+                        </Button>
                       </td>
                     </tr>
                   );
                 })}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* Paginación */}
+        {filteredPostulantes.length > PAGE_SIZE && (
+          <div className="p-3 border-t border-zinc-100 bg-zinc-50/50">
+            <Pagination
+              currentPage={safeCurrentPage}
+              totalPages={totalPages}
+              totalItems={filteredPostulantes.length}
+              pageSize={PAGE_SIZE}
+              onPageChange={setCurrentPage}
+            />
           </div>
         )}
       </div>
