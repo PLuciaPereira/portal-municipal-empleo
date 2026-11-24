@@ -584,7 +584,20 @@ function PostulanteDashboardContent() {
             </div>
 
             {isLoadingData ? (
-              <div className="h-32 rounded-xl bg-zinc-100 animate-pulse" />
+              <div className="space-y-4 py-2">
+                {Array.from({ length: 2 }).map((_, i) => (
+                  <div
+                    key={`course-skel-${i}`}
+                    className="border border-zinc-200/90 rounded-2xl p-5 bg-white shadow-2xs space-y-3"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="h-5 w-48 bg-zinc-200/70 rounded-md animate-pulse" />
+                      <div className="h-6 w-20 bg-zinc-200/70 rounded-full animate-pulse" />
+                    </div>
+                    <div className="h-4 w-3/4 bg-zinc-100 rounded-md animate-pulse" />
+                  </div>
+                ))}
+              </div>
             ) : courses.length === 0 ? (
               <div className="border border-dashed border-[#C3D1C7] rounded-2xl p-8 sm:p-12 flex flex-col items-center text-center max-w-2xl mx-auto bg-white shadow-2xs">
                 <div className="w-14 h-14 rounded-2xl bg-[#E4F1E8] text-[#0E4D36] flex items-center justify-center mb-3">

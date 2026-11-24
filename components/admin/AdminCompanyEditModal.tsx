@@ -6,6 +6,7 @@ import { Empresa } from '@/types/database';
 import { updateEmpresaAdmin } from '@/lib/admin';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { LocalidadSelect } from '@/components/ui/LocalidadSelect';
 import {
   Building2,
   X,
@@ -300,18 +301,13 @@ export function AdminCompanyEditModal({
                 </div>
               </div>
 
-              <div>
-                <label className="text-xs font-bold text-zinc-800 mb-1.5 block">
-                  Localidad
-                </label>
-                <Input
-                  type="text"
-                  value={localidad}
-                  onChange={(e) => setLocalidad(e.target.value)}
-                  placeholder="Funes"
-                  disabled={saving}
-                />
-              </div>
+              <LocalidadSelect
+                label="Localidad"
+                labelVariant="compact"
+                value={localidad}
+                onChangeValue={(val) => setLocalidad(val)}
+                disabled={saving}
+              />
             </div>
 
             <div>

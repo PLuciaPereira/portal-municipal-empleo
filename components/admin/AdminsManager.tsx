@@ -16,6 +16,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Pagination } from '@/components/ui/Pagination';
+import { TableSkeleton } from '@/components/ui/TableSkeleton';
 import {
   UserCog,
   UserPlus,
@@ -39,7 +40,7 @@ export function AdminsManager() {
   const [filtroEstado, setFiltroEstado] = useState<'todos' | 'activos' | 'inactivos'>('todos');
   const [sortOrder, setSortOrder] = useState<'recientes' | 'antiguas' | 'titulo'>('recientes');
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const PAGE_SIZE = 10;
+  const PAGE_SIZE = 5;
 
   // Resetear a primera página al cambiar filtros o criterio de orden
   useEffect(() => {
@@ -225,16 +226,16 @@ export function AdminsManager() {
       </div>
 
       {/* Barra de Filtros y Búsqueda */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 bg-white p-3 rounded-2xl border border-zinc-200/80 shadow-2xs">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 bg-white p-2.5 sm:p-3 rounded-xl border border-zinc-200/80 shadow-2xs mb-3">
         <div className="flex-1 relative">
           <Input
             type="text"
             placeholder="Buscar administrador por nombre, apellido o DNI..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-8 text-xs h-10"
+            className="pl-8 text-xs h-8"
           />
-          <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-2.5 top-3.5 pointer-events-none" />
+          <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
@@ -243,14 +244,14 @@ export function AdminsManager() {
             onChange={(e) =>
               setFiltroEstado(e.target.value as 'todos' | 'activos' | 'inactivos')
             }
-            className="h-10 text-xs rounded-xl border border-zinc-200 bg-white px-2.5 text-zinc-700 focus:outline-hidden focus:border-brand-500 font-medium"
+            className="h-8 text-xs rounded-lg border border-zinc-200 bg-white px-2 text-zinc-700 focus:outline-hidden focus:border-brand-500 font-medium cursor-pointer"
           >
             <option value="todos">Todos los administradores ({administradores.length})</option>
             <option value="activos">Solo activos ({totalActivos})</option>
             <option value="inactivos">Inactivos ({totalInactivos})</option>
           </select>
 
-          <div className="flex items-center gap-1.5 bg-zinc-50 px-2.5 h-10 rounded-xl border border-zinc-200 text-xs shrink-0">
+          <div className="flex items-center gap-1.5 bg-zinc-50 px-2 h-8 rounded-lg border border-zinc-200 text-xs shrink-0">
             <ArrowUpDown className="w-3.5 h-3.5 text-zinc-500" />
             <span className="text-zinc-500 font-medium hidden sm:inline">Orden:</span>
             <select
@@ -268,9 +269,8 @@ export function AdminsManager() {
 
       {/* Tabla de Administradores */}
       {loading ? (
-        <div className="bg-white rounded-2xl border border-zinc-200 p-12 text-center text-zinc-500 text-xs flex items-center justify-center gap-2">
-          <RefreshCw className="w-4 h-4 animate-spin text-brand-800" />
-          Cargando equipo administrativo...
+        <div className="bg-white rounded-2xl border border-zinc-200 shadow-xs overflow-hidden">
+          <TableSkeleton rows={4} cols={5} />
         </div>
       ) : administradores.length === 0 ? (
         <div className="bg-white rounded-2xl border border-dashed border-zinc-300 p-12 text-center space-y-3">

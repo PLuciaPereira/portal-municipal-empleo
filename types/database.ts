@@ -37,6 +37,16 @@ export type Rubro = {
   created_at: string;
 };
 
+export type Localidad = {
+  id: number;
+  nombre: string;
+  provincia: string;
+  codigo_postal: string | null;
+  activo: boolean;
+  orden: number;
+  created_at?: string;
+};
+
 export type Curriculum = {
   id: string;
   postulante_id: string;
@@ -251,6 +261,7 @@ export type TipoNotificacion =
   | 'sistema'
   | 'postulacion'
   | 'empresa'
+  | 'oferta'
   | 'alerta'
   | 'curso'
   | 'vencimiento';
@@ -343,6 +354,16 @@ export type Database = {
           created_at?: string;
         };
         Update: Partial<Rubro>;
+        Relationships: [];
+      };
+      localidades: {
+        Row: Localidad;
+        Insert: Omit<Localidad, 'id' | 'created_at' | 'activo'> & {
+          id?: number;
+          activo?: boolean;
+          created_at?: string;
+        };
+        Update: Partial<Localidad>;
         Relationships: [];
       };
       perfil: {

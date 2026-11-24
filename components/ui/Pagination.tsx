@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useRef } from 'react';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { Button } from './Button';
 
@@ -12,6 +12,9 @@ export interface PaginationProps {
   onPageChange: (page: number) => void;
   onPageSizeChange?: (pageSize: number) => void;
   pageSizeOptions?: number[];
+  scrollToTop?: boolean;
+  scrollTargetSelector?: string;
+  scrollOffset?: number;
   className?: string;
 }
 
@@ -23,9 +26,91 @@ export function Pagination({
   onPageChange,
   onPageSizeChange,
   pageSizeOptions = [10, 20, 50],
+  scrollToTop = true,
+  scrollTargetSelector,
+  scrollOffset = 80,
   className = '',
 }: PaginationProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
   if (totalItems === 0) return null;
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage === currentPage || newPage < 1 || (totalPages > 0 && newPage > totalPages)) {
+      return;
+    }
+
+    onPageChange(newPage);
+
+    if (scrollToTop && typeof window !== 'undefined') {
+      const container = containerRef.current;
+      if (!container) return;
+
+      // Esperar al siguiente tick para que el nuevo contenido renderice o empiece a actualizarse
+      requestAnimationFrame(() => {
+        let targetElement: HTMLElement | null = null;
+
+        // 1. Si se especificó un selector de destino explícito:
+        if (scrollTargetSelector) {
+          targetElement =
+            container.closest('section, main, .space-y-4, .space-y-6')?.querySelector(scrollTargetSelector) ||
+            document.querySelector(scrollTargetSelector);
+        }
+
+        // 2. Si no hay selector explícito, buscar el título de la sección (h1, h2, h3):
+        if (!targetElement) {
+          // A) Buscar en el contenedor de sección o bloque principal más cercano
+          const sectionRoot = container.closest(
+            '[data-section-root], section, main > div, .space-y-4, .space-y-5, .space-y-6'
+          );
+
+          if (sectionRoot) {
+            const sectionTitle = sectionRoot.querySelector('h1, h2, h3, [data-section-title]');
+            if (sectionTitle) {
+              targetElement = sectionTitle as HTMLElement;
+            }
+          }
+
+          // B) Si aún no se encontró, explorar elementos hermanos previos o ascendentes
+          if (!targetElement) {
+            let currentParent: HTMLElement | null = container.parentElement;
+            while (currentParent && currentParent !== document.body) {
+              const heading = currentParent.querySelector('h1, h2, h3, [data-section-title]');
+              if (heading && !container.contains(heading)) {
+                targetElement = heading as HTMLElement;
+                break;
+              }
+              currentParent = currentParent.parentElement;
+            }
+          }
+
+          // C) Fallback: inicio del contenedor de la tabla
+          if (!targetElement) {
+            const tableWrapperInside = container.closest('.rounded-2xl, .rounded-xl, table');
+            const siblingTableWrapper =
+              container.parentElement?.previousElementSibling?.matches?.('.rounded-2xl, .rounded-xl, table')
+                ? (container.parentElement.previousElementSibling as HTMLElement)
+                : (container.previousElementSibling as HTMLElement | null);
+
+            targetElement =
+              (tableWrapperInside as HTMLElement | null) ||
+              siblingTableWrapper ||
+              (container.closest('.space-y-4, .space-y-6, section') as HTMLElement | null);
+          }
+        }
+
+        if (targetElement) {
+          const rect = targetElement.getBoundingClientRect();
+          const targetScrollY = Math.max(0, rect.top + window.scrollY - scrollOffset);
+
+          window.scrollTo({
+            top: targetScrollY,
+            behavior: 'smooth',
+          });
+        }
+      });
+    }
+  };
 
   const startItem = (currentPage - 1) * pageSize + 1;
   const endItem = Math.min(currentPage * pageSize, totalItems);
@@ -53,6 +138,7 @@ export function Pagination({
 
   return (
     <div
+      ref={containerRef}
       className={`flex flex-col sm:flex-row items-center justify-between gap-4 py-4 px-2 select-none ${className}`}
       aria-label="Paginación de resultados"
     >
@@ -73,7 +159,7 @@ export function Pagination({
               value={pageSize}
               onChange={(e) => {
                 onPageSizeChange(Number(e.target.value));
-                onPageChange(1);
+                handlePageChange(1);
               }}
               className="h-8 px-2 rounded-lg border border-border bg-surface text-foreground text-xs focus:outline-none focus:ring-1 focus:ring-brand-800 cursor-pointer"
               aria-label="Cantidad de elementos por página"
@@ -91,10 +177,10 @@ export function Pagination({
         <Button
           variant="outline"
           size="sm"
-          onClick={() => onPageChange(1)}
+          onClick={() => handlePageChange(1)}
           disabled={currentPage === 1}
           aria-label="Ir a la primera página"
-          className="h-8 w-8 p-0"
+          className="h-8 w-8 p-0 cursor-pointer"
         >
           <ChevronsLeft className="w-4 h-4" />
         </Button>
@@ -103,10 +189,10 @@ export function Pagination({
         <Button
           variant="outline"
           size="sm"
-          onClick={() => onPageChange(currentPage - 1)}
+          onClick={() => handlePageChange(currentPage - 1)}
           disabled={currentPage === 1}
           aria-label="Página anterior"
-          className="h-8 w-8 p-0"
+          className="h-8 w-8 p-0 cursor-pointer"
         >
           <ChevronLeft className="w-4 h-4" />
         </Button>
@@ -132,7 +218,7 @@ export function Pagination({
             return (
               <button
                 key={pageNum}
-                onClick={() => onPageChange(pageNum)}
+                onClick={() => handlePageChange(pageNum)}
                 aria-current={isCurrent ? 'page' : undefined}
                 className={`h-8 min-w-[32px] px-2.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
                   isCurrent
@@ -150,10 +236,10 @@ export function Pagination({
         <Button
           variant="outline"
           size="sm"
-          onClick={() => onPageChange(currentPage + 1)}
+          onClick={() => handlePageChange(currentPage + 1)}
           disabled={currentPage === totalPages || totalPages === 0}
           aria-label="Página siguiente"
-          className="h-8 w-8 p-0"
+          className="h-8 w-8 p-0 cursor-pointer"
         >
           <ChevronRight className="w-4 h-4" />
         </Button>
@@ -162,10 +248,10 @@ export function Pagination({
         <Button
           variant="outline"
           size="sm"
-          onClick={() => onPageChange(totalPages)}
+          onClick={() => handlePageChange(totalPages)}
           disabled={currentPage === totalPages || totalPages === 0}
           aria-label="Ir a la última página"
-          className="h-8 w-8 p-0"
+          className="h-8 w-8 p-0 cursor-pointer"
         >
           <ChevronsRight className="w-4 h-4" />
         </Button>

@@ -19,6 +19,8 @@ import Link from 'next/link';
 import { Pagination } from '@/components/ui/Pagination';
 import { CompanyJobModal } from './CompanyJobModal';
 import { DeactivateJobModal } from './DeactivateJobModal';
+import { TableSkeleton } from '@/components/ui/TableSkeleton';
+import { ErrorState } from '@/components/ui/ErrorState';
 
 interface CompanyJobsTableProps {
   ofertas: (Oferta & {
@@ -26,6 +28,7 @@ interface CompanyJobsTableProps {
     ofertas_rubros: { rubro_id: number; rubro: Rubro | null }[];
   })[];
   loading?: boolean;
+  error?: string | null;
   onRefresh: () => void;
   onViewCandidates?: (ofertaId: string) => void;
 }
@@ -33,6 +36,7 @@ interface CompanyJobsTableProps {
 export function CompanyJobsTable({
   ofertas,
   loading,
+  error,
   onRefresh,
   onViewCandidates,
 }: CompanyJobsTableProps) {
@@ -49,16 +53,36 @@ export function CompanyJobsTable({
 
   // Filtros reactivos con contadores (patrón unificado con panel admin)
   type FilterEstado = 'todas' | 'publicada' | 'pendiente_revision' | 'borrador' | 'rechazada' | 'bajas';
-  const [filterEstado, setFilterEstado] = useState<FilterEstado>('todas');
+  const [filterEstado, setFilterEstado] = useState<FilterEstado>('publicada');
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'recientes' | 'antiguas' | 'titulo'>('recientes');
   const [currentPage, setCurrentPage] = useState(1);
-  const PAGE_SIZE = 10;
+  const PAGE_SIZE = 6;
+
+  // Clave local para persistir la última vez que la empresa vio sus ofertas publicadas
+  const LAST_SEEN_PUBLICADAS_KEY = 'portal_empresa_last_seen_publicadas';
+
+  // Identificar si alguna oferta pasó recientemente de "En revisión" a "Publicada" (aprobada por el Municipio)
+  const hasNewlyApprovedJobs = useMemo(() => {
+    if (typeof window === 'undefined') return false;
+    const lastSeen = localStorage.getItem(LAST_SEEN_PUBLICADAS_KEY);
+    const lastSeenTime = lastSeen ? new Date(lastSeen).getTime() : 0;
+
+    return ofertas.some((o) => {
+      if (o.estado !== 'publicada' || !o.fecha_revision || o.deleted_at) return false;
+      const revisionTime = new Date(o.fecha_revision).getTime();
+      return revisionTime > lastSeenTime;
+    });
+  }, [ofertas]);
 
   // Handlers con reset de página
   const handleFilterEstadoChange = (estado: FilterEstado) => {
     setFilterEstado(estado);
     setCurrentPage(1);
+
+    if (estado === 'publicada' && typeof window !== 'undefined') {
+      localStorage.setItem(LAST_SEEN_PUBLICADAS_KEY, new Date().toISOString());
+    }
   };
 
   const handleSearchTermChange = (term: string) => {
@@ -120,6 +144,13 @@ export function CompanyJobsTable({
   const totalPages = Math.ceil(filteredOfertas.length / PAGE_SIZE) || 1;
   const safeCurrentPage = Math.min(currentPage, totalPages);
 
+  // Asegurar que si los filtros reducen el total de páginas, no quede en una página huérfana
+  React.useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
   const paginatedOfertas = useMemo(() => {
     const startIndex = (safeCurrentPage - 1) * PAGE_SIZE;
     return filteredOfertas.slice(startIndex, startIndex + PAGE_SIZE);
@@ -168,10 +199,19 @@ export function CompanyJobsTable({
 
   if (loading) {
     return (
-      <div className="py-12 text-center text-zinc-500">
-        <ClockIcon className="w-8 h-8 mx-auto animate-spin text-brand-600 mb-2" />
-        <p className="text-sm">Cargando búsquedas de la empresa...</p>
+      <div className="bg-white rounded-2xl border border-zinc-200/90 shadow-xs overflow-hidden">
+        <TableSkeleton rows={4} cols={5} />
       </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <ErrorState
+        title="No se pudieron recuperar las ofertas de la empresa"
+        description={error}
+        onRetry={onRefresh}
+      />
     );
   }
 
@@ -203,58 +243,49 @@ export function CompanyJobsTable({
         </div>
       )}
 
-      {/* Barra de Filtros, Búsqueda y Ordenamiento Integrada (Plana como en Mockup) */}
-      <div className="bg-zinc-50/80 rounded-xl p-3 border border-zinc-200 flex flex-col md:flex-row md:items-center justify-between gap-3 mb-5">
+      {/* Barra de Filtros, Búsqueda y Ordenamiento Integrada */}
+      <div className="bg-zinc-50/80 rounded-xl p-2 sm:p-2.5 border border-zinc-200 flex flex-col md:flex-row md:items-center justify-between gap-2.5 mb-3">
         {/* Chips de Estado */}
-        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar text-xs font-bold">
-          <button
-            type="button"
-            onClick={() => handleFilterEstadoChange('todas')}
-            className={`px-3 py-1.5 rounded-lg whitespace-nowrap transition-all cursor-pointer ${
-              filterEstado === 'todas'
-                ? 'bg-brand-900 text-white shadow-xs'
-                : 'bg-white border border-zinc-200 text-zinc-600 hover:bg-zinc-100'
-            }`}
-          >
-            Todas ({counts.todas})
-          </button>
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar text-xs font-bold pb-0.5 md:pb-0">
+          {/* 1. Publicadas */}
           <button
             type="button"
             onClick={() => handleFilterEstadoChange('publicada')}
-            className={`px-3 py-1.5 rounded-lg whitespace-nowrap transition-all cursor-pointer ${
+            className={`px-2.5 py-1 rounded-lg whitespace-nowrap transition-all cursor-pointer inline-flex items-center gap-1.5 ${
               filterEstado === 'publicada'
                 ? 'bg-emerald-700 text-white shadow-xs'
                 : 'bg-white border border-zinc-200 text-zinc-600 hover:bg-zinc-100'
             }`}
           >
-            Publicadas ({counts.publicadas})
+            <span>Publicadas ({counts.publicadas})</span>
+            {hasNewlyApprovedJobs && (
+              <span
+                className={`w-1.5 h-1.5 rounded-full ${
+                  filterEstado === 'publicada' ? 'bg-emerald-300' : 'bg-emerald-500 animate-pulse'
+                }`}
+                title="Tenés búsquedas aprobadas por el Municipio recientemente"
+              />
+            )}
           </button>
+
+          {/* 2. En revisión */}
           <button
             type="button"
             onClick={() => handleFilterEstadoChange('pendiente_revision')}
-            className={`px-3 py-1.5 rounded-lg whitespace-nowrap transition-all cursor-pointer ${
+            className={`px-2.5 py-1 rounded-lg whitespace-nowrap transition-all cursor-pointer ${
               filterEstado === 'pendiente_revision'
                 ? 'bg-amber-600 text-white shadow-xs'
                 : 'bg-white border border-zinc-200 text-zinc-600 hover:bg-zinc-100'
             }`}
           >
-            Pendientes de Revisión ({counts.pendientes})
+            En revisión ({counts.pendientes})
           </button>
-          <button
-            type="button"
-            onClick={() => handleFilterEstadoChange('borrador')}
-            className={`px-3 py-1.5 rounded-lg whitespace-nowrap transition-all cursor-pointer ${
-              filterEstado === 'borrador'
-                ? 'bg-zinc-700 text-white shadow-xs'
-                : 'bg-white border border-zinc-200 text-zinc-600 hover:bg-zinc-100'
-            }`}
-          >
-            Borradores ({counts.borradores})
-          </button>
+
+          {/* 3. Rechazadas */}
           <button
             type="button"
             onClick={() => handleFilterEstadoChange('rechazada')}
-            className={`px-3 py-1.5 rounded-lg whitespace-nowrap transition-all cursor-pointer ${
+            className={`px-2.5 py-1 rounded-lg whitespace-nowrap transition-all cursor-pointer ${
               filterEstado === 'rechazada'
                 ? 'bg-rose-700 text-white shadow-xs'
                 : 'bg-white border border-zinc-200 text-zinc-600 hover:bg-zinc-100'
@@ -262,33 +293,61 @@ export function CompanyJobsTable({
           >
             Rechazadas ({counts.rechazadas})
           </button>
+
+          {/* 4. Borradores */}
+          <button
+            type="button"
+            onClick={() => handleFilterEstadoChange('borrador')}
+            className={`px-2.5 py-1 rounded-lg whitespace-nowrap transition-all cursor-pointer ${
+              filterEstado === 'borrador'
+                ? 'bg-zinc-700 text-white shadow-xs'
+                : 'bg-white border border-zinc-200 text-zinc-600 hover:bg-zinc-100'
+            }`}
+          >
+            Borradores ({counts.borradores})
+          </button>
+
+          {/* 5. Baja */}
           <button
             type="button"
             onClick={() => handleFilterEstadoChange('bajas')}
-            className={`px-3 py-1.5 rounded-lg whitespace-nowrap transition-all cursor-pointer ${
+            className={`px-2.5 py-1 rounded-lg whitespace-nowrap transition-all cursor-pointer ${
               filterEstado === 'bajas'
                 ? 'bg-zinc-800 text-white shadow-xs'
                 : 'bg-white border border-zinc-200 text-zinc-600 hover:bg-zinc-100'
             }`}
           >
-            Dadas de baja ({counts.bajas})
+            Baja ({counts.bajas})
+          </button>
+
+          {/* 6. Todas */}
+          <button
+            type="button"
+            onClick={() => handleFilterEstadoChange('todas')}
+            className={`px-2.5 py-1 rounded-lg whitespace-nowrap transition-all cursor-pointer ${
+              filterEstado === 'todas'
+                ? 'bg-brand-900 text-white shadow-xs'
+                : 'bg-white border border-zinc-200 text-zinc-600 hover:bg-zinc-100'
+            }`}
+          >
+            Todas ({counts.todas})
           </button>
         </div>
 
         {/* Buscador y Selector de Orden */}
         <div className="flex items-center gap-2">
-          <div className="relative">
+          <div className="relative flex-1 sm:flex-initial">
             <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => handleSearchTermChange(e.target.value)}
               placeholder="Buscar por puesto o rubro..."
-              className="text-xs pl-8 pr-3 py-1.5 rounded-lg border border-zinc-200 bg-white w-60 focus:outline-brand-800"
+              className="text-xs pl-8 pr-3 py-1 h-7.5 rounded-lg border border-zinc-200 bg-white w-full sm:w-52 focus:outline-brand-800"
             />
           </div>
 
-          <div className="flex items-center gap-1.5 bg-white px-2.5 h-8.5 rounded-xl border border-zinc-200 text-xs shrink-0 shadow-2xs">
+          <div className="flex items-center gap-1.5 bg-white px-2.5 h-7.5 rounded-lg border border-zinc-200 text-xs shrink-0 shadow-2xs">
             <ArrowUpDown className="w-3.5 h-3.5 text-zinc-500" />
             <span className="text-zinc-500 font-medium hidden sm:inline">Orden:</span>
             <select

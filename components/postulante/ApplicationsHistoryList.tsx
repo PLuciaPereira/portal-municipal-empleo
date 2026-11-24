@@ -31,6 +31,9 @@ import {
   ArrowUpDown,
 } from 'lucide-react';
 
+import { TableSkeleton } from '@/components/ui/TableSkeleton';
+import { Skeleton } from '@/components/ui/Skeleton';
+
 export type FilterEstadoPostulacion = 'todas' | 'postulado' | 'en_revision' | 'contratado' | 'rechazado';
 
 export interface ApplicationsHistoryListProps {
@@ -165,9 +168,6 @@ export const ApplicationsHistoryList: React.FC<ApplicationsHistoryListProps> = (
 
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
-    if (typeof window !== 'undefined') {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
   };
 
   const handleOpenCvSnapshot = async (app: PostulacionConDetalle) => {
@@ -392,9 +392,25 @@ export const ApplicationsHistoryList: React.FC<ApplicationsHistoryListProps> = (
       )}
 
       {isLoading ? (
-        <div className="space-y-4 py-6">
-          <div className="h-44 rounded-2xl bg-zinc-100 animate-pulse" />
-          <div className="h-44 rounded-2xl bg-zinc-100 animate-pulse" />
+        <div className="space-y-4 py-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div
+              key={`app-skel-${i}`}
+              className="bg-white border border-zinc-200/90 rounded-2xl p-5 sm:p-6 shadow-2xs space-y-4"
+            >
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="space-y-2 flex-1">
+                  <Skeleton className="h-5 w-1/3 rounded-lg" />
+                  <Skeleton className="h-4 w-1/4 rounded-md bg-zinc-100" />
+                </div>
+                <Skeleton className="h-7 w-28 rounded-full" />
+              </div>
+              <div className="pt-2 flex items-center gap-3">
+                <Skeleton className="h-4 w-24 rounded-md" />
+                <Skeleton className="h-4 w-32 rounded-md" />
+              </div>
+            </div>
+          ))}
         </div>
       ) : applications.length === 0 ? (
         <div className="mt-6">

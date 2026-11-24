@@ -19,6 +19,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Pagination } from '@/components/ui/Pagination';
+import { TableSkeleton } from '@/components/ui/TableSkeleton';
 import {
   GraduationCap,
   Plus,
@@ -58,7 +59,7 @@ export function CoursesManager() {
   const [filtroEstadoCurso, setFiltroEstadoCurso] = useState<'activos' | 'inactivos' | 'todos'>('todos');
   const [sortCurso, setSortCurso] = useState<'recientes' | 'antiguas' | 'titulo'>('recientes');
   const [pageCursos, setPageCursos] = useState<number>(1);
-  const PAGE_SIZE_CURSOS = 9;
+  const PAGE_SIZE_CURSOS = 5;
 
   // Resetear página de cursos al cambiar filtros o criterio de orden
   useEffect(() => {
@@ -73,7 +74,7 @@ export function CoursesManager() {
   const [filtroEstadoAsignacion, setFiltroEstadoAsignacion] = useState<EstadoPostulanteCurso | 'todos'>('todos');
   const [sortAsignacion, setSortAsignacion] = useState<'recientes' | 'antiguas' | 'titulo'>('recientes');
   const [pageAsignaciones, setPageAsignaciones] = useState<number>(1);
-  const PAGE_SIZE_ASIGNACIONES = 12;
+  const PAGE_SIZE_ASIGNACIONES = 5;
 
   // Resetear página de asignaciones al cambiar filtros o criterio de orden
   useEffect(() => {
@@ -298,7 +299,7 @@ export function CoursesManager() {
       )}
 
       {/* Subnavegación Interna */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-200 pb-4">
+      <div id="courses-section-header" className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-200 pb-4">
         <div className="flex items-center gap-2">
           <button
             onClick={() => setSubTab('catalogo')}
@@ -379,16 +380,16 @@ export function CoursesManager() {
       {subTab === 'catalogo' && (
         <div className="space-y-4">
           {/* Barra de Filtros de Cursos */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 bg-white p-3 rounded-2xl border border-zinc-200/80 shadow-2xs">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 bg-white p-2.5 sm:p-3 rounded-xl border border-zinc-200/80 shadow-2xs mb-3">
             <div className="flex-1 relative">
               <Input
                 type="text"
                 placeholder="Buscar por título, temática o institución formadora..."
                 value={searchCurso}
                 onChange={(e) => setSearchCurso(e.target.value)}
-                className="pl-8 text-xs h-10"
+                className="pl-8 text-xs h-8"
               />
-              <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-2.5 top-3.5 pointer-events-none" />
+              <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
@@ -397,14 +398,14 @@ export function CoursesManager() {
                 onChange={(e) =>
                   setFiltroEstadoCurso(e.target.value as 'activos' | 'inactivos' | 'todos')
                 }
-                className="h-10 text-xs rounded-xl border border-zinc-200 bg-white px-2.5 text-zinc-700 focus:outline-hidden focus:border-brand-500 font-medium"
+                className="h-8 text-xs rounded-lg border border-zinc-200 bg-white px-2 text-zinc-700 focus:outline-hidden focus:border-brand-500 font-medium cursor-pointer"
               >
                 <option value="todos">Todos los cursos</option>
                 <option value="activos">Solo activos ({totalActivos})</option>
                 <option value="inactivos">Inactivos / Desactivados</option>
               </select>
 
-              <div className="flex items-center gap-1.5 bg-zinc-50 px-2.5 h-10 rounded-xl border border-zinc-200 text-xs shrink-0">
+              <div className="flex items-center gap-1.5 bg-zinc-50 px-2 h-8 rounded-lg border border-zinc-200 text-xs shrink-0">
                 <ArrowUpDown className="w-3.5 h-3.5 text-zinc-500" />
                 <span className="text-zinc-500 font-medium hidden sm:inline">Orden:</span>
                 <select
@@ -422,9 +423,8 @@ export function CoursesManager() {
 
           {/* Listado de Cursos */}
           {loadingCursos ? (
-            <div className="bg-white rounded-2xl border border-zinc-200 p-12 text-center text-zinc-500 text-xs flex items-center justify-center gap-2">
-              <RefreshCw className="w-4 h-4 animate-spin text-brand-800" />
-              Cargando catálogo formativo...
+            <div className="bg-white rounded-2xl border border-zinc-200 shadow-xs overflow-hidden">
+              <TableSkeleton rows={4} cols={5} />
             </div>
           ) : cursos.length === 0 ? (
             <div className="bg-white rounded-2xl border border-dashed border-zinc-300 p-12 text-center space-y-3">
@@ -548,6 +548,7 @@ export function CoursesManager() {
                     totalItems={sortedCursos.length}
                     pageSize={PAGE_SIZE_CURSOS}
                     onPageChange={setPageCursos}
+                    scrollTargetSelector="#courses-section-header"
                   />
                 </div>
               )}
@@ -562,23 +563,23 @@ export function CoursesManager() {
       {subTab === 'derivaciones' && (
         <div className="space-y-4">
           {/* Barra de Filtros de Derivaciones */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 bg-white p-3 rounded-2xl border border-zinc-200/80 shadow-2xs">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 bg-white p-2.5 sm:p-3 rounded-xl border border-zinc-200/80 shadow-2xs mb-3">
             <div className="flex-1 relative">
               <Input
                 type="text"
                 placeholder="Buscar por alumno, DNI o curso..."
                 value={searchAsignacion}
                 onChange={(e) => setSearchAsignacion(e.target.value)}
-                className="pl-8 text-xs h-10"
+                className="pl-8 text-xs h-8"
               />
-              <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-2.5 top-3.5 pointer-events-none" />
+              <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
               <select
                 value={filtroCursoAsignacion}
                 onChange={(e) => setFiltroCursoAsignacion(e.target.value)}
-                className="h-10 text-xs rounded-xl border border-zinc-200 bg-white px-2.5 text-zinc-700 focus:outline-hidden focus:border-brand-500 font-medium"
+                className="h-8 text-xs rounded-lg border border-zinc-200 bg-white px-2 text-zinc-700 focus:outline-hidden focus:border-brand-500 font-medium cursor-pointer"
               >
                 <option value="todos">Todos los cursos</option>
                 {cursos.map((c) => (
@@ -593,7 +594,7 @@ export function CoursesManager() {
                 onChange={(e) =>
                   setFiltroEstadoAsignacion(e.target.value as EstadoPostulanteCurso | 'todos')
                 }
-                className="h-10 text-xs rounded-xl border border-zinc-200 bg-white px-2.5 text-zinc-700 focus:outline-hidden focus:border-brand-500 font-medium"
+                className="h-8 text-xs rounded-lg border border-zinc-200 bg-white px-2 text-zinc-700 focus:outline-hidden focus:border-brand-500 font-medium cursor-pointer"
               >
                 <option value="todos">Todos los estados</option>
                 <option value="asignado">Asignados</option>
@@ -603,7 +604,7 @@ export function CoursesManager() {
                 <option value="cancelado">Cancelados</option>
               </select>
 
-              <div className="flex items-center gap-1.5 bg-zinc-50 px-2.5 h-10 rounded-xl border border-zinc-200 text-xs shrink-0">
+              <div className="flex items-center gap-1.5 bg-zinc-50 px-2 h-8 rounded-lg border border-zinc-200 text-xs shrink-0">
                 <ArrowUpDown className="w-3.5 h-3.5 text-zinc-500" />
                 <span className="text-zinc-500 font-medium hidden sm:inline">Orden:</span>
                 <select
@@ -621,9 +622,8 @@ export function CoursesManager() {
 
           {/* Tabla de Alumnos / Derivaciones */}
           {loadingAsignaciones ? (
-            <div className="bg-white rounded-2xl border border-zinc-200 p-12 text-center text-zinc-500 text-xs flex items-center justify-center gap-2">
-              <RefreshCw className="w-4 h-4 animate-spin text-brand-800" />
-              Cargando historial de derivaciones formativas...
+            <div className="bg-white rounded-2xl border border-zinc-200 shadow-xs overflow-hidden">
+              <TableSkeleton rows={4} cols={5} />
             </div>
           ) : asignaciones.length === 0 ? (
             <div className="bg-white rounded-2xl border border-dashed border-zinc-300 p-12 text-center space-y-3">
@@ -744,6 +744,7 @@ export function CoursesManager() {
                     totalItems={sortedAsignaciones.length}
                     pageSize={PAGE_SIZE_ASIGNACIONES}
                     onPageChange={setPageAsignaciones}
+                    scrollTargetSelector="#courses-section-header"
                   />
                 </div>
               )}

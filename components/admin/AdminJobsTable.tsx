@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Pagination } from '@/components/ui/Pagination';
+import { TableSkeleton } from '@/components/ui/TableSkeleton';
 import {
   Briefcase,
   Search,
@@ -50,11 +51,11 @@ export function AdminJobsTable({
   onRefresh,
   onSelectOfertaPostulaciones,
 }: AdminJobsTableProps) {
-  const [filterEstado, setFilterEstado] = useState<FilterEstado>('todas');
+  const [filterEstado, setFilterEstado] = useState<FilterEstado>('pendiente_revision');
   const [searchTerm, setSearchTerm] = useState('');
   const [sortOrder, setSortOrder] = useState<'recientes' | 'antiguas' | 'titulo'>('recientes');
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const PAGE_SIZE = 15;
+  const PAGE_SIZE = 5;
 
   // Resetear a primera página al cambiar filtros o criterio de orden
   useEffect(() => {
@@ -326,37 +327,47 @@ export function AdminJobsTable({
       )}
 
       {/* Barra de Filtros y Búsqueda */}
-      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-zinc-200 shadow-xs">
+      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2.5 bg-white p-2.5 sm:p-3 rounded-xl border border-zinc-200 shadow-xs mb-3">
         {/* Pestañas de estado */}
-        <div className="flex items-center gap-1.5 p-1 bg-zinc-100 rounded-xl overflow-x-auto shrink-0">
-          <button
-            onClick={() => setFilterEstado('todas')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${
-              filterEstado === 'todas'
-                ? 'bg-white text-zinc-900 shadow-xs'
-                : 'text-zinc-600 hover:text-zinc-900'
-            }`}
-          >
-            Todas ({counts.todas})
-          </button>
-
+        <div className="flex items-center gap-1.5 p-1 bg-zinc-100 rounded-lg overflow-x-auto shrink-0">
           <button
             onClick={() => setFilterEstado('pendiente_revision')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 ${
+            className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
               filterEstado === 'pendiente_revision'
-                ? 'bg-amber-100/80 text-amber-900 shadow-xs'
+                ? counts.pendientes > 0
+                  ? 'bg-amber-100/90 text-amber-950 font-bold border border-amber-300/80 shadow-xs ring-1 ring-amber-400/20'
+                  : 'bg-white text-zinc-900 shadow-xs'
+                : counts.pendientes > 0
+                ? 'bg-amber-50/80 text-amber-900 hover:bg-amber-100/80 border border-amber-200/70'
                 : 'text-zinc-600 hover:text-zinc-900'
             }`}
           >
-            <Clock className="w-3.5 h-3.5 text-amber-600" />
-            Pendientes ({counts.pendientes})
+            <Clock
+              className={`w-3.5 h-3.5 ${
+                counts.pendientes > 0 ? 'text-amber-700' : 'text-zinc-500'
+              }`}
+            />
+            <span>Pendientes</span>
+            {counts.pendientes > 0 ? (
+              <span
+                className={`px-1.5 py-0.2 rounded-full text-[10px] font-extrabold shadow-2xs ${
+                  filterEstado === 'pendiente_revision'
+                    ? 'bg-amber-500 text-white'
+                    : 'bg-amber-200 text-amber-950'
+                }`}
+              >
+                {counts.pendientes}
+              </span>
+            ) : (
+              <span className="text-zinc-400 font-normal">({counts.pendientes})</span>
+            )}
           </button>
 
           <button
             onClick={() => setFilterEstado('publicada')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 ${
+            className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
               filterEstado === 'publicada'
-                ? 'bg-emerald-100/80 text-emerald-900 shadow-xs'
+                ? 'bg-white text-zinc-900 shadow-xs'
                 : 'text-zinc-600 hover:text-zinc-900'
             }`}
           >
@@ -366,9 +377,9 @@ export function AdminJobsTable({
 
           <button
             onClick={() => setFilterEstado('rechazada')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 ${
+            className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
               filterEstado === 'rechazada'
-                ? 'bg-rose-100/80 text-rose-900 shadow-xs'
+                ? 'bg-white text-zinc-900 shadow-xs'
                 : 'text-zinc-600 hover:text-zinc-900'
             }`}
           >
@@ -378,30 +389,41 @@ export function AdminJobsTable({
 
           <button
             onClick={() => setFilterEstado('bajas')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 ${
+            className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
               filterEstado === 'bajas'
-                ? 'bg-zinc-200 text-zinc-900 shadow-xs'
+                ? 'bg-white text-zinc-900 shadow-xs'
                 : 'text-zinc-600 hover:text-zinc-900'
             }`}
           >
             <BadgeAlert className="w-3.5 h-3.5 text-zinc-600" />
             Dadas de Baja ({counts.bajas})
           </button>
+
+          <button
+            onClick={() => setFilterEstado('todas')}
+            className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
+              filterEstado === 'todas'
+                ? 'bg-white text-zinc-900 shadow-xs'
+                : 'text-zinc-600 hover:text-zinc-900'
+            }`}
+          >
+            Todas ({counts.todas})
+          </button>
         </div>
 
         {/* Buscador y Selector Compacto de Orden */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 flex-1 max-w-xl">
           <div className="relative flex-1">
-            <Search className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
             <Input
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Buscar por puesto, empresa, rubro, requisitos o localidad..."
-              className="pl-9 h-10 text-xs w-full bg-zinc-50 border-zinc-200"
+              className="pl-8 h-8 text-xs w-full bg-zinc-50 border-zinc-200"
             />
           </div>
 
-          <div className="flex items-center gap-1.5 bg-zinc-50 px-2.5 h-10 rounded-xl border border-zinc-200 text-xs shrink-0">
+          <div className="flex items-center gap-1.5 bg-zinc-50 px-2 h-8 rounded-lg border border-zinc-200 text-xs shrink-0">
             <ArrowUpDown className="w-3.5 h-3.5 text-zinc-500" />
             <span className="text-zinc-500 font-medium hidden sm:inline">Orden:</span>
             <select
@@ -420,10 +442,7 @@ export function AdminJobsTable({
       {/* Tabla de Ofertas */}
       <div className="bg-white rounded-2xl border border-zinc-200 shadow-xs overflow-hidden">
         {loading ? (
-          <div className="p-12 text-center text-zinc-500 text-sm space-y-3">
-            <div className="w-8 h-8 border-2 border-brand-800 border-t-transparent rounded-full animate-spin mx-auto" />
-            <p>Cargando padrón de ofertas laborales...</p>
-          </div>
+          <TableSkeleton rows={5} cols={5} />
         ) : filteredOfertas.length === 0 ? (
           <div className="p-8">
             <EmptyState

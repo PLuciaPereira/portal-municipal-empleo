@@ -21,6 +21,7 @@ import { CompanyJobsTable } from '@/components/empresa/CompanyJobsTable';
 import { CandidatesTable } from '@/components/empresa/CandidatesTable';
 import { CompanyJobModal } from '@/components/empresa/CompanyJobModal';
 import { CompanyProfileEditModal } from '@/components/empresa/CompanyProfileEditModal';
+import { CompanyVerificationAlert } from '@/components/empresa/CompanyVerificationAlert';
 import {
   Building2,
   Briefcase,
@@ -32,6 +33,7 @@ import {
   MapPin,
   Globe,
   Camera,
+  ArrowLeft,
 } from 'lucide-react';
 
 type TabKey = 'perfil' | 'ofertas' | 'candidatos';
@@ -80,24 +82,13 @@ function EmpresaDashboardContent() {
   const isRechazada = estado === 'rechazada';
   const isStateReady = !authLoading && Boolean(displayEmpresa);
 
-  const [loadingOfertas, setLoadingOfertas] = useState(() => isAprobada);
-  const [loadingCandidatos, setLoadingCandidatos] = useState(() => isAprobada);
+  const [loadingOfertas, setLoadingOfertas] = useState(true);
+  const [loadingCandidatos, setLoadingCandidatos] = useState(true);
+  const [errorOfertas, setErrorOfertas] = useState<string | null>(null);
+  const [errorCandidatos, setErrorCandidatos] = useState<string | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
   const [isReenvioModal, setIsReenvioModal] = useState(false);
-
-  // Reaccionar a cambios en query param ?tab= y ?candidatoId= (ej. enlaces directos desde notificaciones)
-  useEffect(() => {
-    const tabParam = searchParams.get('tab');
-    const candidatoIdParam = searchParams.get('candidatoId');
-
-    // Si viene candidatoId o tab=candidatos, abrir directamente la pestaña de candidatos
-    if (candidatoIdParam || tabParam === 'candidatos') {
-      setActiveTab('candidatos');
-    } else if (tabParam === 'ofertas' || tabParam === 'perfil') {
-      setActiveTab(tabParam);
-    }
-  }, [searchParams]);
 
   const targetCandidatoId = searchParams.get('candidatoId');
 
@@ -110,38 +101,107 @@ function EmpresaDashboardContent() {
   }, []);
 
   const loadOfertas = useCallback(async () => {
-    if (!isAprobada) return;
+    if (!isAprobada) {
+      setLoadingOfertas(false);
+      return;
+    }
     setLoadingOfertas(true);
-    const res = await getMisOfertasEmpresa();
-    if (res.data) setOfertas(res.data);
-    setLoadingOfertas(false);
+    setErrorOfertas(null);
+    try {
+      const res = await getMisOfertasEmpresa();
+      if (res.error) {
+        setErrorOfertas(res.error);
+      } else if (res.data) {
+        setOfertas(res.data);
+      }
+    } catch (err: unknown) {
+      setErrorOfertas(err instanceof Error ? err.message : 'Error al cargar ofertas');
+    } finally {
+      setLoadingOfertas(false);
+    }
   }, [isAprobada]);
 
   const loadCandidatos = useCallback(
     async (ofertaId?: string) => {
-      if (!isAprobada) return;
+      if (!isAprobada) {
+        setLoadingCandidatos(false);
+        return;
+      }
       setLoadingCandidatos(true);
-      const res = await getCandidatosPresentados(ofertaId);
-      if (res.data) setCandidatos(res.data);
-      setLoadingCandidatos(false);
+      setErrorCandidatos(null);
+      try {
+        const res = await getCandidatosPresentados(ofertaId);
+        if (res.error) {
+          setErrorCandidatos(res.error);
+        } else if (res.data) {
+          setCandidatos(res.data);
+        }
+      } catch (err: unknown) {
+        setErrorCandidatos(err instanceof Error ? err.message : 'Error al cargar candidatos');
+      } finally {
+        setLoadingCandidatos(false);
+      }
     },
     [isAprobada]
   );
 
+  // Reaccionar a cambios en query param ?tab=, ?ofertaId= y ?candidatoId= (ej. enlaces directos desde notificaciones o navegación limpia)
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    const ofertaIdParam = searchParams.get('ofertaId');
+    const candidatoIdParam = searchParams.get('candidatoId');
+
+    // Si viene candidatoId o tab=candidatos, abrir la pestaña de candidatos
+    if (candidatoIdParam || tabParam === 'candidatos') {
+      setActiveTab('candidatos');
+      if (ofertaIdParam) {
+        // Ingreso específico filtrado por oferta
+        setFilterOfertaId(ofertaIdParam);
+        loadCandidatos(ofertaIdParam);
+      } else {
+        // Ingreso general a Candidatos: limpiar cualquier filtro previo de oferta y cargar todos
+        setFilterOfertaId(null);
+        loadCandidatos();
+      }
+    } else if (tabParam === 'ofertas' || tabParam === 'perfil') {
+      setActiveTab(tabParam);
+      // Al cambiar a otra pestaña, limpiar el filtro para que no se propague
+      setFilterOfertaId(null);
+    }
+  }, [searchParams, loadCandidatos]);
+
 
   useEffect(() => {
-    if (!isAprobada) return;
-    let isMounted = true;
-    const init = async () => {
-      const [resOfertas, resCandidatos] = await Promise.all([
-        getMisOfertasEmpresa(),
-        getCandidatosPresentados(),
-      ]);
-      if (!isMounted) return;
-      if (resOfertas.data) setOfertas(resOfertas.data);
-      if (resCandidatos.data) setCandidatos(resCandidatos.data);
+    if (!isAprobada) {
       setLoadingOfertas(false);
       setLoadingCandidatos(false);
+      return;
+    }
+    let isMounted = true;
+    const init = async () => {
+      setErrorOfertas(null);
+      setErrorCandidatos(null);
+      try {
+        const [resOfertas, resCandidatos] = await Promise.all([
+          getMisOfertasEmpresa(),
+          getCandidatosPresentados(),
+        ]);
+        if (!isMounted) return;
+        if (resOfertas.error) setErrorOfertas(resOfertas.error);
+        else if (resOfertas.data) setOfertas(resOfertas.data);
+
+        if (resCandidatos.error) setErrorCandidatos(resCandidatos.error);
+        else if (resCandidatos.data) setCandidatos(resCandidatos.data);
+      } catch (err: unknown) {
+        if (!isMounted) return;
+        setErrorOfertas(err instanceof Error ? err.message : 'Error inesperado');
+        setErrorCandidatos(err instanceof Error ? err.message : 'Error inesperado');
+      } finally {
+        if (isMounted) {
+          setLoadingOfertas(false);
+          setLoadingCandidatos(false);
+        }
+      }
     };
     void init();
     return () => {
@@ -158,12 +218,24 @@ function EmpresaDashboardContent() {
     setFilterOfertaId(ofertaId);
     setActiveTab('candidatos');
     loadCandidatos(ofertaId);
+    router.push(`/empresa?tab=candidatos&ofertaId=${ofertaId}`);
   };
 
   const handleClearCandidatesFilter = () => {
     setFilterOfertaId(null);
     loadCandidatos();
+    router.replace('/empresa?tab=candidatos');
   };
+
+  const handleBackToOfertas = () => {
+    setFilterOfertaId(null);
+    setActiveTab('ofertas');
+    router.replace('/empresa?tab=ofertas');
+  };
+
+  const selectedOferta = filterOfertaId
+    ? ofertas.find((o) => o.id === filterOfertaId)
+    : null;
 
   
   const handleDirectLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -275,6 +347,18 @@ function EmpresaDashboardContent() {
         </section>
       )}
 
+      {/* Avisos de Estado Diferenciados como barra superior continua (Neutro durante carga para evitar parpadeo) */}
+      {isStateReady && (
+        <CompanyVerificationAlert
+          estado={estado}
+          motivoRechazo={displayEmpresa?.motivo_rechazo}
+          onReenviarClick={() => {
+            setIsReenvioModal(true);
+            setIsEditProfileOpen(true);
+          }}
+        />
+      )}
+
       {/* Alerta destacada si hay candidatos derivados sin gestionar (Compacta, sin ícono y con padding alineado) */}
       {isAprobada && activeCandidatesCount > 0 && (
         <div className="bg-amber-50/90 border-b border-amber-200/80 px-4 sm:px-6 lg:px-8 xl:px-10 py-2">
@@ -296,54 +380,6 @@ function EmpresaDashboardContent() {
 
       {/* 3. Contenedor de Contenido Principal Full-Width (hasta 1600px) */}
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 py-6 sm:py-8 w-full flex-1 space-y-6">
-        {/* Avisos de Estado Diferenciados (Neutro durante carga para evitar parpadeo) */}
-        {!isStateReady ? null : isRechazada ? (
-          <div className="mb-6 p-5 bg-rose-50 border border-rose-200 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 text-xs sm:text-sm text-rose-950 shadow-xs">
-            <div className="flex items-start gap-3.5">
-              <XCircleIcon className="w-6 h-6 text-rose-600 shrink-0 mt-0.5" />
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <h2 className="font-bold text-rose-900 text-sm sm:text-base">
-                    Solicitud de habilitación observada / rechazada
-                  </h2>
-                </div>
-                {displayEmpresa?.motivo_rechazo && (
-                  <p className="text-xs text-rose-900 bg-white/80 p-2.5 rounded-xl border border-rose-200/90 leading-relaxed font-sans">
-                    <strong>Motivo informado por la Oficina de Empleo:</strong> {displayEmpresa.motivo_rechazo}
-                  </p>
-                )}
-                <p className="text-xs text-rose-800 leading-relaxed">
-                  Podés revisar y corregir tus datos comerciales para volver a solicitar la habilitación municipal ante la Oficina de Empleo.
-                </p>
-              </div>
-            </div>
-            <div className="shrink-0 flex items-center gap-2 self-end md:self-center">
-              <button
-                type="button"
-                onClick={() => {
-                  setIsReenvioModal(true);
-                  setIsEditProfileOpen(true);
-                }}
-                className="px-4 py-2.5 rounded-xl bg-rose-700 hover:bg-rose-800 text-white font-bold text-xs inline-flex items-center gap-2 shadow-xs transition-colors cursor-pointer"
-              >
-                <Edit3 className="w-3.5 h-3.5" />
-                <span>Corregir datos y reenviar solicitud</span>
-              </button>
-            </div>
-          </div>
-        ) : isPendiente ? (
-          <div className="mb-6 p-5 bg-amber-50 border border-amber-200 rounded-2xl flex items-start gap-4 text-xs sm:text-sm text-amber-950 shadow-xs">
-            <ClockIcon className="w-6 h-6 text-amber-700 shrink-0 mt-0.5" />
-            <div className="space-y-1">
-              <h2 className="font-bold text-amber-900 text-sm sm:text-base">
-                Cuenta en proceso de verificación por la Oficina de Empleo de Funes
-              </h2>
-              <p className="text-xs sm:text-sm text-amber-800 leading-relaxed">
-                El equipo municipal de intermediación está revisando los datos comerciales de tu empresa (CUIT: <strong>{displayEmpresa?.cuit || 'Pendiente'}</strong>). Una vez confirmada tu habilitación, podrás crear búsquedas laborales y recibir postulantes preseleccionados idóneos.
-              </p>
-            </div>
-          </div>
-        ) : null}
 
         {/* ============================================================== */}
         {/* PESTAÑA 1: PERFIL DE EMPRESA (HOJA CONTINUA - FULL WIDTH)      */}
@@ -469,8 +505,8 @@ function EmpresaDashboardContent() {
         {/* PESTAÑA 2: MIS OFERTAS LABORALES                               */}
         {/* ============================================================== */}
         {activeTab === 'ofertas' && (
-          <div className="space-y-6 w-full">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-1">
+          <div className="space-y-3.5 w-full">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
               <div>
                 <h2 className="text-xl font-extrabold text-[#10231B] font-sans">
                   Mis búsquedas laborales
@@ -483,17 +519,18 @@ function EmpresaDashboardContent() {
               {isAprobada && (
                 <Link
                   href="/empresa/ofertas/nueva"
-                  className="px-5 py-2.5 rounded-full bg-[#0E4D36] hover:bg-[#06402B] text-white font-bold text-xs sm:text-sm inline-flex items-center gap-2 transition-all cursor-pointer shadow-xs self-start sm:self-auto"
+                  className="h-8 px-3 rounded-xl border border-zinc-200 bg-white hover:bg-zinc-50 text-zinc-800 font-bold text-xs inline-flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer self-start sm:self-auto shrink-0"
                 >
-                  <PlusIcon className="w-4 h-4" />
-                  Nueva oferta
+                  <PlusIcon className="w-3.5 h-3.5 text-brand-800" />
+                  <span>Nueva oferta</span>
                 </Link>
               )}
             </div>
 
             <CompanyJobsTable
               ofertas={ofertas}
-              loading={loadingOfertas}
+              loading={authLoading || loadingOfertas}
+              error={errorOfertas}
               onRefresh={loadOfertas}
               onViewCandidates={handleSelectOfertaCandidates}
             />
@@ -504,34 +541,58 @@ function EmpresaDashboardContent() {
         {/* PESTAÑA 3: CANDIDATOS DERIVADOS                                */}
         {/* ============================================================== */}
         {activeTab === 'candidatos' && (
-          <div className="space-y-6 w-full">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-1">
-              <div>
-                <h2 className="text-xl font-extrabold text-[#10231B] font-sans">
-                  Candidatos Derivados por la Oficina de Empleo
-                </h2>
-                <p className="text-xs sm:text-sm text-[#4B6256] mt-0.5">
-                  Evaluá los perfiles y CVs presentados. Podés confirmar la contratación o registrar un rechazo con motivo para el Municipio.
-                </p>
-              </div>
-
+          <div className="space-y-3.5 w-full">
+            <div className="flex flex-col gap-2">
+              {/* Botón de regreso: visible ÚNICAMENTE si se ingresó a partir de una oferta seleccionada */}
               {filterOfertaId && (
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">Filtrado por oferta</span>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={handleClearCandidatesFilter}
+                <div>
+                  <button
+                    type="button"
+                    onClick={handleBackToOfertas}
+                    className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-zinc-600 hover:text-zinc-900 transition-colors py-1 cursor-pointer group"
                   >
-                    Ver todos
-                  </Button>
+                    <ArrowLeft className="w-4 h-4 text-zinc-500 group-hover:text-zinc-800 transition-colors" />
+                    <span>Volver a mis búsquedas laborales</span>
+                  </button>
                 </div>
               )}
+
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    <h2 className="text-xl font-extrabold text-[#10231B] font-sans">
+                      Candidatos Derivados por la Oficina de Empleo
+                    </h2>
+                    {selectedOferta && (
+                      <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200/80 font-bold">
+                        Búsqueda: {selectedOferta.titulo}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs sm:text-sm text-[#4B6256] mt-0.5">
+                    Evaluá los perfiles y CVs presentados. Podés confirmar la contratación o registrar un rechazo con motivo para el Municipio.
+                  </p>
+                </div>
+
+                {filterOfertaId && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground">Filtrado por oferta</span>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={handleClearCandidatesFilter}
+                    >
+                      Ver todos
+                    </Button>
+                  </div>
+                )}
+              </div>
             </div>
 
             <CandidatesTable
               candidatos={candidatos}
-              loading={loadingCandidatos}
+              loading={authLoading || loadingCandidatos}
+              error={errorCandidatos}
               highlightCandidateId={targetCandidatoId}
               onRefresh={() => loadCandidatos(filterOfertaId || undefined)}
             />

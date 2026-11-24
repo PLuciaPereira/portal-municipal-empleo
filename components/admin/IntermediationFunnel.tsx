@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import { getLocalidades, LOCALIDADES_CANONICAS_DEFAULT } from '@/lib/localidades';
+import type { Localidad } from '@/types/database';
 import {
   OfertaAdminItem,
   PostulacionAdminItem,
@@ -20,6 +22,7 @@ import { Input } from '@/components/ui/Input';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Badge } from '@/components/ui/Badge';
 import { Pagination } from '@/components/ui/Pagination';
+import { TableSkeleton } from '@/components/ui/TableSkeleton';
 import {
   ArrowLeft,
   Building2,
@@ -63,7 +66,7 @@ export function IntermediationFunnel({
   const [sortOrder, setSortOrder] = useState<'recientes' | 'antiguas' | 'titulo'>('recientes');
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const PAGE_SIZE = 15;
+  const PAGE_SIZE = 5;
 
   // Resetear a primera página al cambiar filtros o criterio de orden
   useEffect(() => {
@@ -108,16 +111,24 @@ export function IntermediationFunnel({
     };
   }, [loadData]);
 
-  // Localidades únicas presentes en los postulantes inscritos a esta oferta
-  const localidadesDisponibles = useMemo(() => {
-    const set = new Set<string>();
-    postulaciones.forEach((p) => {
-      if (p.postulante?.localidad && p.postulante.localidad.trim()) {
-        set.add(p.postulante.localidad.trim());
+  // Obtener lista canónica de localidades
+  const [localidadesMaestras, setLocalidadesMaestras] = useState<Localidad[]>(LOCALIDADES_CANONICAS_DEFAULT);
+
+  useEffect(() => {
+    let isMounted = true;
+    void getLocalidades().then((data) => {
+      if (isMounted && data && data.length > 0) {
+        setLocalidadesMaestras(data);
       }
     });
-    return Array.from(set).sort((a, b) => a.localeCompare(b));
-  }, [postulaciones]);
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const localidadesDisponibles = useMemo(() => {
+    return localidadesMaestras.map((l) => l.nombre);
+  }, [localidadesMaestras]);
 
   // Contadores por etapa
   const counts = useMemo(() => {
@@ -406,37 +417,47 @@ export function IntermediationFunnel({
       )}
 
       {/* Barra de Filtros y Etapas del Embudo */}
-      <div className="bg-white p-4 rounded-2xl border border-zinc-200 shadow-xs space-y-3">
+      <div className="bg-white p-2.5 sm:p-3 rounded-xl border border-zinc-200 shadow-xs space-y-2 mb-3">
         {/* Pestañas de Etapas del Proceso */}
-        <div className="flex items-center gap-1.5 p-1 bg-zinc-100 rounded-xl overflow-x-auto">
-          <button
-            onClick={() => setActiveTab('todos')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${
-              activeTab === 'todos'
-                ? 'bg-white text-zinc-900 shadow-xs'
-                : 'text-zinc-600 hover:text-zinc-900'
-            }`}
-          >
-            Todos ({counts.todos})
-          </button>
-
+        <div className="flex items-center gap-1.5 p-1 bg-zinc-100 rounded-lg overflow-x-auto">
           <button
             onClick={() => setActiveTab('postulado')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 ${
+            className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
               activeTab === 'postulado'
-                ? 'bg-blue-100/80 text-blue-900 shadow-xs'
+                ? counts.postulado > 0
+                  ? 'bg-amber-100/90 text-amber-950 font-bold border border-amber-300/80 shadow-xs ring-1 ring-amber-400/20'
+                  : 'bg-white text-zinc-900 shadow-xs'
+                : counts.postulado > 0
+                ? 'bg-amber-50/80 text-amber-900 hover:bg-amber-100/80 border border-amber-200/70'
                 : 'text-zinc-600 hover:text-zinc-900'
             }`}
           >
-            <Clock className="w-3.5 h-3.5 text-blue-600" />
-            Nuevos Postulados ({counts.postulado})
+            <Clock
+              className={`w-3.5 h-3.5 ${
+                counts.postulado > 0 ? 'text-amber-700' : 'text-zinc-500'
+              }`}
+            />
+            <span>Nuevos Postulados</span>
+            {counts.postulado > 0 ? (
+              <span
+                className={`px-1.5 py-0.2 rounded-full text-[10px] font-extrabold shadow-2xs ${
+                  activeTab === 'postulado'
+                    ? 'bg-amber-500 text-white'
+                    : 'bg-amber-200 text-amber-950'
+                }`}
+              >
+                {counts.postulado}
+              </span>
+            ) : (
+              <span className="text-zinc-400 font-normal">({counts.postulado})</span>
+            )}
           </button>
 
           <button
             onClick={() => setActiveTab('en_revision')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 ${
+            className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
               activeTab === 'en_revision'
-                ? 'bg-amber-100/80 text-amber-900 shadow-xs'
+                ? 'bg-white text-zinc-900 shadow-xs'
                 : 'text-zinc-600 hover:text-zinc-900'
             }`}
           >
@@ -446,9 +467,9 @@ export function IntermediationFunnel({
 
           <button
             onClick={() => setActiveTab('entrevista')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 ${
+            className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
               activeTab === 'entrevista'
-                ? 'bg-purple-100/80 text-purple-900 shadow-xs'
+                ? 'bg-white text-zinc-900 shadow-xs'
                 : 'text-zinc-600 hover:text-zinc-900'
             }`}
           >
@@ -458,9 +479,9 @@ export function IntermediationFunnel({
 
           <button
             onClick={() => setActiveTab('presentado_a_empresa')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 ${
+            className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
               activeTab === 'presentado_a_empresa'
-                ? 'bg-brand-100/80 text-brand-950 shadow-xs'
+                ? 'bg-white text-zinc-900 shadow-xs'
                 : 'text-zinc-600 hover:text-zinc-900'
             }`}
           >
@@ -470,9 +491,9 @@ export function IntermediationFunnel({
 
           <button
             onClick={() => setActiveTab('no_seleccionado')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 ${
+            className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
               activeTab === 'no_seleccionado'
-                ? 'bg-zinc-200 text-zinc-900 shadow-xs'
+                ? 'bg-white text-zinc-900 shadow-xs'
                 : 'text-zinc-600 hover:text-zinc-900'
             }`}
           >
@@ -482,31 +503,42 @@ export function IntermediationFunnel({
 
           <button
             onClick={() => setActiveTab('resueltos_empresa')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 ${
+            className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
               activeTab === 'resueltos_empresa'
-                ? 'bg-emerald-100/80 text-emerald-900 shadow-xs'
+                ? 'bg-white text-zinc-900 shadow-xs'
                 : 'text-zinc-600 hover:text-zinc-900'
             }`}
           >
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
             Resueltos por Empresa ({counts.resueltos_empresa})
           </button>
+
+          <button
+            onClick={() => setActiveTab('todos')}
+            className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
+              activeTab === 'todos'
+                ? 'bg-white text-zinc-900 shadow-xs'
+                : 'text-zinc-600 hover:text-zinc-900'
+            }`}
+          >
+            Todos ({counts.todos})
+          </button>
         </div>
 
         {/* Buscador y Filtro por Localidad */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-1">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 pt-1">
           <div className="relative flex-1 max-w-md">
-            <Search className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
             <Input
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Buscar postulante por nombre o DNI..."
-              className="pl-9 h-10 text-xs w-full bg-zinc-50 border-zinc-200"
+              className="pl-8 h-8 text-xs w-full bg-zinc-50 border-zinc-200"
             />
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center gap-1.5 bg-zinc-50 px-2.5 py-1.5 rounded-xl border border-zinc-200 text-xs">
+            <div className="flex items-center gap-1.5 bg-zinc-50 px-2 h-8 rounded-lg border border-zinc-200 text-xs">
               <MapPin className="w-3.5 h-3.5 text-zinc-500" />
               <span className="text-zinc-500 font-medium">Localidad:</span>
               <select
@@ -523,7 +555,7 @@ export function IntermediationFunnel({
               </select>
             </div>
 
-            <div className="flex items-center gap-1.5 bg-zinc-50 px-2.5 py-1.5 rounded-xl border border-zinc-200 text-xs">
+            <div className="flex items-center gap-1.5 bg-zinc-50 px-2 h-8 rounded-lg border border-zinc-200 text-xs">
               <ArrowUpDown className="w-3.5 h-3.5 text-zinc-500" />
               <span className="text-zinc-500 font-medium hidden sm:inline">Orden:</span>
               <select
@@ -555,10 +587,7 @@ export function IntermediationFunnel({
       {/* Tabla del Embudo de Postulantes */}
       <div className="bg-white rounded-2xl border border-zinc-200 shadow-xs overflow-hidden">
         {loading ? (
-          <div className="p-12 text-center text-zinc-500 text-sm space-y-3">
-            <div className="w-8 h-8 border-2 border-brand-800 border-t-transparent rounded-full animate-spin mx-auto" />
-            <p>Cargando postulaciones de la oferta...</p>
-          </div>
+          <TableSkeleton rows={5} cols={5} />
         ) : filteredList.length === 0 ? (
           <div className="p-8">
             <EmptyState

@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
+import { getLocalidades, LOCALIDADES_CANONICAS_DEFAULT } from '@/lib/localidades';
+import type { Localidad } from '@/types/database';
 import { PostulanteAdminItem } from '@/lib/admin';
 import { AdminApplicantDetailModal } from './AdminApplicantDetailModal';
 import { AdminApplicantHistoryModal } from './AdminApplicantHistoryModal';
@@ -11,6 +13,7 @@ import { Input } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Pagination } from '@/components/ui/Pagination';
+import { TableSkeleton } from '@/components/ui/TableSkeleton';
 import {
   Search,
   Eye,
@@ -43,7 +46,7 @@ export function ApplicantsTable({
   const [filterHabilidad, setFilterHabilidad] = useState('');
   const [sortOrder, setSortOrder] = useState<'recientes' | 'antiguas' | 'titulo'>('recientes');
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const PAGE_SIZE = 15;
+  const PAGE_SIZE = 5;
 
   // Resetear paginación al cambiar filtros o criterio de ordenamiento
   useEffect(() => {
@@ -59,16 +62,24 @@ export function ApplicantsTable({
   const [postulanteHistory, setPostulanteHistory] = useState<PostulanteAdminItem | null>(null);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
 
-  // Obtener lista dinámica de localidades únicas registradas
-  const localidadesDisponibles = useMemo(() => {
-    const locSet = new Set<string>();
-    postulantes.forEach((p) => {
-      if (p.localidad && p.localidad.trim()) {
-        locSet.add(p.localidad.trim());
+  // Obtener lista canónica de localidades
+  const [localidadesMaestras, setLocalidadesMaestras] = useState<Localidad[]>(LOCALIDADES_CANONICAS_DEFAULT);
+
+  useEffect(() => {
+    let isMounted = true;
+    void getLocalidades().then((data) => {
+      if (isMounted && data && data.length > 0) {
+        setLocalidadesMaestras(data);
       }
     });
-    return Array.from(locSet).sort((a, b) => a.localeCompare(b));
-  }, [postulantes]);
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const localidadesDisponibles = useMemo(() => {
+    return localidadesMaestras.map((l) => l.nombre);
+  }, [localidadesMaestras]);
 
   // Obtener lista dinámica de niveles educativos únicos
   const nivelesDisponibles = useMemo(() => {
@@ -178,23 +189,23 @@ export function ApplicantsTable({
   return (
     <div className="space-y-4">
       {/* Barra de Filtros y Búsqueda */}
-      <div className="bg-white p-4 rounded-2xl border border-zinc-200 shadow-xs space-y-3">
-        <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+      <div className="bg-white p-2.5 sm:p-3 rounded-xl border border-zinc-200 shadow-xs space-y-2 mb-3">
+        <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2.5">
           {/* Buscador */}
           <div className="relative flex-1 max-w-md">
-            <Search className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
             <Input
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Buscar por DNI, nombre, nivel educativo, localidad, oficio..."
-              className="pl-9 h-10 text-xs w-full bg-zinc-50 border-zinc-200"
+              className="pl-8 h-8 text-xs w-full bg-zinc-50 border-zinc-200"
             />
           </div>
 
           {/* Selectores de Filtro */}
           <div className="flex flex-wrap items-center gap-2">
             {/* Filtro por Localidad */}
-            <div className="flex items-center gap-1.5 bg-zinc-50 px-2.5 py-1 rounded-xl border border-zinc-200 text-xs">
+            <div className="flex items-center gap-1.5 bg-zinc-50 px-2 h-8 rounded-lg border border-zinc-200 text-xs">
               <MapPin className="w-3.5 h-3.5 text-zinc-500" />
               <span className="text-zinc-500 font-medium">Localidad:</span>
               <select
@@ -212,7 +223,7 @@ export function ApplicantsTable({
             </div>
 
             {/* Filtro por Nivel Educativo */}
-            <div className="flex items-center gap-1.5 bg-zinc-50 px-2.5 py-1 rounded-xl border border-zinc-200 text-xs">
+            <div className="flex items-center gap-1.5 bg-zinc-50 px-2 h-8 rounded-lg border border-zinc-200 text-xs">
               <GraduationCap className="w-3.5 h-3.5 text-zinc-500" />
               <span className="text-zinc-500 font-medium">Estudios:</span>
               <select
@@ -230,7 +241,7 @@ export function ApplicantsTable({
             </div>
 
             {/* Selector de Orden */}
-            <div className="flex items-center gap-1.5 bg-zinc-50 px-2.5 py-1 rounded-xl border border-zinc-200 text-xs">
+            <div className="flex items-center gap-1.5 bg-zinc-50 px-2 h-8 rounded-lg border border-zinc-200 text-xs">
               <ArrowUpDown className="w-3.5 h-3.5 text-zinc-500" />
               <span className="text-zinc-500 font-medium hidden sm:inline">Orden:</span>
               <select
@@ -270,10 +281,7 @@ export function ApplicantsTable({
       {/* Tabla de Postulantes */}
       <div className="bg-white rounded-2xl border border-zinc-200 shadow-xs overflow-hidden">
         {loading ? (
-          <div className="p-12 text-center text-zinc-500 text-sm space-y-3">
-            <div className="w-8 h-8 border-2 border-brand-800 border-t-transparent rounded-full animate-spin mx-auto" />
-            <p>Cargando padrón de postulantes...</p>
-          </div>
+          <TableSkeleton rows={6} cols={5} />
         ) : filteredPostulantes.length === 0 ? (
           <div className="p-8">
             <EmptyState

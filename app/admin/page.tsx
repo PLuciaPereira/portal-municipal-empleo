@@ -169,6 +169,12 @@ function AdminDashboardContent() {
     };
   }, [loadCounts, loadEmpresas, loadOfertas, loadPostulantes]);
 
+  const handleNavigateTab = (tab: AdminTab) => {
+    setActiveTab(tab);
+    setSelectedOfertaFunnelId(null);
+    router.push(`/admin?tab=${tab}`);
+  };
+
   return (
     <div className="min-h-screen bg-page text-foreground flex flex-col font-sans">
       {/* 1. Header Maestro Institucional Delgado y Nítido (Exclusivo en Inicio) */}
@@ -206,10 +212,7 @@ function AdminDashboardContent() {
         {activeTab === 'inicio' && (
           <AdminHomeView
             counts={counts}
-            onNavigateTab={(tab) => {
-              setActiveTab(tab);
-              setSelectedOfertaFunnelId(null);
-            }}
+            onNavigateTab={handleNavigateTab}
           />
         )}
 
@@ -224,6 +227,7 @@ function AdminDashboardContent() {
             onNavigateToOferta={(ofertaId) => {
               setSelectedOfertaFunnelId(ofertaId);
               setActiveTab('ofertas');
+              router.push('/admin?tab=ofertas');
             }}
           />
         )}

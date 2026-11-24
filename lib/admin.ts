@@ -261,7 +261,7 @@ export async function rechazarEmpresa(
           userId: emp.user_id,
           titulo: 'Solicitud de empresa observada / rechazada',
           mensaje: 'La Oficina de Empleo revisó tu solicitud y requiere atención: ' + motivo.trim(),
-          tipo: 'alerta',
+          tipo: 'empresa',
           link: '/empresa',
           metadata: { motivo: motivo.trim() },
           agrupadorKey: 'empresa_rechazada_' + empresaId,
@@ -430,7 +430,7 @@ export async function aprobarOfertaAdmin(
           userId: empresaUserId,
           titulo: 'Tu oferta laboral ha sido publicada',
           mensaje: 'Tu búsqueda "' + (ofData?.titulo || '') + '" fue aprobada y ya se encuentra visible públicamente.',
-          tipo: 'postulacion',
+          tipo: 'oferta',
           link: '/empresa',
           agrupadorKey: 'oferta_aprobada_' + ofertaId,
         });
@@ -504,7 +504,7 @@ export async function rechazarOfertaAdmin(
           userId: empresaUserId,
           titulo: 'Oferta laboral observada / rechazada',
           mensaje: 'La búsqueda "' + (ofData?.titulo || '') + '" requiere correcciones antes de publicarse.',
-          tipo: 'alerta',
+          tipo: 'oferta',
           link: '/empresa',
           metadata: { motivo: motivo.trim() },
           agrupadorKey: 'oferta_rechazada_' + ofertaId,
@@ -566,7 +566,7 @@ export async function darDeBajaOfertaAdmin(
           userId: empresaUserId,
           titulo: 'Oferta dada de baja por administración',
           mensaje: 'Tu búsqueda "' + (ofData?.titulo || '') + '" fue dada de baja por la Oficina de Empleo.',
-          tipo: 'alerta',
+          tipo: 'oferta',
           link: '/empresa',
           metadata: { motivo: motivo.trim() },
           agrupadorKey: 'oferta_baja_admin_' + ofertaId,
@@ -993,17 +993,8 @@ export async function cambiarEstadoPostulacionAdmin(
         const empresaNombre = (postInfo.oferta as any)?.empresa?.nombre_fantasia || (postInfo.oferta as any)?.empresa?.razon_social || 'la empresa';
 
         if (nuevoEstado === 'presentado_a_empresa') {
-          // A) Notificar al postulante sobre su derivación
-          await crearNotificacionDeduplicada({
-            userId: postulanteId,
-            titulo: 'Tu postulación fue derivada a la empresa',
-            mensaje: 'La Oficina de Empleo derivó tu perfil a ' + empresaNombre + ' para el puesto "' + ofertaTitulo + '".',
-            tipo: 'postulacion',
-            link: '/postulante?tab=postulaciones',
-            agrupadorKey: 'derivado_postulante_' + postulacionId,
-          });
-
-          // B) Notificar a la empresa sobre el nuevo candidato presentado con link directo al candidato
+          // Regla de intermediación: no se notifica al postulante sobre la derivación intermedia.
+          // Notificar únicamente a la empresa sobre el nuevo candidato presentado con link directo a la pestaña de candidatos.
           if (empresaUser) {
             await crearNotificacionDeduplicada({
               userId: empresaUser,
@@ -1016,12 +1007,12 @@ export async function cambiarEstadoPostulacionAdmin(
             });
           }
         } else if (nuevoEstado === 'no_seleccionado') {
-          // Notificar al postulante de forma neutral e institucional sin revelar notas internas ni autoría
+          // Notificar al postulante de forma neutral e institucional cuando su proceso finaliza sin ser seleccionado
           await crearNotificacionDeduplicada({
             userId: postulanteId,
             titulo: 'Actualización sobre tu postulación',
             mensaje: 'El proceso de selección para la búsqueda "' + ofertaTitulo + '" ha finalizado en esta oportunidad. Agradecemos tu participación y te invitamos a postularte a nuevas ofertas disponibles.',
-            tipo: 'info',
+            tipo: 'postulacion',
             link: '/postulante?tab=postulaciones',
             agrupadorKey: 'no_seleccionado_' + postulacionId,
           });
@@ -1708,15 +1699,15 @@ export async function coordinarEntrevistaAdmin(params: {
       return { success: false, message: 'Error actualizando postulación: ' + error.message };
     }
 
-    // Crear notificación para el postulante
+    // Crear notificación para el postulante con deduplicación
     try {
-      await supabase.from('notificaciones').insert({
-        user_id: params.postulanteId,
+      await crearNotificacionDeduplicada({
+        userId: params.postulanteId,
         titulo: 'Entrevista Municipal Coordinada',
         mensaje: `Fuiste citado a una entrevista (${params.modalidad.toUpperCase()}) para el ${params.fecha} a las ${params.hora}. Lugar/Contacto: ${params.lugar}.`,
         tipo: 'entrevista',
         link: '/postulante?tab=postulaciones&postulacionId=' + params.postulacionId,
-        leida: false,
+        agrupadorKey: `entrevista_muni_${params.postulacionId}_${params.fecha}`,
       });
     } catch {
       // Ignorar si la tabla de notificaciones aún no fue migrada en el backend remoto
@@ -1748,18 +1739,18 @@ export async function invitarPostulanteAOferta(params: {
 
     const ofertaTitulo = oferta?.titulo || 'Oferta laboral activa';
 
-    // Crear notificación directa para el postulante
-    const { error } = await supabase.from('notificaciones').insert({
-      user_id: params.postulanteId,
+    // Crear notificación deduplicada para el postulante
+    const ok = await crearNotificacionDeduplicada({
+      userId: params.postulanteId,
       titulo: 'Sugerencia de Empleo de la Oficina de Empleo',
       mensaje: `La Oficina de Empleo te invita a postularte a la búsqueda: "${ofertaTitulo}". Mensaje: ${params.mensaje}`,
-      tipo: 'invitacion',
-      link: `/ofertas/${params.ofertaId}`,
-      leida: false,
+      tipo: 'oferta',
+      link: `/empleos/${params.ofertaId}`,
+      agrupadorKey: `sugerencia_oferta_${params.postulanteId}_${params.ofertaId}`,
     });
 
-    if (error) {
-      console.warn('Error al insertar notificación de invitación:', error);
+    if (!ok) {
+      console.warn('Aviso: no se pudo registrar la notificación de invitación.');
     }
 
     return { success: true, message: `Invitación enviada al postulante para la oferta "${ofertaTitulo}".` };

@@ -21,10 +21,13 @@ import { CompanyScheduleInterviewModal } from './CompanyScheduleInterviewModal';
 import { Calendar, Search, ArrowUpDown, X, Sparkles } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { Pagination } from '@/components/ui/Pagination';
+import { TableSkeleton } from '@/components/ui/TableSkeleton';
+import { ErrorState } from '@/components/ui/ErrorState';
 
 interface CandidatesTableProps {
   candidatos: VistaCandidatoEmpresa[];
   loading?: boolean;
+  error?: string | null;
   highlightCandidateId?: string | null;
   onRefresh: () => void;
 }
@@ -35,6 +38,7 @@ type SortOption = 'recientes' | 'antiguos' | 'titulo';
 export function CandidatesTable({
   candidatos,
   loading,
+  error,
   highlightCandidateId,
   onRefresh,
 }: CandidatesTableProps) {
@@ -50,13 +54,13 @@ export function CandidatesTable({
   const [activeHighlightId, setActiveHighlightId] = useState<string | null>(null);
   const candidateRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
-  // Estados de filtros y búsqueda
-  const [estadoFilter, setEstadoFilter] = useState<FilterEstado>('todos');
+  // Estados de filtros y búsqueda (predeterminado en 'pendientes')
+  const [estadoFilter, setEstadoFilter] = useState<FilterEstado>('pendientes');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('recientes');
 
   const [currentPage, setCurrentPage] = useState(1);
-  const PAGE_SIZE = 10;
+  const PAGE_SIZE = 6;
 
   // Handlers con reset de página
   const handleEstadoFilterChange = (estado: FilterEstado) => {
@@ -161,24 +165,23 @@ export function CandidatesTable({
       });
     }
 
-    // 3. Ordenamiento inteligente: Primero los nuevos derivados pendientes si ordenamos por 'recientes'
+    // 3. Ordenamiento: Del más reciente al más antiguo por fecha de incorporación/derivación para la empresa
+    const parseTime = (dateStr?: string | null) => {
+      if (!dateStr) return 0;
+      const t = new Date(dateStr).getTime();
+      return isNaN(t) ? 0 : t;
+    };
+
     result.sort((a, b) => {
       if (sortBy === 'recientes') {
-        const isANuevo = a.estado_postulacion === 'presentado_a_empresa';
-        const isBNuevo = b.estado_postulacion === 'presentado_a_empresa';
-
-        // Dar prioridad en el tope a los candidatos nuevos derivados sin gestionar
-        if (isANuevo && !isBNuevo) return -1;
-        if (!isANuevo && isBNuevo) return 1;
-
-        const dateA = a.fecha_derivacion ? new Date(a.fecha_derivacion).getTime() : 0;
-        const dateB = b.fecha_derivacion ? new Date(b.fecha_derivacion).getTime() : 0;
-        return dateB - dateA;
+        const timeA = parseTime(a.fecha_derivacion) || parseTime(a.fecha_postulacion);
+        const timeB = parseTime(b.fecha_derivacion) || parseTime(b.fecha_postulacion);
+        return timeB - timeA;
       }
       if (sortBy === 'antiguos') {
-        const dateA = a.fecha_derivacion ? new Date(a.fecha_derivacion).getTime() : 0;
-        const dateB = b.fecha_derivacion ? new Date(b.fecha_derivacion).getTime() : 0;
-        return dateA - dateB;
+        const timeA = parseTime(a.fecha_derivacion) || parseTime(a.fecha_postulacion);
+        const timeB = parseTime(b.fecha_derivacion) || parseTime(b.fecha_postulacion);
+        return timeA - timeB;
       }
       if (sortBy === 'titulo') {
         const puestoA = (a.oferta_titulo || '').toLowerCase();
@@ -197,6 +200,13 @@ export function CandidatesTable({
 
   const totalPages = Math.ceil(filteredCandidates.length / PAGE_SIZE) || 1;
   const safeCurrentPage = Math.min(currentPage, totalPages);
+
+  // Asegurar que si los filtros o el cambio de búsqueda reducen las páginas, no quede en página huérfana
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
 
   const paginatedCandidates = useMemo(() => {
     const startIndex = (safeCurrentPage - 1) * PAGE_SIZE;
@@ -251,10 +261,19 @@ export function CandidatesTable({
 
   if (loading) {
     return (
-      <div className="py-12 text-center text-zinc-500">
-        <ClockIcon className="w-8 h-8 mx-auto animate-spin text-brand-600 mb-2" />
-        <p className="text-sm">Cargando candidatos derivados...</p>
+      <div className="bg-white rounded-2xl border border-zinc-200/90 shadow-xs overflow-hidden">
+        <TableSkeleton rows={4} cols={5} />
       </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <ErrorState
+        title="No se pudieron recuperar los candidatos derivados"
+        description={error}
+        onRetry={onRefresh}
+      />
     );
   }
 
@@ -274,28 +293,11 @@ export function CandidatesTable({
 
   return (
     <>
-      <div className="space-y-4">
+      <div className="space-y-3">
         {/* Barra de Filtros, Búsqueda y Ordenamiento Integrada (Plana como en Mockup) */}
         <div className="bg-zinc-50/80 rounded-xl p-3 border border-zinc-200 flex flex-col md:flex-row md:items-center justify-between gap-3">
-          {/* Chips de Estado */}
+          {/* Chips de Estado: 1. Pendientes de revisión, 2. Contratados, 3. Rechazados, 4. Todos */}
           <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar text-xs font-bold">
-            <button
-              type="button"
-              onClick={() => handleEstadoFilterChange('todos')}
-              className={`px-3 py-1.5 rounded-lg whitespace-nowrap transition-all inline-flex items-center gap-1.5 cursor-pointer ${
-                estadoFilter === 'todos'
-                  ? 'bg-brand-900 text-white shadow-xs'
-                  : 'bg-white border border-zinc-200 text-zinc-600 hover:bg-zinc-100'
-              }`}
-            >
-              <span>Todos</span>
-              <span className={`px-1.5 py-0.2 rounded-full text-[11px] ${
-                estadoFilter === 'todos' ? 'bg-white/20 text-white' : 'bg-zinc-200 text-zinc-700'
-              }`}>
-                {counts.todos}
-              </span>
-            </button>
-
             <button
               type="button"
               onClick={() => handleEstadoFilterChange('pendientes')}
@@ -305,7 +307,7 @@ export function CandidatesTable({
                   : 'bg-white border border-zinc-200 text-zinc-600 hover:bg-zinc-100'
               }`}
             >
-              <span>Pendientes / En proceso</span>
+              <span>Pendientes de revisión</span>
               <span className={`px-1.5 py-0.2 rounded-full text-[11px] ${
                 estadoFilter === 'pendientes' ? 'bg-white/20 text-white' : 'bg-zinc-200 text-zinc-700'
               }`}>
@@ -344,6 +346,23 @@ export function CandidatesTable({
                 estadoFilter === 'rechazados' ? 'bg-white/20 text-white' : 'bg-zinc-200 text-zinc-700'
               }`}>
                 {counts.rechazados}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleEstadoFilterChange('todos')}
+              className={`px-3 py-1.5 rounded-lg whitespace-nowrap transition-all inline-flex items-center gap-1.5 cursor-pointer ${
+                estadoFilter === 'todos'
+                  ? 'bg-brand-900 text-white shadow-xs'
+                  : 'bg-white border border-zinc-200 text-zinc-600 hover:bg-zinc-100'
+              }`}
+            >
+              <span>Todos</span>
+              <span className={`px-1.5 py-0.2 rounded-full text-[11px] ${
+                estadoFilter === 'todos' ? 'bg-white/20 text-white' : 'bg-zinc-200 text-zinc-700'
+              }`}>
+                {counts.todos}
               </span>
             </button>
           </div>
@@ -414,14 +433,14 @@ export function CandidatesTable({
                 <table className="w-full min-w-[1050px] text-left text-xs">
                   <thead className="bg-zinc-50/80 text-zinc-600 border-b border-zinc-200 uppercase tracking-wider font-semibold text-[11px]">
                     <tr>
-                      <th className="py-3 px-3.5">Candidato y postulación</th>
-                      <th className="py-3 px-3">Contacto y ubicación</th>
-                      <th className="py-3 px-3">Perfil y experiencia</th>
+                      <th className="py-2.5 px-3">Candidato y postulación</th>
+                      <th className="py-2.5 px-3">Contacto y ubicación</th>
+                      <th className="py-2.5 px-3">Perfil y experiencia</th>
                       {/* Columnas independientes para cada acción */}
-                      <th className="py-3 px-1.5 w-24 text-center">Currículum</th>
-                      <th className="py-3 px-1.5 w-36 text-center">Entrevista</th>
-                      <th className="py-3 px-1.5 w-28 text-center">Contratar</th>
-                      <th className="py-3 px-1.5 w-28 text-center">Rechazar</th>
+                      <th className="py-2.5 px-1.5 w-24 text-center">Currículum</th>
+                      <th className="py-2.5 px-1.5 w-36 text-center">Entrevista</th>
+                      <th className="py-2.5 px-1.5 w-28 text-center">Contratar</th>
+                      <th className="py-2.5 px-1.5 w-28 text-center">Rechazar</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-zinc-100 text-zinc-700">
@@ -449,14 +468,14 @@ export function CandidatesTable({
                           }`}
                         >
                           {/* Columna: Candidato y postulación */}
-                          <td className="py-3.5 px-3.5 align-middle">
-                            <div className="space-y-1">
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <span className="font-bold text-zinc-900 text-xs sm:text-sm">
+                          <td className="py-2 px-3 align-middle">
+                            <div className="space-y-0.5">
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className="font-bold text-zinc-900 text-xs sm:text-sm leading-tight">
                                   {nombreCompleto}
                                 </span>
                                 {isPresentado && (
-                                  <span className="inline-flex items-center gap-1 px-2 py-0.2 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-900 border border-emerald-300">
+                                  <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-900 border border-emerald-300">
                                     <Sparkles className="w-2.5 h-2.5 text-emerald-700" />
                                     Nuevo
                                   </span>
@@ -465,15 +484,15 @@ export function CandidatesTable({
                                 {isContratado && <Badge variant="emerald">Contratado</Badge>}
                                 {isRechazado && <Badge variant="rose">Rechazado</Badge>}
                               </div>
-                              <div className="text-[11px] text-zinc-500">
+                              <div className="text-[11px] text-zinc-500 leading-tight">
                                 Puesto: <strong className="text-zinc-700">{cand.oferta_titulo}</strong>
                               </div>
                               <div className="text-[10px] text-zinc-400">
                                 Derivado: {cand.fecha_derivacion ? new Date(cand.fecha_derivacion).toLocaleDateString('es-AR') : 'Fecha no registrada'}
                               </div>
                               {isEntrevista && cand.fecha_entrevista && (
-                                <div className="text-[11px] text-brand-900 bg-brand-50 px-2 py-0.5 rounded border border-brand-200 mt-1 inline-flex items-center gap-1">
-                                  <Calendar className="w-3 h-3 text-brand-700 shrink-0" />
+                                <div className="text-[10px] text-brand-900 bg-brand-50 px-1.5 py-0.5 rounded border border-brand-200 mt-0.5 inline-flex items-center gap-1">
+                                  <Calendar className="w-2.5 h-2.5 text-brand-700 shrink-0" />
                                   <span>
                                     {new Date(cand.fecha_entrevista).toLocaleString('es-AR', {
                                       day: '2-digit',
@@ -488,8 +507,8 @@ export function CandidatesTable({
                           </td>
 
                           {/* Columna: Contacto y ubicación */}
-                          <td className="py-3.5 px-3 align-middle whitespace-nowrap">
-                            <div className="space-y-1 text-[11px] text-zinc-600">
+                          <td className="py-2 px-3 align-middle whitespace-nowrap">
+                            <div className="space-y-0.5 text-[11px] text-zinc-600">
                               <div className="flex items-center gap-1.5">
                                 <PhoneIcon className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
                                 <span className="font-medium">{cand.telefono || 'Sin teléfono'}</span>
@@ -506,8 +525,8 @@ export function CandidatesTable({
                           </td>
 
                           {/* Columna: Perfil y experiencia */}
-                          <td className="py-3.5 px-3 align-middle">
-                            <div className="space-y-1 max-w-[280px]">
+                          <td className="py-2 px-3 align-middle">
+                            <div className="space-y-0.5 max-w-[280px]">
                               {cand.nivel_educativo && (
                                 <div className="flex items-center gap-1 text-[11px] font-semibold text-zinc-700">
                                   <GraduationCapIcon className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
@@ -515,7 +534,7 @@ export function CandidatesTable({
                                 </div>
                               )}
                               {cand.resumen_laboral && (
-                                <p className="text-[11px] text-zinc-600 line-clamp-2 leading-relaxed bg-zinc-50 p-1.5 rounded border border-zinc-150" title={cand.resumen_laboral}>
+                                <p className="text-[11px] text-zinc-600 line-clamp-2 leading-snug bg-zinc-50 p-1 rounded border border-zinc-150" title={cand.resumen_laboral}>
                                   {cand.resumen_laboral}
                                 </p>
                               )}
@@ -539,14 +558,14 @@ export function CandidatesTable({
                           </td>
 
                           {/* Columna Acción 1: Currículum */}
-                          <td className="py-3.5 px-1.5 text-center align-middle whitespace-nowrap">
+                          <td className="py-2 px-1.5 text-center align-middle whitespace-nowrap">
                             {cand.cv_url && isActivo ? (
                               <Button
                                 size="sm"
                                 variant="outline"
                                 onClick={() => handleDownloadCv(cand)}
                                 isLoading={downloadingCvId === cand.postulacion_id}
-                                className="h-8 px-2 text-xs w-full justify-center"
+                                className="h-7.5 px-2 text-xs w-full justify-center"
                                 title="Descargar / Ver currículum vitae"
                               >
                                 <FileTextIcon className="w-3.5 h-3.5 mr-1 text-zinc-600" />
@@ -558,7 +577,7 @@ export function CandidatesTable({
                           </td>
 
                           {/* Columna Acción 2: Entrevista */}
-                          <td className="py-3.5 px-1.5 text-center align-middle whitespace-nowrap">
+                          <td className="py-2 px-1.5 text-center align-middle whitespace-nowrap">
                             {isActivo ? (
                               <Button
                                 size="sm"
@@ -568,7 +587,7 @@ export function CandidatesTable({
                                   setIsReprogramarMode(isEntrevista);
                                   setIsInterviewModalOpen(true);
                                 }}
-                                className={`text-xs font-semibold h-8 px-2 w-full justify-center ${
+                                className={`text-xs font-semibold h-7.5 px-2 w-full justify-center ${
                                   isEntrevista
                                     ? 'border-brand-300 bg-brand-50 text-brand-900 hover:bg-brand-100'
                                     : 'border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100'
@@ -584,13 +603,13 @@ export function CandidatesTable({
                           </td>
 
                           {/* Columna Acción 3: Contratar */}
-                          <td className="py-3.5 px-1.5 text-center align-middle whitespace-nowrap">
+                          <td className="py-2 px-1.5 text-center align-middle whitespace-nowrap">
                             {isActivo ? (
                               <Button
                                 size="sm"
                                 variant="outline"
                                 onClick={() => handleOpenAction(cand, 'contratar')}
-                                className="border-emerald-300 text-emerald-700 hover:bg-emerald-50 hover:border-emerald-400 h-8 px-2 text-xs w-full justify-center"
+                                className="border-emerald-300 text-emerald-700 hover:bg-emerald-50 hover:border-emerald-400 h-7.5 px-2 text-xs w-full justify-center"
                                 title="Confirmar contratación del postulante"
                               >
                                 <CheckCircleIcon className="w-3.5 h-3.5 mr-1" />
@@ -602,13 +621,13 @@ export function CandidatesTable({
                           </td>
 
                           {/* Columna Acción 4: Rechazar */}
-                          <td className="py-3.5 px-1.5 text-center align-middle whitespace-nowrap">
+                          <td className="py-2 px-1.5 text-center align-middle whitespace-nowrap">
                             {isActivo ? (
                               <Button
                                 size="sm"
                                 variant="outline"
                                 onClick={() => handleOpenAction(cand, 'rechazar')}
-                                className="border-rose-300 text-rose-700 hover:bg-rose-50 hover:border-rose-400 h-8 px-2 text-xs w-full justify-center"
+                                className="border-rose-300 text-rose-700 hover:bg-rose-50 hover:border-rose-400 h-7.5 px-2 text-xs w-full justify-center"
                                 title="Registrar motivo de desestimación"
                               >
                                 <XCircleIcon className="w-3.5 h-3.5 mr-1" />

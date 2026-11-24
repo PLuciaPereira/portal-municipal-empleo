@@ -10,6 +10,7 @@ import {
 } from '@/lib/postulante';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { LocalidadSelect } from '@/components/ui/LocalidadSelect';
 import { XMarkIcon } from '@/components/ui/Icons';
 import { Camera, Trash2, User } from 'lucide-react';
 
@@ -238,11 +239,11 @@ export const ProfilePersonalModal: React.FC<ProfilePersonalModalProps> = ({
               placeholder="Ej: 3415551234"
               required
             />
-            <Input
+            <LocalidadSelect
               label="Localidad de residencia *"
+              labelVariant="compact"
               value={localidad}
-              onChange={(e) => setLocalidad(e.target.value)}
-              placeholder="Ej: Funes"
+              onChangeValue={(val) => setLocalidad(val)}
               required
             />
             <Input

@@ -84,6 +84,15 @@ export const Navbar: React.FC = () => {
   const pathname = usePathname();
   const { user, empresa, isAuthenticated, logout } = useAuth();
 
+  // Si la ruta actual es un panel privado, cada panel cuenta con su propio layout y navbar dedicado
+  if (
+    pathname.startsWith('/postulante') ||
+    pathname.startsWith('/empresa') ||
+    pathname.startsWith('/admin')
+  ) {
+    return null;
+  }
+
   const navLinks = [
     { label: 'Ofertas laborales', href: '/ofertas' },
     { label: 'Rubros', href: '/#rubros' },
