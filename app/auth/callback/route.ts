@@ -136,8 +136,55 @@ export async function GET(request: NextRequest) {
     console.error('Excepción en auth/callback route handler:', err);
   }
 
-  // Si no hay código/token_hash o hubo un fallo en la verificación
-  const failRedirect = new URL(isRecovery ? '/recuperar-password' : '/login', origin);
-  failRedirect.searchParams.set('error', 'link_expirado');
-  return NextResponse.redirect(failRedirect);
+  // Si no hay código ni token_hash visibles para el servidor, pero el usuario puede
+  // tener el token en el fragmento hash del navegador (#access_token=...&type=recovery),
+  // retornamos un script HTML cliente que inspecciona window.location.hash.
+  const fallbackTarget = isRecovery ? '/recuperar-password/cambiar' : '/login';
+  const errorTarget = isRecovery
+    ? `${origin}/recuperar-password?error=link_expirado`
+    : `${origin}/login?error=link_expirado`;
+
+  const clientBridgeHtml = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Verificando credenciales...</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; background: #eef5f0; color: #14231c; }
+    .loader { border: 4px solid #dfe8e2; border-top: 4px solid #075a36; border-radius: 50%; width: 36px; height: 36px; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div style="text-align: center;">
+    <div class="loader"></div>
+    <p style="font-size: 14px; font-weight: 600;">Verificando enlace de seguridad...</p>
+  </div>
+  <script>
+    (function() {
+      try {
+        var hash = window.location.hash || '';
+        var search = window.location.search || '';
+        if (hash.indexOf('error=') !== -1 || search.indexOf('error=') !== -1) {
+          window.location.replace('${errorTarget}');
+          return;
+        }
+        if (hash.indexOf('access_token=') !== -1) {
+          // El token vino en el hash: redirigir a la página de destino conservando el hash
+          var target = '${fallbackTarget}';
+          window.location.replace(target + hash);
+          return;
+        }
+      } catch (e) {
+        console.error(e);
+      }
+      window.location.replace('${errorTarget}');
+    })();
+  </script>
+</body>
+</html>`;
+
+  return new NextResponse(clientBridgeHtml, {
+    headers: { 'Content-Type': 'text/html; charset=utf-8' },
+  });
 }

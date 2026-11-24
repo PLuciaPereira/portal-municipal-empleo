@@ -35,7 +35,6 @@ export default function CambiarPasswordPage() {
         setHasValidSession(true);
         setIsVerifyingSession(false);
       } else if (event === 'SIGNED_OUT') {
-        // Solo si no estamos procesando el submit de cambio de clave
         if (!isLoading) {
           setHasValidSession(false);
           setIsVerifyingSession(false);
@@ -43,7 +42,21 @@ export default function CambiarPasswordPage() {
       }
     });
 
-    // 2. Comprobar sesión actual existente
+    // 2. Extraer parámetros de error o tokens directamente de window.location
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash;
+      const search = window.location.search;
+
+      if (hash.includes('error=') || search.includes('error=')) {
+        const params = new URLSearchParams(hash.replace(/^#/, '') || search);
+        const errDesc = params.get('error_description') || params.get('error');
+        if (errDesc) {
+          console.warn('Error detectado en parámetros de URL:', errDesc);
+        }
+      }
+    }
+
+    // 3. Comprobar sesión actual existente
     async function checkSession() {
       try {
         const {
@@ -54,13 +67,28 @@ export default function CambiarPasswordPage() {
         if (!isMounted) return;
 
         if (sessionError || !session) {
-          // Si no hay sesión inmediata, aguardar brevemente por si Supabase está extrayendo tokens del hash
+          // Si la URL contiene un fragmento con access_token, darle tiempo al cliente Supabase para procesarlo
+          const hasHashToken =
+            typeof window !== 'undefined' &&
+            window.location.hash.includes('access_token');
+
+          const waitTime = hasHashToken ? 2500 : 1200;
+
           const timer = setTimeout(() => {
             if (isMounted) {
-              setHasValidSession(false);
-              setIsVerifyingSession(false);
+              // Chequear una vez más antes de descartar
+              supabase.auth.getSession().then(({ data: { session: recheck } }) => {
+                if (isMounted) {
+                  if (recheck) {
+                    setHasValidSession(true);
+                  } else {
+                    setHasValidSession(false);
+                  }
+                  setIsVerifyingSession(false);
+                }
+              });
             }
-          }, 1200);
+          }, waitTime);
 
           return () => clearTimeout(timer);
         } else {

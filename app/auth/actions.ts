@@ -222,8 +222,11 @@ export async function solicitarRecuperoPasswordAction(
     }
 
     // Enviar correo de restablecimiento vía Supabase Auth
+    // Apuntamos directamente a /recuperar-password/cambiar porque Supabase Auth
+    // devuelve los tokens de recuperación en el fragmento hash (#access_token=...)
+    // que el cliente de Supabase en el navegador consume de manera nativa.
     const cleanOrigin = origin ? origin.replace(/\/+$/, '') : '';
-    const redirectTo = `${cleanOrigin}/auth/callback?next=/recuperar-password/cambiar`;
+    const redirectTo = `${cleanOrigin}/recuperar-password/cambiar`;
     const { error: resetError } = await supabaseAdmin.auth.resetPasswordForEmail(emailDestino, {
       redirectTo,
     });
