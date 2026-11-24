@@ -866,9 +866,25 @@ export async function getPostulanteApplications(
     >).map((row) => {
       const rawOferta = Array.isArray(row.oferta) ? row.oferta[0] : row.oferta;
       const rawCv = Array.isArray(row.cv) ? row.cv[0] : row.cv;
-      const sortedHistorial = [...(row.historial || [])].sort(
-        (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-      );
+      
+      // Sanitizar el historial para resguardar confidencialidad municipal:
+      // El postulante no debe conocer quién realizó cambios (cambiado_por) ni notas internas de la oficina.
+      const sortedHistorial = [...(row.historial || [])]
+        .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+        .map((h) => {
+          let cleanObs = h.observaciones;
+          // Si es no seleccionado (rechazado por oficina), ocultar cualquier nota interna
+          if (h.estado_nuevo === 'no_seleccionado') {
+            cleanObs = 'Proceso de selección finalizado en esta oportunidad.';
+          } else if (h.estado_nuevo === 'presentado_a_empresa') {
+            cleanObs = 'Postulación en etapa de revisión avanzada.';
+          }
+          return {
+            ...h,
+            cambiado_por: null, // Proteger identidad del selector
+            observaciones: cleanObs,
+          };
+        });
 
       let mappedOferta = rawOferta || undefined;
       if (mappedOferta) {
@@ -886,8 +902,15 @@ export async function getPostulanteApplications(
         };
       }
 
+      // Sanitizar campos sensibles de notas internas de la Oficina de Empleo
       return {
         ...row,
+        notas_oficina_empleo: null, // Nunca exponer notas internas de intermediación al postulante
+        observaciones_derivacion: null, // Nunca exponer observaciones de derivación interna
+        derivado_por: null, // Nunca exponer UUID del agente municipal
+        // Solo exponer motivo de rechazo si proviene de la empresa
+        motivo_rechazo_empresa:
+          row.estado === 'rechazado_por_empresa' ? row.motivo_rechazo_empresa : null,
         job_id: row.oferta_id,
         oferta: mappedOferta,
         job: mappedOferta,

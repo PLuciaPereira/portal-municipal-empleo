@@ -15,6 +15,7 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { Pagination } from '@/components/ui/Pagination';
 import {
   UserCog,
   UserPlus,
@@ -26,6 +27,7 @@ import {
   Calendar,
   UserCheck,
   Pencil,
+  ArrowUpDown,
 } from 'lucide-react';
 
 export function AdminsManager() {
@@ -35,6 +37,14 @@ export function AdminsManager() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filtroEstado, setFiltroEstado] = useState<'todos' | 'activos' | 'inactivos'>('todos');
+  const [sortOrder, setSortOrder] = useState<'recientes' | 'antiguas' | 'titulo'>('recientes');
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const PAGE_SIZE = 10;
+
+  // Resetear a primera página al cambiar filtros o criterio de orden
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, filtroEstado, sortOrder]);
 
   // Modales
   const [modalCreateOpen, setModalCreateOpen] = useState(false);
@@ -123,6 +133,31 @@ export function AdminsManager() {
     [administradores]
   );
 
+  // Ordenamiento reactivo de Administradores
+  const sortedAdministradores = useMemo(() => {
+    return [...administradores].sort((a, b) => {
+      if (sortOrder === 'titulo') {
+        const nameA = `${a.apellido || ''} ${a.nombre || ''}`.trim();
+        const nameB = `${b.apellido || ''} ${b.nombre || ''}`.trim();
+        return nameA.localeCompare(nameB, 'es', { sensitivity: 'base' });
+      }
+      const timeA = new Date(a.created_at).getTime() || 0;
+      const timeB = new Date(b.created_at).getTime() || 0;
+      if (sortOrder === 'antiguas') {
+        return timeA - timeB;
+      }
+      if (timeB !== timeA) return timeB - timeA;
+      return (b.id || '').localeCompare(a.id || '');
+    });
+  }, [administradores, sortOrder]);
+
+  const totalPages = Math.ceil(sortedAdministradores.length / PAGE_SIZE) || 1;
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const paginatedAdministradores = useMemo(() => {
+    const start = (safeCurrentPage - 1) * PAGE_SIZE;
+    return sortedAdministradores.slice(start, start + PAGE_SIZE);
+  }, [sortedAdministradores, safeCurrentPage, PAGE_SIZE]);
+
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* Notificación de feedback */}
@@ -190,30 +225,44 @@ export function AdminsManager() {
       </div>
 
       {/* Barra de Filtros y Búsqueda */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 bg-white p-3 rounded-2xl border border-zinc-200/80 shadow-2xs">
-        <div className="sm:col-span-3 relative">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 bg-white p-3 rounded-2xl border border-zinc-200/80 shadow-2xs">
+        <div className="flex-1 relative">
           <Input
             type="text"
             placeholder="Buscar administrador por nombre, apellido o DNI..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-8 text-xs h-9"
+            className="pl-8 text-xs h-10"
           />
-          <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-2.5 top-3 pointer-events-none" />
+          <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-2.5 top-3.5 pointer-events-none" />
         </div>
 
-        <div>
+        <div className="flex flex-wrap items-center gap-2">
           <select
             value={filtroEstado}
             onChange={(e) =>
               setFiltroEstado(e.target.value as 'todos' | 'activos' | 'inactivos')
             }
-            className="w-full h-9 text-xs rounded-xl border border-zinc-200 bg-white px-2.5 text-zinc-700 focus:outline-hidden focus:border-brand-500 font-medium"
+            className="h-10 text-xs rounded-xl border border-zinc-200 bg-white px-2.5 text-zinc-700 focus:outline-hidden focus:border-brand-500 font-medium"
           >
             <option value="todos">Todos los administradores ({administradores.length})</option>
             <option value="activos">Solo activos ({totalActivos})</option>
             <option value="inactivos">Inactivos ({totalInactivos})</option>
           </select>
+
+          <div className="flex items-center gap-1.5 bg-zinc-50 px-2.5 h-10 rounded-xl border border-zinc-200 text-xs shrink-0">
+            <ArrowUpDown className="w-3.5 h-3.5 text-zinc-500" />
+            <span className="text-zinc-500 font-medium hidden sm:inline">Orden:</span>
+            <select
+              value={sortOrder}
+              onChange={(e) => setSortOrder(e.target.value as 'recientes' | 'antiguas' | 'titulo')}
+              className="bg-transparent text-zinc-800 font-semibold focus:outline-none cursor-pointer text-xs"
+            >
+              <option value="recientes">Más reciente primero</option>
+              <option value="antiguas">Más antiguo primero</option>
+              <option value="titulo">Título (A-Z)</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -235,19 +284,21 @@ export function AdminsManager() {
         </div>
       ) : (
         <div className="bg-white rounded-2xl border border-zinc-200/80 shadow-2xs overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+          <div className="overflow-x-auto scroll-smooth">
+            <table className="w-full min-w-[780px] text-left text-xs">
               <thead className="bg-zinc-50 border-b border-zinc-200 text-zinc-500 font-bold uppercase tracking-wider text-[10px]">
                 <tr>
-                  <th className="py-3 px-4">Administrador / DNI</th>
-                  <th className="py-3 px-4">Teléfono</th>
-                  <th className="py-3 px-4">Fecha de alta</th>
-                  <th className="py-3 px-4">Estado</th>
-                  <th className="py-3 px-4 text-right">Acciones</th>
+                  <th className="py-3 px-3.5">Administrador / DNI</th>
+                  <th className="py-3 px-3">Teléfono</th>
+                  <th className="py-3 px-3">Fecha de alta</th>
+                  <th className="py-3 px-3">Estado</th>
+                  {/* Columnas de acción independientes sin títulos de encabezado */}
+                  <th className="py-3 px-1.5 w-24 text-center"></th>
+                  <th className="py-3 px-1.5 w-32 text-center"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-100">
-                {administradores.map((admin) => {
+                {paginatedAdministradores.map((admin) => {
                   const isCurrent = admin.id === user?.id;
                   const isActivo = admin.activo && !admin.deleted_at;
 
@@ -258,7 +309,7 @@ export function AdminsManager() {
                         isCurrent ? 'bg-brand-50/20' : ''
                       }`}
                     >
-                      <td className="py-3 px-4">
+                      <td className="py-3 px-3.5">
                         <div className="flex items-center gap-2">
                           <p className="font-bold text-zinc-900">
                             {admin.apellido ? `${admin.apellido}, ` : ''}
@@ -275,11 +326,11 @@ export function AdminsManager() {
                         </div>
                       </td>
 
-                      <td className="py-3 px-4 text-zinc-600">
+                      <td className="py-3 px-3 text-zinc-600">
                         {admin.telefono || <span className="text-zinc-400 italic">-</span>}
                       </td>
 
-                      <td className="py-3 px-4 text-zinc-600 whitespace-nowrap">
+                      <td className="py-3 px-3 text-zinc-600 whitespace-nowrap">
                         <div className="flex items-center gap-1.5 text-[11px]">
                           <Calendar className="w-3 h-3 text-zinc-400" />
                           <span>
@@ -288,7 +339,7 @@ export function AdminsManager() {
                         </div>
                       </td>
 
-                      <td className="py-3 px-4">
+                      <td className="py-3 px-3">
                         {isActivo ? (
                           <Badge variant="emerald" className="text-[10px] font-bold">
                             Activo
@@ -300,40 +351,49 @@ export function AdminsManager() {
                         )}
                       </td>
 
-                      <td className="py-3 px-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          {/* Botón Editar Datos */}
-                          <button
-                            onClick={() => setAdminToEdit(admin)}
-                            className="p-1.5 rounded-lg text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 transition-colors cursor-pointer"
-                            title="Editar datos del administrador"
-                          >
-                            <Pencil className="w-3.5 h-3.5" />
-                          </button>
+                      {/* Columna Acción 1: Editar */}
+                      <td className="py-3 px-1.5 text-center whitespace-nowrap">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setAdminToEdit(admin)}
+                          className="h-8 px-2.5 text-zinc-600 hover:text-zinc-900 gap-1 text-xs w-full justify-center"
+                          title="Editar datos del administrador"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                          <span>Editar</span>
+                        </Button>
+                      </td>
 
-                          {/* Acciones de baja / reactivación (bloqueada silenciosamente para cuenta propia) */}
-                          {!isCurrent && (
-                            isActivo ? (
-                              <button
-                                onClick={() => setAdminToDeactivate(admin)}
-                                className="inline-flex items-center gap-1 text-xs font-bold text-red-600 hover:text-red-800 transition-colors cursor-pointer"
-                                title="Dar de baja lógica a este administrador"
-                              >
-                                <XCircle className="w-3.5 h-3.5" />
-                                <span>Desactivar</span>
-                              </button>
-                            ) : (
-                              <button
-                                onClick={() => setAdminToReactivate(admin)}
-                                className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-800 transition-colors cursor-pointer"
-                                title="Reactivar cuenta de este administrador"
-                              >
-                                <UserCheck className="w-3.5 h-3.5" />
-                                <span>Reactivar</span>
-                              </button>
-                            )
-                          )}
-                        </div>
+                      {/* Columna Acción 2: Desactivar / Reactivar */}
+                      <td className="py-3 px-1.5 text-center whitespace-nowrap">
+                        {!isCurrent ? (
+                          isActivo ? (
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => setAdminToDeactivate(admin)}
+                              className="h-8 px-2.5 text-xs gap-1 w-full justify-center"
+                              title="Dar de baja lógica a este administrador"
+                            >
+                              <XCircle className="w-3.5 h-3.5" />
+                              <span>Desactivar</span>
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="primary"
+                              size="sm"
+                              onClick={() => setAdminToReactivate(admin)}
+                              className="h-8 px-2.5 bg-emerald-700 hover:bg-emerald-800 text-white text-xs gap-1 shadow-2xs w-full justify-center"
+                              title="Reactivar cuenta de este administrador"
+                            >
+                              <UserCheck className="w-3.5 h-3.5" />
+                              <span>Reactivar</span>
+                            </Button>
+                          )
+                        ) : (
+                          <span className="text-zinc-300 select-none">-</span>
+                        )}
                       </td>
                     </tr>
                   );
@@ -341,6 +401,19 @@ export function AdminsManager() {
               </tbody>
             </table>
           </div>
+
+          {/* Paginación */}
+          {sortedAdministradores.length > PAGE_SIZE && (
+            <div className="p-3 border-t border-zinc-100 bg-zinc-50/50">
+              <Pagination
+                currentPage={safeCurrentPage}
+                totalPages={totalPages}
+                totalItems={sortedAdministradores.length}
+                pageSize={PAGE_SIZE}
+                onPageChange={setCurrentPage}
+              />
+            </div>
+          )}
         </div>
       )}
 

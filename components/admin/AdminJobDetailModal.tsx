@@ -22,10 +22,11 @@ interface AdminJobDetailModalProps {
   oferta: OfertaAdminItem | null;
   isOpen: boolean;
   onClose: () => void;
-  onApprove: (oferta: OfertaAdminItem) => void;
-  onReject: (oferta: OfertaAdminItem) => void;
-  onDeactivate: (oferta: OfertaAdminItem) => void;
+  onApprove?: (oferta: OfertaAdminItem) => void;
+  onReject?: (oferta: OfertaAdminItem) => void;
+  onDeactivate?: (oferta: OfertaAdminItem) => void;
   onToggleHighlight?: (oferta: OfertaAdminItem) => void;
+  readOnly?: boolean;
 }
 
 export function AdminJobDetailModal({
@@ -36,6 +37,7 @@ export function AdminJobDetailModal({
   onReject,
   onDeactivate,
   onToggleHighlight,
+  readOnly = false,
 }: AdminJobDetailModalProps) {
     useBodyScrollLock(Boolean(isOpen));
 if (!isOpen || !oferta) return null;
@@ -227,63 +229,65 @@ if (!isOpen || !oferta) return null;
             Cerrar ficha
           </Button>
 
-          <div className="flex items-center gap-2">
-            {/* Alternar Destaque */}
-            {oferta.estado === 'publicada' && !isBaja && onToggleHighlight && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onToggleHighlight(oferta)}
-                className="gap-1.5 text-xs text-amber-800 hover:bg-amber-50"
-              >
-                <Star
-                  className={`w-4 h-4 ${
-                    oferta.destacada ? 'fill-amber-500 text-amber-500' : 'text-zinc-400'
-                  }`}
-                />
-                {oferta.destacada ? 'Quitar Destaque' : 'Destacar Oferta'}
-              </Button>
-            )}
+          {!readOnly && (
+            <div className="flex items-center gap-2">
+              {/* Alternar Destaque */}
+              {oferta.estado === 'publicada' && !isBaja && onToggleHighlight && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onToggleHighlight(oferta)}
+                  className="gap-1.5 text-xs text-amber-800 hover:bg-amber-50"
+                >
+                  <Star
+                    className={`w-4 h-4 ${
+                      oferta.destacada ? 'fill-amber-500 text-amber-500' : 'text-zinc-400'
+                    }`}
+                  />
+                  {oferta.destacada ? 'Quitar Destaque' : 'Destacar Oferta'}
+                </Button>
+              )}
 
-            {/* Dar de baja si está publicada y no dada de baja */}
-            {oferta.estado === 'publicada' && !isBaja && (
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={() => onDeactivate(oferta)}
-                className="gap-1.5"
-              >
-                <BadgeAlert className="w-4 h-4" />
-                Dar de baja
-              </Button>
-            )}
+              {/* Dar de baja si está publicada y no dada de baja */}
+              {oferta.estado === 'publicada' && !isBaja && onDeactivate && (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => onDeactivate(oferta)}
+                  className="gap-1.5"
+                >
+                  <BadgeAlert className="w-4 h-4" />
+                  Dar de baja
+                </Button>
+              )}
 
-            {/* Rechazar si no está rechazada ni dada de baja */}
-            {oferta.estado !== 'rechazada' && !isBaja && (
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={() => onReject(oferta)}
-                className="gap-1.5"
-              >
-                <XCircle className="w-4 h-4" />
-                Rechazar oferta
-              </Button>
-            )}
+              {/* Rechazar si no está rechazada ni dada de baja */}
+              {oferta.estado !== 'rechazada' && !isBaja && onReject && (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => onReject(oferta)}
+                  className="gap-1.5"
+                >
+                  <XCircle className="w-4 h-4" />
+                  Rechazar oferta
+                </Button>
+              )}
 
-            {/* Aprobar si no está publicada ni dada de baja */}
-            {oferta.estado !== 'publicada' && !isBaja && (
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={() => onApprove(oferta)}
-                className="gap-1.5 bg-brand-800 hover:bg-brand-900"
-              >
-                <CheckCircle2 className="w-4 h-4" />
-                Aprobar y publicar
-              </Button>
-            )}
-          </div>
+              {/* Aprobar si no está publicada ni dada de baja */}
+              {oferta.estado !== 'publicada' && !isBaja && onApprove && (
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => onApprove(oferta)}
+                  className="gap-1.5 bg-brand-800 hover:bg-brand-900"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  Aprobar y publicar
+                </Button>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Empresa, EstadoEmpresa } from '@/types/database';
 import { CompanyStatusBadge } from './CompanyStatusBadge';
 import { CompanyDetailModal } from './CompanyDetailModal';
@@ -9,6 +9,7 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { Pagination } from '@/components/ui/Pagination';
 import {
   Search,
   CheckCircle2,
@@ -21,6 +22,7 @@ import {
   Check,
   Building,
   Pencil,
+  ArrowUpDown,
 } from 'lucide-react';
 import { aprobarEmpresa, rechazarEmpresa } from '@/lib/admin';
 
@@ -35,6 +37,14 @@ type FilterEstado = EstadoEmpresa | 'todas';
 export function CompaniesTable({ empresas, loading, onRefresh }: CompaniesTableProps) {
   const [filterEstado, setFilterEstado] = useState<FilterEstado>('todas');
   const [searchTerm, setSearchTerm] = useState('');
+  const [sortOrder, setSortOrder] = useState<'recientes' | 'antiguas' | 'titulo'>('recientes');
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const PAGE_SIZE = 15;
+
+  // Resetear a primera página al cambiar filtros o criterio de orden
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterEstado, sortOrder]);
 
   // Modales
   const [selectedEmpresa, setSelectedEmpresa] = useState<Empresa | null>(null);
@@ -91,8 +101,28 @@ export function CompaniesTable({ empresas, loading, onRefresh }: CompaniesTableP
         );
       }
       return true;
+    }).sort((a, b) => {
+      if (sortOrder === 'titulo') {
+        const nameA = a.nombre_fantasia || a.razon_social || '';
+        const nameB = b.nombre_fantasia || b.razon_social || '';
+        return nameA.localeCompare(nameB, 'es', { sensitivity: 'base' });
+      }
+      const timeA = new Date(a.created_at).getTime() || 0;
+      const timeB = new Date(b.created_at).getTime() || 0;
+      if (sortOrder === 'antiguas') {
+        return timeA - timeB;
+      }
+      if (timeB !== timeA) return timeB - timeA;
+      return (b.id || '').localeCompare(a.id || '');
     });
-  }, [empresas, filterEstado, searchTerm]);
+  }, [empresas, filterEstado, searchTerm, sortOrder]);
+
+  const totalPages = Math.ceil(filteredEmpresas.length / PAGE_SIZE) || 1;
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const paginatedEmpresas = useMemo(() => {
+    const start = (safeCurrentPage - 1) * PAGE_SIZE;
+    return filteredEmpresas.slice(start, start + PAGE_SIZE);
+  }, [filteredEmpresas, safeCurrentPage, PAGE_SIZE]);
 
   // Contadores por estado
   const counts = useMemo(() => {
@@ -265,15 +295,31 @@ export function CompaniesTable({ empresas, loading, onRefresh }: CompaniesTableP
           </button>
         </div>
 
-        {/* Buscador */}
-        <div className="relative flex-1 max-w-md">
-          <Search className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
-          <Input
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Buscar por empresa, CUIT, contacto, email, teléfono, rubro o localidad..."
-            className="pl-9 h-10 text-xs w-full bg-zinc-50 border-zinc-200"
-          />
+        {/* Buscador y Selector de Orden */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 flex-1 max-w-xl">
+          <div className="relative flex-1">
+            <Search className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Input
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Buscar por empresa, CUIT, contacto, email, teléfono, rubro o localidad..."
+              className="pl-9 h-10 text-xs w-full bg-zinc-50 border-zinc-200"
+            />
+          </div>
+
+          <div className="flex items-center gap-1.5 bg-zinc-50 px-2.5 h-10 rounded-xl border border-zinc-200 text-xs shrink-0">
+            <ArrowUpDown className="w-3.5 h-3.5 text-zinc-500" />
+            <span className="text-zinc-500 font-medium hidden sm:inline">Orden:</span>
+            <select
+              value={sortOrder}
+              onChange={(e) => setSortOrder(e.target.value as 'recientes' | 'antiguas' | 'titulo')}
+              className="bg-transparent text-zinc-800 font-semibold focus:outline-none cursor-pointer text-xs"
+            >
+              <option value="recientes">Más reciente primero</option>
+              <option value="antiguas">Más antiguo primero</option>
+              <option value="titulo">Título (A-Z)</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -311,26 +357,30 @@ export function CompaniesTable({ empresas, loading, onRefresh }: CompaniesTableP
             />
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+          <div className="overflow-x-auto scroll-smooth">
+            <table className="w-full min-w-[950px] text-left text-xs">
               <thead className="bg-zinc-50/80 text-zinc-600 border-b border-zinc-200 uppercase tracking-wider font-semibold text-[11px]">
                 <tr>
-                  <th className="py-3.5 px-4">Empresa</th>
-                  <th className="py-3.5 px-4">CUIT y Rubro</th>
-                  <th className="py-3.5 px-4">Ubicación y contacto</th>
-                  <th className="py-3.5 px-4">Estado</th>
-                  <th className="py-3.5 px-4">Fecha de alta</th>
-                  <th className="py-3.5 px-4 text-right">Acciones</th>
+                  <th className="py-3 px-3.5">Empresa</th>
+                  <th className="py-3 px-3">CUIT y Rubro</th>
+                  <th className="py-3 px-3">Ubicación y contacto</th>
+                  <th className="py-3 px-3">Estado</th>
+                  <th className="py-3 px-3">Fecha de alta</th>
+                  {/* Columnas independientes sin título de encabezado */}
+                  <th className="py-3 px-1.5 w-24 text-center"></th>
+                  <th className="py-3 px-1.5 w-24 text-center"></th>
+                  <th className="py-3 px-1.5 w-28 text-center"></th>
+                  <th className="py-3 px-1.5 w-32 text-center"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-100 text-zinc-700">
-                {filteredEmpresas.map((emp) => (
+                {paginatedEmpresas.map((emp) => (
                   <tr
                     key={emp.id}
                     className="hover:bg-zinc-50/60 transition-colors group"
                   >
                     {/* Empresa */}
-                    <td className="py-3.5 px-4 font-medium text-zinc-900">
+                    <td className="py-3 px-3.5 font-medium text-zinc-900">
                       <div className="flex items-center gap-2.5">
                         <div className="w-8 h-8 rounded-lg bg-brand-50 text-brand-900 flex items-center justify-center font-bold shrink-0">
                           <Building className="w-4 h-4 text-brand-800" />
@@ -347,7 +397,7 @@ export function CompaniesTable({ empresas, loading, onRefresh }: CompaniesTableP
                     </td>
 
                     {/* CUIT & Rubro */}
-                    <td className="py-3.5 px-4">
+                    <td className="py-3 px-3">
                       <span className="font-mono text-zinc-800 block font-semibold text-[11px]">
                         {emp.cuit}
                       </span>
@@ -357,7 +407,7 @@ export function CompaniesTable({ empresas, loading, onRefresh }: CompaniesTableP
                     </td>
 
                     {/* Ubicación & Contacto */}
-                    <td className="py-3.5 px-4 space-y-0.5">
+                    <td className="py-3 px-3 space-y-0.5">
                       <div className="flex items-center gap-1 text-[11px] text-zinc-800 font-medium">
                         <MapPin className="w-3 h-3 text-zinc-400 shrink-0" />
                         <span>{emp.localidad}</span>
@@ -369,12 +419,12 @@ export function CompaniesTable({ empresas, loading, onRefresh }: CompaniesTableP
                     </td>
 
                     {/* Estado */}
-                    <td className="py-3.5 px-4">
+                    <td className="py-3 px-3 whitespace-nowrap">
                       <CompanyStatusBadge estado={emp.estado} />
                     </td>
 
                     {/* Fecha de alta */}
-                    <td className="py-3.5 px-4 text-zinc-500 text-[11px] whitespace-nowrap">
+                    <td className="py-3 px-3 text-zinc-500 text-[11px] whitespace-nowrap">
                       {new Date(emp.created_at).toLocaleDateString('es-AR', {
                         day: '2-digit',
                         month: '2-digit',
@@ -382,80 +432,100 @@ export function CompaniesTable({ empresas, loading, onRefresh }: CompaniesTableP
                       })}
                     </td>
 
-                    {/* Acciones */}
-                    <td className="py-3.5 px-4 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
+                    {/* Columna Acción 1: Ficha */}
+                    <td className="py-3 px-1.5 text-center whitespace-nowrap">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleOpenDetail(emp)}
+                        className="h-8 px-2.5 text-zinc-600 hover:text-zinc-900 gap-1 text-xs w-full justify-center"
+                        title="Ver ficha completa"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                        <span>Ficha</span>
+                      </Button>
+                    </td>
+
+                    {/* Columna Acción 2: Editar */}
+                    <td className="py-3 px-1.5 text-center whitespace-nowrap">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleOpenEdit(emp)}
+                        className="h-8 px-2.5 text-emerald-800 hover:text-emerald-900 hover:bg-emerald-50 gap-1 text-xs w-full justify-center"
+                        title="Editar datos de la empresa"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                        <span>Editar</span>
+                      </Button>
+                    </td>
+
+                    {/* Columna Acción 3: Aprobar */}
+                    <td className="py-3 px-1.5 text-center whitespace-nowrap">
+                      {emp.estado === 'pendiente' ? (
                         <Button
-                          variant="ghost"
+                          variant="primary"
                           size="sm"
-                          onClick={() => handleOpenDetail(emp)}
-                          className="h-8 px-2 text-zinc-600 hover:text-zinc-900 gap-1 text-xs"
-                          title="Ver ficha completa"
+                          onClick={() => handleInitiateApprove(emp)}
+                          disabled={actionLoading}
+                          className="h-8 px-2.5 bg-brand-800 hover:bg-brand-900 text-xs gap-1 w-full justify-center"
+                          title="Aprobar empresa"
                         >
-                          <Eye className="w-3.5 h-3.5" />
-                          <span className="hidden sm:inline">Ficha</span>
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          <span>Aprobar</span>
                         </Button>
+                      ) : (
+                        <span className="text-zinc-300 select-none">-</span>
+                      )}
+                    </td>
+
+                    {/* Columna Acción 4: Rechazar / Inhabilitar */}
+                    <td className="py-3 px-1.5 text-center whitespace-nowrap">
+                      {emp.estado === 'pendiente' ? (
                         <Button
-                          variant="ghost"
+                          variant="destructive"
                           size="sm"
-                          onClick={() => handleOpenEdit(emp)}
-                          className="h-8 px-2 text-emerald-800 hover:text-emerald-900 hover:bg-emerald-50 gap-1 text-xs"
-                          title="Editar datos de la empresa"
+                          onClick={() => handleInitiateReject(emp)}
+                          disabled={actionLoading}
+                          className="h-8 px-2.5 text-xs gap-1 w-full justify-center"
+                          title="Rechazar empresa"
                         >
-                          <Pencil className="w-3.5 h-3.5" />
-                          <span className="hidden sm:inline">Editar</span>
+                          <XCircle className="w-3.5 h-3.5" />
+                          <span>Rechazar</span>
                         </Button>
-
-                        {/* Si está pendiente: opciones de Aprobar o Rechazar */
-                        emp.estado === 'pendiente' && (
-                          <>
-                            <Button
-                              variant="primary"
-                              size="sm"
-                              onClick={() => handleInitiateApprove(emp)}
-                              disabled={actionLoading}
-                              className="h-8 px-2.5 bg-brand-800 hover:bg-brand-900 text-xs gap-1"
-                              title="Aprobar empresa"
-                            >
-                              <CheckCircle2 className="w-3.5 h-3.5" />
-                              <span className="hidden sm:inline">Aprobar</span>
-                            </Button>
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              onClick={() => handleInitiateReject(emp)}
-                              disabled={actionLoading}
-                              className="h-8 px-2.5 text-xs gap-1"
-                              title="Rechazar empresa"
-                            >
-                              <XCircle className="w-3.5 h-3.5" />
-                              <span className="hidden sm:inline">Rechazar</span>
-                            </Button>
-                          </>
-                        )}
-
-                        {/* Si ya está aprobada: no puede volver a aprobarse, solo dar de baja / inhabilitar si fuera necesario */}
-                        {emp.estado === 'aprobada' && (
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => handleInitiateReject(emp)}
-                            disabled={actionLoading}
-                            className="h-8 px-2.5 text-xs gap-1"
-                            title="Inhabilitar / Rechazar empresa"
-                          >
-                            <XCircle className="w-3.5 h-3.5" />
-                            <span className="hidden sm:inline">Inhabilitar</span>
-                          </Button>
-                        )}
-
-                        {/* Si está rechazada: estado terminal. No permite aprobar ni volver a rechazar sin reactivación explícita */}
-                      </div>
+                      ) : emp.estado === 'aprobada' ? (
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleInitiateReject(emp)}
+                          disabled={actionLoading}
+                          className="h-8 px-2.5 text-xs gap-1 w-full justify-center"
+                          title="Inhabilitar / Rechazar empresa"
+                        >
+                          <XCircle className="w-3.5 h-3.5" />
+                          <span>Inhabilitar</span>
+                        </Button>
+                      ) : (
+                        <span className="text-zinc-300 select-none">-</span>
+                      )}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* Paginación */}
+        {filteredEmpresas.length > PAGE_SIZE && (
+          <div className="p-3 border-t border-zinc-100 bg-zinc-50/50">
+            <Pagination
+              currentPage={safeCurrentPage}
+              totalPages={totalPages}
+              totalItems={filteredEmpresas.length}
+              pageSize={PAGE_SIZE}
+              onPageChange={setCurrentPage}
+            />
           </div>
         )}
       </div>

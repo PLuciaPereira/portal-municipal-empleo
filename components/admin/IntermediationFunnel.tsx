@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Badge } from '@/components/ui/Badge';
+import { Pagination } from '@/components/ui/Pagination';
 import {
   ArrowLeft,
   Building2,
@@ -36,6 +37,7 @@ import {
   AlertCircle,
   Check,
   Download,
+  ArrowUpDown,
 } from 'lucide-react';
 
 interface IntermediationFunnelProps {
@@ -58,7 +60,15 @@ export function IntermediationFunnel({
   // Filtros
   const [activeTab, setActiveTab] = useState<FunnelFilter>('todos');
   const [selectedLocalidad, setSelectedLocalidad] = useState<string>('todas');
+  const [sortOrder, setSortOrder] = useState<'recientes' | 'antiguas' | 'titulo'>('recientes');
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const PAGE_SIZE = 15;
+
+  // Resetear a primera página al cambiar filtros o criterio de orden
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, activeTab, selectedLocalidad, sortOrder]);
 
   // Modales
   const [selectedPostulanteModal, setSelectedPostulanteModal] = useState<(Partial<PostulanteAdminItem> & Pick<Perfil, 'id' | 'nombre'>) | null>(null);
@@ -157,8 +167,28 @@ export function IntermediationFunnel({
       }
 
       return true;
+    }).sort((a, b) => {
+      if (sortOrder === 'titulo') {
+        const nameA = `${a.postulante?.apellido || ''} ${a.postulante?.nombre || ''}`.trim();
+        const nameB = `${b.postulante?.apellido || ''} ${b.postulante?.nombre || ''}`.trim();
+        return nameA.localeCompare(nameB, 'es', { sensitivity: 'base' });
+      }
+      const timeA = new Date(a.created_at).getTime() || 0;
+      const timeB = new Date(b.created_at).getTime() || 0;
+      if (sortOrder === 'antiguas') {
+        return timeA - timeB;
+      }
+      if (timeB !== timeA) return timeB - timeA;
+      return (b.id || '').localeCompare(a.id || '');
     });
-  }, [postulaciones, activeTab, selectedLocalidad, searchTerm]);
+  }, [postulaciones, activeTab, selectedLocalidad, searchTerm, sortOrder]);
+
+  const totalPages = Math.ceil(filteredList.length / PAGE_SIZE) || 1;
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const paginatedList = useMemo(() => {
+    const start = (safeCurrentPage - 1) * PAGE_SIZE;
+    return filteredList.slice(start, start + PAGE_SIZE);
+  }, [filteredList, safeCurrentPage, PAGE_SIZE]);
 
   // Abrir CV
   const handleOpenCv = async (archivoUrl: string, id: string) => {
@@ -475,7 +505,7 @@ export function IntermediationFunnel({
             />
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <div className="flex items-center gap-1.5 bg-zinc-50 px-2.5 py-1.5 rounded-xl border border-zinc-200 text-xs">
               <MapPin className="w-3.5 h-3.5 text-zinc-500" />
               <span className="text-zinc-500 font-medium">Localidad:</span>
@@ -490,6 +520,20 @@ export function IntermediationFunnel({
                     {loc}
                   </option>
                 ))}
+              </select>
+            </div>
+
+            <div className="flex items-center gap-1.5 bg-zinc-50 px-2.5 py-1.5 rounded-xl border border-zinc-200 text-xs">
+              <ArrowUpDown className="w-3.5 h-3.5 text-zinc-500" />
+              <span className="text-zinc-500 font-medium hidden sm:inline">Orden:</span>
+              <select
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value as 'recientes' | 'antiguas' | 'titulo')}
+                className="bg-transparent text-zinc-800 font-semibold focus:outline-none cursor-pointer text-xs"
+              >
+                <option value="recientes">Más reciente primero</option>
+                <option value="antiguas">Más antiguo primero</option>
+                <option value="titulo">Título (A-Z)</option>
               </select>
             </div>
 
@@ -540,19 +584,24 @@ export function IntermediationFunnel({
           </div>
         ) : (
           <div className="overflow-x-auto scroll-smooth">
-            <table className="w-full min-w-[750px] text-left text-xs">
+            <table className="w-full min-w-[1100px] text-left text-xs">
               <thead className="bg-zinc-50/80 text-zinc-600 border-b border-zinc-200 uppercase tracking-wider font-semibold text-[11px]">
                 <tr>
-                  <th className="py-3.5 px-4">Postulante</th>
-                  <th className="py-3.5 px-4">Localidad y contacto</th>
-                  <th className="py-3.5 px-4">CV utilizado</th>
-                  <th className="py-3.5 px-4">Estado actual</th>
-                  <th className="py-3.5 px-4">Fecha postulación</th>
-                  <th className="py-3.5 px-4 text-right">Intermediación / Acciones</th>
+                  <th className="py-3 px-3.5">Postulante</th>
+                  <th className="py-3 px-3">Localidad y contacto</th>
+                  <th className="py-3 px-3">CV utilizado</th>
+                  <th className="py-3 px-3">Estado actual</th>
+                  <th className="py-3 px-3">Fecha postulación</th>
+                  {/* Columnas de acción independientes sin títulos de encabezado */}
+                  <th className="py-3 px-1.5 w-24 text-center"></th>
+                  <th className="py-3 px-1.5 w-28 text-center"></th>
+                  <th className="py-3 px-1.5 w-28 text-center"></th>
+                  <th className="py-3 px-1.5 w-28 text-center"></th>
+                  <th className="py-3 px-1.5 w-28 text-center"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-100 text-zinc-700">
-                {filteredList.map((post) => {
+                {paginatedList.map((post) => {
                   const estado = post.estado;
                   const isPostulado = estado === 'postulado';
                   const isEnRevision = estado === 'en_revision' || estado === 'preseleccionado';
@@ -567,7 +616,7 @@ export function IntermediationFunnel({
                       className="hover:bg-zinc-50/60 transition-colors group"
                     >
                       {/* Postulante */}
-                      <td className="py-3.5 px-4 font-medium text-zinc-900">
+                      <td className="py-3 px-3.5 font-medium text-zinc-900">
                         <div className="flex items-center gap-2.5">
                           <div className="w-8 h-8 rounded-lg bg-brand-50 text-brand-900 flex items-center justify-center font-bold text-xs shrink-0">
                             {post.postulante?.nombre.charAt(0)}
@@ -585,7 +634,7 @@ export function IntermediationFunnel({
                       </td>
 
                       {/* Localidad & Contacto */}
-                      <td className="py-3.5 px-4 space-y-0.5">
+                      <td className="py-3 px-3 space-y-0.5">
                         <div className="flex items-center gap-1 font-semibold text-zinc-800">
                           <MapPin className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
                           <span>{post.postulante?.localidad || 'Funes'}</span>
@@ -597,7 +646,7 @@ export function IntermediationFunnel({
                       </td>
 
                       {/* CV Utilizado */}
-                      <td className="py-3.5 px-4">
+                      <td className="py-3 px-3">
                         {post.cv ? (
                           <div className="flex items-center gap-2">
                             <span className="text-zinc-800 font-medium truncate max-w-[120px]">
@@ -620,7 +669,7 @@ export function IntermediationFunnel({
                       </td>
 
                       {/* Estado */}
-                      <td className="py-3.5 px-4 space-y-1">
+                      <td className="py-3 px-3 space-y-1">
                         <ApplicationStatusBadge status={post.estado} size="sm" />
                         {post.fecha_derivacion && isDerivado && (
                           <span className="text-[10px] text-zinc-400 block">
@@ -640,7 +689,7 @@ export function IntermediationFunnel({
                       </td>
 
                       {/* Fecha de Postulación */}
-                      <td className="py-3.5 px-4 text-zinc-500 text-[11px] whitespace-nowrap">
+                      <td className="py-3 px-3 text-zinc-500 text-[11px] whitespace-nowrap">
                         {new Date(post.created_at).toLocaleDateString('es-AR', {
                           day: '2-digit',
                           month: '2-digit',
@@ -648,95 +697,118 @@ export function IntermediationFunnel({
                         })}
                       </td>
 
-                      {/* Acciones de Intermediación */}
-                      <td className="py-3.5 px-4 text-right">
-                        <div className="flex items-center justify-end gap-1.5 flex-wrap">
-                          {/* Ver Legajo */}
+                      {/* Columna Acción 1: Legajo */}
+                      <td className="py-3 px-1.5 text-center whitespace-nowrap">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleOpenApplicantModal(post)}
+                          className="h-8 px-2.5 text-zinc-600 hover:text-zinc-900 gap-1 text-xs w-full justify-center"
+                          title="Ver legajo completo"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>Legajo</span>
+                        </Button>
+                      </td>
+
+                      {/* Columna Acción 2: Revisar */}
+                      <td className="py-3 px-1.5 text-center whitespace-nowrap">
+                        {isPostulado ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleMarcarRevision(post)}
+                            disabled={actionLoading}
+                            className="h-8 px-2.5 text-xs text-amber-800 hover:bg-amber-50 gap-1.5 border-amber-300 font-bold bg-amber-50/50 shadow-2xs w-full justify-center"
+                            title="Revisar legajo y marcar en revisión técnica"
+                          >
+                            <Clock className="w-3.5 h-3.5 text-amber-600" />
+                            <span>Revisar</span>
+                          </Button>
+                        ) : (
+                          <span className="text-zinc-300 select-none">-</span>
+                        )}
+                      </td>
+
+                      {/* Columna Acción 3: Entrevista */}
+                      <td className="py-3 px-1.5 text-center whitespace-nowrap">
+                        {isEnRevision ? (
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleOpenApplicantModal(post)}
-                            className="h-8 px-2 text-zinc-600 hover:text-zinc-900 gap-1 text-xs"
-                            title="Ver legajo completo"
+                            onClick={() => {
+                              setTargetPostulacion(post);
+                              setIsScheduleInterviewOpen(true);
+                            }}
+                            className="h-8 px-2.5 text-purple-700 hover:bg-purple-50 gap-1 text-xs w-full justify-center"
+                            title="Registrar entrevista de orientación previa (opcional)"
                           >
-                            <Eye className="w-3.5 h-3.5" />
-                            <span className="hidden sm:inline">Legajo</span>
+                            <Calendar className="w-3.5 h-3.5" />
+                            <span>Entrevista</span>
                           </Button>
+                        ) : (
+                          <span className="text-zinc-300 select-none">-</span>
+                        )}
+                      </td>
 
-                          {/* 1. Paso a En Revisión con apertura de Legajo */}
-                          {isPostulado && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleMarcarRevision(post)}
-                              disabled={actionLoading}
-                              className="h-8 px-2.5 text-xs text-amber-800 hover:bg-amber-50 gap-1.5 border-amber-300 font-bold bg-amber-50/50 shadow-2xs"
-                              title="Revisar legajo y marcar en revisión técnica"
-                            >
-                              <Clock className="w-3.5 h-3.5 text-amber-600" />
-                              <span>Revisar</span>
-                            </Button>
-                          )}
+                      {/* Columna Acción 4: Derivar / Presentado */}
+                      <td className="py-3 px-1.5 text-center whitespace-nowrap">
+                        {(isPostulado || isEnRevision || isEntrevista) ? (
+                          <Button
+                            variant="primary"
+                            size="sm"
+                            onClick={() => handleInitiateDerive(post)}
+                            className="h-8 px-2.5 bg-brand-800 hover:bg-brand-900 text-xs gap-1 shadow-2xs w-full justify-center"
+                            title="Derivar formalmente a la empresa para que acceda al CV y contacto"
+                          >
+                            <Send className="w-3.5 h-3.5" />
+                            <span>Derivar</span>
+                          </Button>
+                        ) : isDerivado ? (
+                          <span className="inline-flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-lg bg-emerald-50 text-emerald-800 text-[11px] font-bold border border-emerald-200 w-full">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                            <span>Presentado</span>
+                          </span>
+                        ) : (
+                          <span className="text-zinc-300 select-none">-</span>
+                        )}
+                      </td>
 
-                          {/* 2. Registrar Entrevista Previa (si está en revisión) */}
-                          {isEnRevision && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                setTargetPostulacion(post);
-                                setIsScheduleInterviewOpen(true);
-                              }}
-                              className="h-8 px-2 text-purple-700 hover:bg-purple-50 gap-1 text-xs"
-                              title="Registrar entrevista de orientación previa (opcional)"
-                            >
-                              <Calendar className="w-3.5 h-3.5" />
-                              <span className="hidden sm:inline">Entrevista</span>
-                            </Button>
-                          )}
-
-                          {/* 3. Derivar formalmente a la Empresa (disponible desde el inicio del proceso) */}
-                          {(isPostulado || isEnRevision || isEntrevista) && (
-                            <Button
-                              variant="primary"
-                              size="sm"
-                              onClick={() => handleInitiateDerive(post)}
-                              className="h-8 px-2.5 bg-brand-800 hover:bg-brand-900 text-xs gap-1 shadow-2xs"
-                              title="Derivar formalmente a la empresa para que acceda al CV y contacto"
-                            >
-                              <Send className="w-3.5 h-3.5" />
-                              <span>Derivar</span>
-                            </Button>
-                          )}
-
-                          {/* 4. Indicador de derivado activo */}
-                          {isDerivado && (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 text-[11px] font-bold border border-emerald-200">
-                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                              <span>Presentado a empresa</span>
-                            </span>
-                          )}
-
-                          {/* 5. No Derivar (Disponible durante la preselección municipal: postulado, en revisión o entrevista) */}
-                          {(isPostulado || isEnRevision || isEntrevista) && (
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              onClick={() => handleInitiateReject(post)}
-                              className="h-8 px-2 text-xs gap-1"
-                              title="No derivar a empresa y cerrar postulación con devolución al postulante"
-                            >
-                              <XCircle className="w-3.5 h-3.5" />
-                              <span className="hidden sm:inline">No derivar</span>
-                            </Button>
-                          )}
-                        </div>
+                      {/* Columna Acción 5: No derivar */}
+                      <td className="py-3 px-1.5 text-center whitespace-nowrap">
+                        {(isPostulado || isEnRevision || isEntrevista) ? (
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleInitiateReject(post)}
+                            className="h-8 px-2.5 text-xs gap-1 w-full justify-center"
+                            title="No derivar a empresa y cerrar postulación con devolución al postulante"
+                          >
+                            <XCircle className="w-3.5 h-3.5" />
+                            <span>No derivar</span>
+                          </Button>
+                        ) : (
+                          <span className="text-zinc-300 select-none">-</span>
+                        )}
                       </td>
                     </tr>
                   );
                 })}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* Paginación */}
+        {filteredList.length > PAGE_SIZE && (
+          <div className="p-3 border-t border-zinc-100 bg-zinc-50/50">
+            <Pagination
+              currentPage={safeCurrentPage}
+              totalPages={totalPages}
+              totalItems={filteredList.length}
+              pageSize={PAGE_SIZE}
+              onPageChange={setCurrentPage}
+            />
           </div>
         )}
       </div>

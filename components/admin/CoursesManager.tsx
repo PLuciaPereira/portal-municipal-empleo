@@ -18,6 +18,7 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { Pagination } from '@/components/ui/Pagination';
 import {
   GraduationCap,
   Plus,
@@ -33,6 +34,7 @@ import {
   AlertCircle,
   FileText,
   Calendar,
+  ArrowUpDown,
 } from 'lucide-react';
 
 const ESTADOS_ASIGNACION_CONFIG: Record<
@@ -54,6 +56,14 @@ export function CoursesManager() {
   const [loadingCursos, setLoadingCursos] = useState(true);
   const [searchCurso, setSearchCurso] = useState('');
   const [filtroEstadoCurso, setFiltroEstadoCurso] = useState<'activos' | 'inactivos' | 'todos'>('todos');
+  const [sortCurso, setSortCurso] = useState<'recientes' | 'antiguas' | 'titulo'>('recientes');
+  const [pageCursos, setPageCursos] = useState<number>(1);
+  const PAGE_SIZE_CURSOS = 9;
+
+  // Resetear página de cursos al cambiar filtros o criterio de orden
+  useEffect(() => {
+    setPageCursos(1);
+  }, [searchCurso, filtroEstadoCurso, sortCurso]);
 
   // Estados de Asignaciones
   const [asignaciones, setAsignaciones] = useState<PostulanteCursoAdminItem[]>([]);
@@ -61,6 +71,14 @@ export function CoursesManager() {
   const [searchAsignacion, setSearchAsignacion] = useState('');
   const [filtroCursoAsignacion, setFiltroCursoAsignacion] = useState<string>('todos');
   const [filtroEstadoAsignacion, setFiltroEstadoAsignacion] = useState<EstadoPostulanteCurso | 'todos'>('todos');
+  const [sortAsignacion, setSortAsignacion] = useState<'recientes' | 'antiguas' | 'titulo'>('recientes');
+  const [pageAsignaciones, setPageAsignaciones] = useState<number>(1);
+  const PAGE_SIZE_ASIGNACIONES = 12;
+
+  // Resetear página de asignaciones al cambiar filtros o criterio de orden
+  useEffect(() => {
+    setPageAsignaciones(1);
+  }, [searchAsignacion, filtroCursoAsignacion, filtroEstadoAsignacion, sortAsignacion]);
 
   // Modales
   const [modalCursoOpen, setModalCursoOpen] = useState(false);
@@ -203,6 +221,54 @@ export function CoursesManager() {
   const totalActivos = useMemo(() => cursos.filter((c) => c.activo).length, [cursos]);
   const totalDerivaciones = useMemo(() => asignaciones.length, [asignaciones]);
 
+  // Ordenamiento de Cursos
+  const sortedCursos = useMemo(() => {
+    return [...cursos].sort((a, b) => {
+      if (sortCurso === 'titulo') {
+        return (a.titulo || '').localeCompare(b.titulo || '', 'es', { sensitivity: 'base' });
+      }
+      const timeA = new Date(a.created_at).getTime() || 0;
+      const timeB = new Date(b.created_at).getTime() || 0;
+      if (sortCurso === 'antiguas') {
+        return timeA - timeB;
+      }
+      if (timeB !== timeA) return timeB - timeA;
+      return (b.id || '').localeCompare(a.id || '');
+    });
+  }, [cursos, sortCurso]);
+
+  const totalPagesCursos = Math.ceil(sortedCursos.length / PAGE_SIZE_CURSOS) || 1;
+  const safePageCursos = Math.min(pageCursos, totalPagesCursos);
+  const paginatedCursos = useMemo(() => {
+    const start = (safePageCursos - 1) * PAGE_SIZE_CURSOS;
+    return sortedCursos.slice(start, start + PAGE_SIZE_CURSOS);
+  }, [sortedCursos, safePageCursos, PAGE_SIZE_CURSOS]);
+
+  // Ordenamiento de Derivaciones
+  const sortedAsignaciones = useMemo(() => {
+    return [...asignaciones].sort((a, b) => {
+      if (sortAsignacion === 'titulo') {
+        const nameA = `${a.postulante?.apellido || ''} ${a.postulante?.nombre || ''}`.trim() || a.curso?.titulo || '';
+        const nameB = `${b.postulante?.apellido || ''} ${b.postulante?.nombre || ''}`.trim() || b.curso?.titulo || '';
+        return nameA.localeCompare(nameB, 'es', { sensitivity: 'base' });
+      }
+      const timeA = new Date(a.created_at).getTime() || 0;
+      const timeB = new Date(b.created_at).getTime() || 0;
+      if (sortAsignacion === 'antiguas') {
+        return timeA - timeB;
+      }
+      if (timeB !== timeA) return timeB - timeA;
+      return (b.id || '').localeCompare(a.id || '');
+    });
+  }, [asignaciones, sortAsignacion]);
+
+  const totalPagesAsignaciones = Math.ceil(sortedAsignaciones.length / PAGE_SIZE_ASIGNACIONES) || 1;
+  const safePageAsignaciones = Math.min(pageAsignaciones, totalPagesAsignaciones);
+  const paginatedAsignaciones = useMemo(() => {
+    const start = (safePageAsignaciones - 1) * PAGE_SIZE_ASIGNACIONES;
+    return sortedAsignaciones.slice(start, start + PAGE_SIZE_ASIGNACIONES);
+  }, [sortedAsignaciones, safePageAsignaciones, PAGE_SIZE_ASIGNACIONES]);
+
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* Notificación de feedback */}
@@ -313,30 +379,44 @@ export function CoursesManager() {
       {subTab === 'catalogo' && (
         <div className="space-y-4">
           {/* Barra de Filtros de Cursos */}
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 bg-white p-3 rounded-2xl border border-zinc-200/80 shadow-2xs">
-            <div className="sm:col-span-3 relative">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 bg-white p-3 rounded-2xl border border-zinc-200/80 shadow-2xs">
+            <div className="flex-1 relative">
               <Input
                 type="text"
                 placeholder="Buscar por título, temática o institución formadora..."
                 value={searchCurso}
                 onChange={(e) => setSearchCurso(e.target.value)}
-                className="pl-8 text-xs h-9"
+                className="pl-8 text-xs h-10"
               />
-              <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-2.5 top-3 pointer-events-none" />
+              <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-2.5 top-3.5 pointer-events-none" />
             </div>
 
-            <div>
+            <div className="flex flex-wrap items-center gap-2">
               <select
                 value={filtroEstadoCurso}
                 onChange={(e) =>
                   setFiltroEstadoCurso(e.target.value as 'activos' | 'inactivos' | 'todos')
                 }
-                className="w-full h-9 text-xs rounded-xl border border-zinc-200 bg-white px-2.5 text-zinc-700 focus:outline-hidden focus:border-brand-500 font-medium"
+                className="h-10 text-xs rounded-xl border border-zinc-200 bg-white px-2.5 text-zinc-700 focus:outline-hidden focus:border-brand-500 font-medium"
               >
                 <option value="todos">Todos los cursos</option>
                 <option value="activos">Solo activos ({totalActivos})</option>
                 <option value="inactivos">Inactivos / Desactivados</option>
               </select>
+
+              <div className="flex items-center gap-1.5 bg-zinc-50 px-2.5 h-10 rounded-xl border border-zinc-200 text-xs shrink-0">
+                <ArrowUpDown className="w-3.5 h-3.5 text-zinc-500" />
+                <span className="text-zinc-500 font-medium hidden sm:inline">Orden:</span>
+                <select
+                  value={sortCurso}
+                  onChange={(e) => setSortCurso(e.target.value as 'recientes' | 'antiguas' | 'titulo')}
+                  className="bg-transparent text-zinc-800 font-semibold focus:outline-none cursor-pointer text-xs"
+                >
+                  <option value="recientes">Más reciente primero</option>
+                  <option value="antiguas">Más antiguo primero</option>
+                  <option value="titulo">Título (A-Z)</option>
+                </select>
+              </div>
             </div>
           </div>
 
@@ -367,8 +447,9 @@ export function CoursesManager() {
               </Button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {cursos.map((c) => (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {paginatedCursos.map((c) => (
                 <div
                   key={c.id}
                   className={`bg-white rounded-2xl border transition-all flex flex-col justify-between p-5 hover:shadow-xs ${
@@ -457,6 +538,19 @@ export function CoursesManager() {
                   </div>
                 </div>
               ))}
+              </div>
+
+              {sortedCursos.length > PAGE_SIZE_CURSOS && (
+                <div className="p-3 bg-white rounded-2xl border border-zinc-200/80 shadow-2xs">
+                  <Pagination
+                    currentPage={safePageCursos}
+                    totalPages={totalPagesCursos}
+                    totalItems={sortedCursos.length}
+                    pageSize={PAGE_SIZE_CURSOS}
+                    onPageChange={setPageCursos}
+                  />
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -468,23 +562,23 @@ export function CoursesManager() {
       {subTab === 'derivaciones' && (
         <div className="space-y-4">
           {/* Barra de Filtros de Derivaciones */}
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 bg-white p-3 rounded-2xl border border-zinc-200/80 shadow-2xs">
-            <div className="sm:col-span-2 relative">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 bg-white p-3 rounded-2xl border border-zinc-200/80 shadow-2xs">
+            <div className="flex-1 relative">
               <Input
                 type="text"
                 placeholder="Buscar por alumno, DNI o curso..."
                 value={searchAsignacion}
                 onChange={(e) => setSearchAsignacion(e.target.value)}
-                className="pl-8 text-xs h-9"
+                className="pl-8 text-xs h-10"
               />
-              <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-2.5 top-3 pointer-events-none" />
+              <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-2.5 top-3.5 pointer-events-none" />
             </div>
 
-            <div>
+            <div className="flex flex-wrap items-center gap-2">
               <select
                 value={filtroCursoAsignacion}
                 onChange={(e) => setFiltroCursoAsignacion(e.target.value)}
-                className="w-full h-9 text-xs rounded-xl border border-zinc-200 bg-white px-2.5 text-zinc-700 focus:outline-hidden focus:border-brand-500 font-medium"
+                className="h-10 text-xs rounded-xl border border-zinc-200 bg-white px-2.5 text-zinc-700 focus:outline-hidden focus:border-brand-500 font-medium"
               >
                 <option value="todos">Todos los cursos</option>
                 {cursos.map((c) => (
@@ -493,15 +587,13 @@ export function CoursesManager() {
                   </option>
                 ))}
               </select>
-            </div>
 
-            <div>
               <select
                 value={filtroEstadoAsignacion}
                 onChange={(e) =>
                   setFiltroEstadoAsignacion(e.target.value as EstadoPostulanteCurso | 'todos')
                 }
-                className="w-full h-9 text-xs rounded-xl border border-zinc-200 bg-white px-2.5 text-zinc-700 focus:outline-hidden focus:border-brand-500 font-medium"
+                className="h-10 text-xs rounded-xl border border-zinc-200 bg-white px-2.5 text-zinc-700 focus:outline-hidden focus:border-brand-500 font-medium"
               >
                 <option value="todos">Todos los estados</option>
                 <option value="asignado">Asignados</option>
@@ -510,6 +602,20 @@ export function CoursesManager() {
                 <option value="abandonado">Abandonados</option>
                 <option value="cancelado">Cancelados</option>
               </select>
+
+              <div className="flex items-center gap-1.5 bg-zinc-50 px-2.5 h-10 rounded-xl border border-zinc-200 text-xs shrink-0">
+                <ArrowUpDown className="w-3.5 h-3.5 text-zinc-500" />
+                <span className="text-zinc-500 font-medium hidden sm:inline">Orden:</span>
+                <select
+                  value={sortAsignacion}
+                  onChange={(e) => setSortAsignacion(e.target.value as 'recientes' | 'antiguas' | 'titulo')}
+                  className="bg-transparent text-zinc-800 font-semibold focus:outline-none cursor-pointer text-xs"
+                >
+                  <option value="recientes">Más reciente primero</option>
+                  <option value="antiguas">Más antiguo primero</option>
+                  <option value="titulo">Título (A-Z)</option>
+                </select>
+              </div>
             </div>
           </div>
 
@@ -531,20 +637,20 @@ export function CoursesManager() {
             </div>
           ) : (
             <div className="bg-white rounded-2xl border border-zinc-200/80 shadow-2xs overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
+              <div className="overflow-x-auto scroll-smooth">
+                <table className="w-full min-w-[740px] text-left text-xs">
                   <thead className="bg-zinc-50 border-b border-zinc-200 text-zinc-500 font-bold uppercase tracking-wider text-[10px]">
                     <tr>
-                      <th className="py-3 px-4">Postulante / Residencia</th>
-                      <th className="py-3 px-4">Curso asignado</th>
-                      <th className="py-3 px-4">Fecha asignación</th>
-                      <th className="py-3 px-4">Estado</th>
-                      <th className="py-3 px-4">Observaciones OE</th>
-                      <th className="py-3 px-4 text-right">Actualizar estado</th>
+                      <th className="py-3 px-3.5">Postulante / Residencia</th>
+                      <th className="py-3 px-3">Curso asignado</th>
+                      <th className="py-3 px-3">Fecha asignación</th>
+                      <th className="py-3 px-3">Estado</th>
+                      <th className="py-3 px-3">Observaciones OE</th>
+                      <th className="py-3 px-4 text-right whitespace-nowrap">Actualizar estado</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-zinc-100">
-                    {asignaciones.map((item) => {
+                    {paginatedAsignaciones.map((item) => {
                       const cfg =
                         ESTADOS_ASIGNACION_CONFIG[item.estado] || {
                           label: item.estado,
@@ -553,7 +659,7 @@ export function CoursesManager() {
 
                       return (
                         <tr key={item.id} className="hover:bg-zinc-50/60 transition-colors">
-                          <td className="py-3 px-4">
+                          <td className="py-3 px-3.5">
                             <p className="font-bold text-zinc-900">
                               {item.postulante?.apellido}, {item.postulante?.nombre}
                             </p>
@@ -565,7 +671,7 @@ export function CoursesManager() {
                             </div>
                           </td>
 
-                          <td className="py-3 px-4">
+                          <td className="py-3 px-3">
                             <p className="font-bold text-brand-900">
                               {item.curso?.titulo || 'Capacitación no disponible'}
                             </p>
@@ -576,7 +682,7 @@ export function CoursesManager() {
                             )}
                           </td>
 
-                          <td className="py-3 px-4 text-zinc-600 whitespace-nowrap">
+                          <td className="py-3 px-3 text-zinc-600 whitespace-nowrap">
                             <div className="flex items-center gap-1.5 text-[11px]">
                               <Calendar className="w-3 h-3 text-zinc-400" />
                               <span>
@@ -585,13 +691,13 @@ export function CoursesManager() {
                             </div>
                           </td>
 
-                          <td className="py-3 px-4">
+                          <td className="py-3 px-3">
                             <Badge variant={cfg.variant} className="text-[10px] font-bold">
                               {cfg.label}
                             </Badge>
                           </td>
 
-                          <td className="py-3 px-4 text-zinc-600 max-w-xs">
+                          <td className="py-3 px-3 text-zinc-600 max-w-xs">
                             {item.observaciones ? (
                               <div className="flex items-start gap-1.5">
                                 <FileText className="w-3 h-3 text-zinc-400 shrink-0 mt-0.5" />
@@ -604,7 +710,7 @@ export function CoursesManager() {
                             )}
                           </td>
 
-                          <td className="py-3 px-4 text-right">
+                          <td className="py-3 px-4 text-right whitespace-nowrap">
                             <select
                               value={item.estado}
                               onChange={(e) =>
@@ -613,7 +719,7 @@ export function CoursesManager() {
                                   e.target.value as EstadoPostulanteCurso
                                 )
                               }
-                              className="text-xs rounded-xl border border-zinc-200 bg-white py-1 px-2.5 text-zinc-700 font-semibold focus:outline-hidden focus:border-brand-500 cursor-pointer"
+                              className="text-xs h-8 rounded-xl border border-zinc-200 bg-white px-2.5 text-zinc-700 font-semibold focus:outline-hidden focus:border-brand-500 cursor-pointer shadow-2xs"
                             >
                               <option value="asignado">Asignado</option>
                               <option value="en_curso">En curso</option>
@@ -628,6 +734,19 @@ export function CoursesManager() {
                   </tbody>
                 </table>
               </div>
+
+              {/* Paginación de Asignaciones */}
+              {sortedAsignaciones.length > PAGE_SIZE_ASIGNACIONES && (
+                <div className="p-3 border-t border-zinc-100 bg-zinc-50/50">
+                  <Pagination
+                    currentPage={safePageAsignaciones}
+                    totalPages={totalPagesAsignaciones}
+                    totalItems={sortedAsignaciones.length}
+                    pageSize={PAGE_SIZE_ASIGNACIONES}
+                    onPageChange={setPageAsignaciones}
+                  />
+                </div>
+              )}
             </div>
           )}
         </div>

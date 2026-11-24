@@ -83,7 +83,7 @@ function PostulanteDashboardContent() {
   const [profileFull, setProfileFull] = useState<PostulanteProfileFull | null>(null);
   const [applications, setApplications] = useState<PostulacionConDetalle[]>([]);
   const [courses, setCourses] = useState<PostulanteCurso[]>([]);
-  const [cursoSortOrder, setCursoSortOrder] = useState<'recientes' | 'antiguas'>('recientes');
+  const [cursoSortOrder, setCursoSortOrder] = useState<'recientes' | 'antiguas' | 'titulo'>('recientes');
   const [availableRubros, setAvailableRubros] = useState<Rubro[]>([]);
   const [ofertasSugeridas, setOfertasSugeridas] = useState<any[]>([]);
   const [isLoadingData, setIsLoadingData] = useState<boolean>(true);
@@ -177,11 +177,38 @@ function PostulanteDashboardContent() {
         }
       : null);
 
-  const isProfileIncomplete =
-    !displayProfile?.dni?.trim() ||
-    !displayProfile?.telefono?.trim() ||
-    !displayProfile?.localidad?.trim() ||
-    !displayProfile?.nivel_educativo?.trim();
+  const missingRequiredFields: string[] = [];
+  if (!displayProfile?.dni?.trim()) missingRequiredFields.push('DNI');
+  if (!displayProfile?.telefono?.trim()) missingRequiredFields.push('Teléfono / WhatsApp');
+  if (!displayProfile?.localidad?.trim()) missingRequiredFields.push('Localidad');
+
+  const hasCurriculum = (displayProfile?.curriculums?.length ?? 0) > 0;
+  if (!hasCurriculum) {
+    missingRequiredFields.push('Currículum Vitae (CV)');
+  }
+
+  const isMandatoryIncomplete = missingRequiredFields.length > 0;
+
+  // Sugerencias opcionales para perfeccionar el perfil
+  const optionalSuggestions: string[] = [];
+  if (!displayProfile?.nivel_educativo?.trim()) optionalSuggestions.push('nivel educativo');
+  if (!displayProfile?.experiencia_resumen?.trim()) optionalSuggestions.push('experiencia previa');
+  if (!displayProfile?.habilidades || displayProfile.habilidades.length === 0) optionalSuggestions.push('habilidades y oficios');
+  if (!displayProfile?.rubros || displayProfile.rubros.length === 0) optionalSuggestions.push('rubros de interés');
+
+  // Cálculo de porcentaje de perfil completado
+  let profileCompletionScore = 0;
+  if (displayProfile?.nombre?.trim()) profileCompletionScore += 10;
+  if (displayProfile?.dni?.trim()) profileCompletionScore += 10;
+  if (displayProfile?.telefono?.trim()) profileCompletionScore += 10;
+  if (displayProfile?.localidad?.trim()) profileCompletionScore += 10;
+  if (hasCurriculum) profileCompletionScore += 20;
+  if (displayProfile?.nivel_educativo?.trim()) profileCompletionScore += 10;
+  if (displayProfile?.experiencia_resumen?.trim()) profileCompletionScore += 10;
+  if (displayProfile?.habilidades && displayProfile.habilidades.length > 0) profileCompletionScore += 10;
+  if (displayProfile?.rubros && displayProfile.rubros.length > 0) profileCompletionScore += 10;
+
+  const profileCompletionPercentage = Math.min(100, profileCompletionScore);
 
   const initialLetter = displayProfile?.nombre?.charAt(0).toUpperCase() || 'P';
   
@@ -196,154 +223,58 @@ function PostulanteDashboardContent() {
 
   return (
     <div className="min-h-screen bg-page text-foreground flex flex-col font-sans">
-      {/* 1. Banda Verde Superior Institucional Funes Full-Width */}
-      <section className="bg-gradient-to-r from-brand-950 via-brand-900 to-brand-800 text-white py-4 sm:py-5 border-b border-brand-950/40 shadow-sm">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="flex items-center gap-3.5 sm:gap-4 min-w-0 flex-1">
-              {/* Avatar cuadrado de 44 px */}
-              {displayProfile?.avatar_url ? (
-                <img
-                  src={displayProfile.avatar_url}
-                  alt={displayProfile.nombre}
-                  className="w-[44px] h-[44px] sm:w-[50px] sm:h-[50px] rounded-xl object-cover border border-white/20 shadow-xs shrink-0"
-                />
-              ) : (
-                <div className="w-[44px] h-[44px] sm:w-[50px] sm:h-[50px] rounded-xl bg-white/10 border border-white/20 text-white flex items-center justify-center font-extrabold text-lg sm:text-xl shrink-0 shadow-xs">
-                  {initialLetter}
-                </div>
-              )}
+      {/* 1. Banda Verde Superior Institucional Funes Full-Width - Visible únicamente en Mi perfil y CV */}
+      {activeTab === 'perfil' && (
+        <section className="bg-gradient-to-r from-brand-950 via-brand-900 to-brand-800 text-white py-4 sm:py-5 border-b border-brand-950/40 shadow-sm">
+          <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex items-center gap-3.5 sm:gap-4 min-w-0 flex-1">
+                {/* Avatar cuadrado de 44 px */}
+                {displayProfile?.avatar_url ? (
+                  <img
+                    src={displayProfile.avatar_url}
+                    alt={displayProfile.nombre}
+                    className="w-[44px] h-[44px] sm:w-[50px] sm:h-[50px] rounded-xl object-cover border border-white/20 shadow-xs shrink-0"
+                  />
+                ) : (
+                  <div className="w-[44px] h-[44px] sm:w-[50px] sm:h-[50px] rounded-xl bg-white/10 border border-white/20 text-white flex items-center justify-center font-extrabold text-lg sm:text-xl shrink-0 shadow-xs">
+                    {initialLetter}
+                  </div>
+                )}
 
-              <div className="min-w-0 flex-1 space-y-1">
-                {/* Fila de chips arriba del nombre */}
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-white/10 border border-white/15 text-white/95 text-[11.5px] font-semibold backdrop-blur-xs leading-none">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                    Portal de Empleo · Municipalidad de Funes
-                  </span>
-                  {displayProfile?.es_residente_funes && (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-white/10 border border-white/15 text-white/95 text-[11.5px] font-semibold backdrop-blur-xs leading-none">
-                      <Check className="w-3 h-3 text-emerald-300 stroke-[3]" />
-                      Vecino Residente de Funes
+                <div className="min-w-0 flex-1 space-y-1">
+                  {/* Nombre grande del postulante */}
+                  <div>
+                    <h1 className="text-xl sm:text-2xl md:text-[26px] font-bold tracking-tight text-white font-sans leading-tight">
+                      {displayProfile?.nombre ? `${displayProfile.nombre} ${displayProfile.apellido || ''}` : 'Mi Perfil Laboral'}
+                    </h1>
+                  </div>
+
+                  {/* Debajo del nombre: correo, DNI y localidad al 86% de opacidad */}
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-white/86 text-[14px]">
+                    <span className="inline-flex items-center gap-1.5">
+                      <Mail className="w-3.5 h-3.5 shrink-0 opacity-80" />
+                      <span>{user?.email || 'postulante@funes.com'}</span>
                     </span>
-                  )}
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-amber-400/15 border border-amber-300/30 text-[#ffd978] text-[11.5px] font-semibold backdrop-blur-xs leading-none">
-                    <Search className="w-3 h-3 text-[#ffd978] stroke-[2.5]" />
-                    Búsqueda activa
-                  </span>
-                </div>
-
-                {/* Nombre grande del postulante */}
-                <div>
-                  <h1 className="text-xl sm:text-2xl md:text-[26px] font-bold tracking-tight text-white font-sans leading-tight">
-                    {displayProfile?.nombre ? `${displayProfile.nombre} ${displayProfile.apellido || ''}` : 'Mi Perfil Laboral'}
-                  </h1>
-                </div>
-
-                {/* Debajo del nombre: correo, DNI y localidad al 86% de opacidad */}
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-white/86 text-[14px]">
-                  <span className="inline-flex items-center gap-1.5">
-                    <Mail className="w-3.5 h-3.5 shrink-0 opacity-80" />
-                    <span>{user?.email || 'postulante@funes.com'}</span>
-                  </span>
-                  <span className="text-white/30 hidden sm:inline">•</span>
-                  <span className="inline-flex items-center gap-1.5">
-                    <User className="w-3.5 h-3.5 shrink-0 opacity-80" />
-                    <span>{displayProfile?.dni || '35123456'}</span>
-                  </span>
-                  <span className="text-white/30 hidden sm:inline">•</span>
-                  <span className="inline-flex items-center gap-1.5">
-                    <MapPin className="w-3.5 h-3.5 shrink-0 opacity-80" />
-                    <span>{displayProfile?.localidad || (displayProfile?.es_residente_funes ? 'Funes' : 'No informada')}</span>
-                  </span>
+                    <span className="text-white/30 hidden sm:inline">•</span>
+                    <span className="inline-flex items-center gap-1.5">
+                      <User className="w-3.5 h-3.5 shrink-0 opacity-80" />
+                      <span>{displayProfile?.dni || '35123456'}</span>
+                    </span>
+                    <span className="text-white/30 hidden sm:inline">•</span>
+                    <span className="inline-flex items-center gap-1.5">
+                      <MapPin className="w-3.5 h-3.5 shrink-0 opacity-80" />
+                      <span>{displayProfile?.localidad || (displayProfile?.es_residente_funes ? 'Funes' : 'No informada')}</span>
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
-
-            <div className="shrink-0 flex items-center gap-3 pt-2 md:pt-0">
-              <Link
-                href="/ofertas"
-                className="h-10 px-4 rounded-xl bg-amber-400 hover:bg-amber-300 text-amber-950 font-bold text-xs inline-flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer w-full sm:w-auto shrink-0"
-              >
-                <Search className="w-3.5 h-3.5 stroke-[2.4]" />
-                Explorar ofertas laborales
-              </Link>
-            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
-      {/* 2. Barra de Navegación por Pestañas Segmentadas (Estilo unificado con Admin) */}
-      <div className="bg-surface border-b border-zinc-200 shadow-2xs">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10">
-          <div className="flex items-center gap-1 overflow-x-auto py-1.5 scroll-smooth no-scrollbar text-xs" role="tablist">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={activeTab === 'perfil'}
-              onClick={() => setActiveTab('perfil')}
-              className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl font-bold transition-all whitespace-nowrap cursor-pointer ${
-                activeTab === 'perfil'
-                  ? 'bg-brand-900 text-white shadow-xs'
-                  : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
-              }`}
-            >
-              <User className="w-3.5 h-3.5" />
-              <span>Mi perfil y CV</span>
-            </button>
-
-            <button
-              type="button"
-              role="tab"
-              aria-selected={activeTab === 'postulaciones'}
-              onClick={() => setActiveTab('postulaciones')}
-              className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl font-bold transition-all whitespace-nowrap cursor-pointer ${
-                activeTab === 'postulaciones'
-                  ? 'bg-brand-900 text-white shadow-xs'
-                  : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
-              }`}
-            >
-              <Inbox className="w-3.5 h-3.5" />
-              <span>Mis postulaciones</span>
-              <span
-                className={`text-[10px] px-1.5 py-0.2 rounded-full font-extrabold leading-none transition-colors ${
-                  activeTab === 'postulaciones'
-                    ? 'bg-white/20 text-white'
-                    : 'bg-zinc-100 text-zinc-700'
-                }`}
-              >
-                {activeApplicationsCount}
-              </span>
-            </button>
-
-            <button
-              type="button"
-              role="tab"
-              aria-selected={activeTab === 'cursos'}
-              onClick={() => setActiveTab('cursos')}
-              className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl font-bold transition-all whitespace-nowrap cursor-pointer ${
-                activeTab === 'cursos'
-                  ? 'bg-brand-900 text-white shadow-xs'
-                  : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
-              }`}
-            >
-              <Award className="w-3.5 h-3.5" />
-              <span>Cursos y talleres</span>
-              <span
-                className={`text-[10px] px-1.5 py-0.2 rounded-full font-extrabold leading-none transition-colors ${
-                  activeTab === 'cursos'
-                    ? 'bg-white/20 text-white'
-                    : 'bg-zinc-100 text-zinc-700'
-                }`}
-              >
-                {courses.length}
-              </span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* 3. Contenedor de Contenido Principal Full-Width (hasta 1600px) */}
+      {/* 2. Contenedor de Contenido Principal Full-Width (hasta 1600px) */}
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 py-5 sm:py-6 w-full flex-1 space-y-5">
 
         {/* Banner de entrevistas agendadas */}
@@ -383,33 +314,80 @@ function PostulanteDashboardContent() {
           </div>
         )}
         
-        {/* Aviso de perfil incompleto */}
-        {!isLoadingData && isProfileIncomplete && (
-          <div className="mb-6 p-4 sm:p-5 bg-amber-50 border border-amber-200 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs sm:text-sm text-amber-950 shadow-xs">
+        {/* 1. Aviso de datos obligatorios faltantes (indispensables para postularse) */}
+        {!isLoadingData && isMandatoryIncomplete && (
+          <div className="mb-6 p-4 sm:p-5 bg-amber-50/90 border border-amber-300 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs sm:text-sm text-amber-950 shadow-xs">
             <div className="flex items-start gap-3">
               <AlertCircle className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
-              <div>
-                <strong className="font-bold block text-amber-900">
-                  Completá tu perfil laboral para mejorar tu posicionamiento
+              <div className="space-y-1">
+                <strong className="font-bold block text-amber-900 text-sm">
+                  Datos obligatorios pendientes para postularte
                 </strong>
-                <span className="text-amber-800">
-                  Agregar tu nivel educativo, experiencia, habilidades y rubros de interés ayuda a la Oficina de Empleo de Funes a preseleccionarte más rápido.
-                </span>
+                <p className="text-amber-800 leading-relaxed">
+                  Para poder postularte a las ofertas laborales vigentes necesitás completar:{' '}
+                  <span className="font-semibold text-amber-950">
+                    {missingRequiredFields.join(', ')}
+                  </span>.
+                </p>
               </div>
             </div>
             <button
               type="button"
               onClick={() => {
-                const missingContact = !displayProfile?.dni?.trim() || !displayProfile?.telefono?.trim() || !displayProfile?.localidad?.trim();
+                const missingContact =
+                  !displayProfile?.dni?.trim() ||
+                  !displayProfile?.telefono?.trim() ||
+                  !displayProfile?.localidad?.trim();
                 if (missingContact) {
                   setIsPersonalModalOpen(true);
                 } else {
-                  setIsLaboralModalOpen(true);
+                  // Si solo falta CV, asegurar que esté en tab perfil y scroll hacia CurriculumManager
+                  if (activeTab !== 'perfil') {
+                    setActiveTab('perfil');
+                  }
+                  window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
                 }
               }}
-              className="px-4 py-2 rounded-full border border-amber-300 bg-white font-bold text-amber-900 hover:bg-amber-100 transition-colors cursor-pointer shrink-0"
+              className="px-4 py-2 rounded-xl border border-amber-400 bg-white font-bold text-amber-900 hover:bg-amber-100 transition-colors cursor-pointer shrink-0 shadow-2xs text-center"
             >
-              Completar ahora
+              Completar datos requeridos
+            </button>
+          </div>
+        )}
+
+        {/* 2. Indicador visual compacto de progreso de perfil y sugerencias (estilo Computrabajo / Upwork) - Visible únicamente en la pestaña 'Mi perfil y CV' */}
+        {!isLoadingData && activeTab === 'perfil' && !isMandatoryIncomplete && profileCompletionPercentage < 100 && (
+          <div className="mb-4 py-3 px-4 sm:px-5 bg-surface border border-zinc-200/90 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs shadow-2xs">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 flex-1 min-w-0">
+              {/* Badge de porcentaje y barra compacta */}
+              <div className="flex items-center gap-2.5 shrink-0">
+                <span className="inline-flex items-center justify-center font-bold text-xs px-2 py-0.5 rounded-md bg-brand-50 text-brand-900 border border-brand-200">
+                  {profileCompletionPercentage}%
+                </span>
+                <div className="w-24 sm:w-32 bg-zinc-100 rounded-full h-2 overflow-hidden border border-zinc-200/80">
+                  <div
+                    className="bg-brand-700 h-full rounded-full transition-all duration-500 ease-out"
+                    style={{ width: `${profileCompletionPercentage}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Texto explicativo discreto */}
+              <div className="min-w-0 flex-1">
+                <p className="text-zinc-600 truncate sm:text-clip">
+                  <strong className="text-zinc-900 font-semibold mr-1">Completá tu perfil:</strong>
+                  sumá <span className="text-zinc-800 font-medium">{optionalSuggestions.join(', ')}</span> para potenciar tus postulaciones en Funes.
+                </p>
+              </div>
+            </div>
+
+            {/* Botón de acción rápido y discreto */}
+            <button
+              type="button"
+              onClick={() => setIsLaboralModalOpen(true)}
+              className="px-3 py-1.5 rounded-lg border border-brand-200 bg-brand-50/50 hover:bg-brand-100/60 font-semibold text-brand-900 text-xs transition-colors cursor-pointer shrink-0 self-start md:self-center shadow-2xs"
+            >
+              Completar perfil →
             </button>
           </div>
         )}
@@ -593,12 +571,13 @@ function PostulanteDashboardContent() {
                   <span className="text-zinc-500 font-medium hidden sm:inline">Orden:</span>
                   <select
                     value={cursoSortOrder}
-                    onChange={(e) => setCursoSortOrder(e.target.value as 'recientes' | 'antiguas')}
-                    aria-label="Ordenar cursos por fecha de asignación"
+                    onChange={(e) => setCursoSortOrder(e.target.value as 'recientes' | 'antiguas' | 'titulo')}
+                    aria-label="Ordenar cursos"
                     className="bg-transparent text-zinc-800 font-semibold focus:outline-none cursor-pointer text-xs"
                   >
-                    <option value="recientes">Más recientes</option>
-                    <option value="antiguas">Más antiguas</option>
+                    <option value="recientes">Más reciente primero</option>
+                    <option value="antiguas">Más antiguo primero</option>
+                    <option value="titulo">Título (A-Z)</option>
                   </select>
                 </div>
               )}
@@ -630,6 +609,11 @@ function PostulanteDashboardContent() {
               <div className="space-y-3">
                 {[...courses]
                   .sort((a, b) => {
+                    if (cursoSortOrder === 'titulo') {
+                      const titA = a.curso?.titulo || '';
+                      const titB = b.curso?.titulo || '';
+                      return titA.localeCompare(titB, 'es', { sensitivity: 'base' });
+                    }
                     const timeA = new Date(a.fecha_asignacion).getTime() || 0;
                     const timeB = new Date(b.fecha_asignacion).getTime() || 0;
                     return cursoSortOrder === 'recientes' ? timeB - timeA : timeA - timeB;

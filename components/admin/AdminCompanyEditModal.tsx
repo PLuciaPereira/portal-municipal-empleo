@@ -157,7 +157,7 @@ export function AdminCompanyEditModal({
                 id="modal-admin-company-edit-title"
                 className="text-lg font-extrabold text-[#10231B] font-display flex items-center gap-2"
               >
-                Editar perfil de empresa (admin)
+                Editar perfil de empresa
               </h2>
               <p className="text-xs text-[#4B6256]">
                 Podés corregir datos fiscales protegidos y la información comercial de la empresa.
