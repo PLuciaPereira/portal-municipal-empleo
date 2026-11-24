@@ -1,7 +1,7 @@
 'use client';
 
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Curso } from '@/types/database';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -45,6 +45,18 @@ const isEditing = Boolean(curso);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Sincronizar y resetear el estado cada vez que se abre el modal o cambia el curso
+  useEffect(() => {
+    if (isOpen) {
+      setTitulo(curso?.titulo || '');
+      setInstitucion(curso?.institucion || '');
+      setDuracion(curso?.duracion || '');
+      setDescripcion(curso?.descripcion || '');
+      setActivo(curso ? curso.activo : true);
+      setError(null);
+    }
+  }, [isOpen, curso]);
 
   if (!isOpen) return null;
 
@@ -122,7 +134,10 @@ const isEditing = Boolean(curso);
               required
               placeholder="Ej. Taller de Soldadura y Herrería / Introducción a Programación"
               value={titulo}
-              onChange={(e) => setTitulo(e.target.value)}
+              onChange={(e) => {
+                setTitulo(e.target.value);
+                if (error) setError(null);
+              }}
               disabled={loading}
             />
           </div>

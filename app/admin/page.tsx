@@ -60,6 +60,7 @@ function AdminDashboardContent() {
 
   const [activeTab, setActiveTab] = useState<AdminTab>(() => {
     const tabParam = searchParams.get('tab');
+    if (tabParam === 'cursos') return 'capacitaciones';
     const validTabs: AdminTab[] = [
       'inicio',
       'nuevas_postulaciones',
@@ -98,6 +99,10 @@ function AdminDashboardContent() {
   // Sincronizar activeTab cuando cambia el query param (ej. enlaces de notificación)
   useEffect(() => {
     const tabParam = searchParams.get('tab');
+    if (tabParam === 'cursos') {
+      setActiveTab('capacitaciones');
+      return;
+    }
     const validTabs: AdminTab[] = [
       'inicio',
       'nuevas_postulaciones',

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Curso, EstadoPostulanteCurso } from '@/types/database';
 import {
   getCursosAdmin,
@@ -50,7 +51,12 @@ const ESTADOS_ASIGNACION_CONFIG: Record<
 };
 
 export function CoursesManager() {
-  const [subTab, setSubTab] = useState<'catalogo' | 'derivaciones'>('catalogo');
+  const searchParams = useSearchParams();
+  const [subTab, setSubTab] = useState<'catalogo' | 'derivaciones'>(() => {
+    const sub = searchParams.get('subtab');
+    if (sub === 'derivaciones' || sub === 'postulantes') return 'derivaciones';
+    return 'catalogo';
+  });
 
   // Estados de Cursos
   const [cursos, setCursos] = useState<Curso[]>([]);
@@ -71,10 +77,33 @@ export function CoursesManager() {
   const [loadingAsignaciones, setLoadingAsignaciones] = useState(true);
   const [searchAsignacion, setSearchAsignacion] = useState('');
   const [filtroCursoAsignacion, setFiltroCursoAsignacion] = useState<string>('todos');
-  const [filtroEstadoAsignacion, setFiltroEstadoAsignacion] = useState<EstadoPostulanteCurso | 'todos'>('todos');
+  const [filtroEstadoAsignacion, setFiltroEstadoAsignacion] = useState<EstadoPostulanteCurso | 'todos'>(() => {
+    const estadoParam = searchParams.get('estado');
+    const validEstados: EstadoPostulanteCurso[] = ['asignado', 'en_curso', 'completado', 'abandonado', 'cancelado'];
+    if (estadoParam && validEstados.includes(estadoParam as EstadoPostulanteCurso)) {
+      return estadoParam as EstadoPostulanteCurso;
+    }
+    return 'todos';
+  });
   const [sortAsignacion, setSortAsignacion] = useState<'recientes' | 'antiguas' | 'titulo'>('recientes');
   const [pageAsignaciones, setPageAsignaciones] = useState<number>(1);
   const PAGE_SIZE_ASIGNACIONES = 5;
+
+  // Sincronizar subtab y filtros cuando cambian los searchParams en la URL (ej. enlaces de notificaciones)
+  useEffect(() => {
+    const sub = searchParams.get('subtab');
+    if (sub === 'derivaciones' || sub === 'postulantes') {
+      setSubTab('derivaciones');
+    } else if (sub === 'catalogo') {
+      setSubTab('catalogo');
+    }
+
+    const estadoParam = searchParams.get('estado');
+    const validEstados: EstadoPostulanteCurso[] = ['asignado', 'en_curso', 'completado', 'abandonado', 'cancelado'];
+    if (estadoParam && validEstados.includes(estadoParam as EstadoPostulanteCurso)) {
+      setFiltroEstadoAsignacion(estadoParam as EstadoPostulanteCurso);
+    }
+  }, [searchParams]);
 
   // Resetear página de asignaciones al cambiar filtros o criterio de orden
   useEffect(() => {

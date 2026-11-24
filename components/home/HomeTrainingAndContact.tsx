@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/Button';
 
 export const HomeTrainingAndContact: React.FC = () => {
   const cursosEjemplo = [
-    'Herramientas Digitales y Ofimática',
+    'Herramientas Digitales y Paquetes de Oficina',
     'Atención al Cliente y Ventas',
     'Armado de CV y Entrevistas Laborales',
     'Introducción a la Gastronomía y Buenas Prácticas',

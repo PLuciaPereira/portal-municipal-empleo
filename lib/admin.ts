@@ -1137,6 +1137,54 @@ export async function getCursosAdmin(
 }
 
 /**
+ * Transforma errores de Supabase/Postgrest en mensajes descriptivos y legibles para el usuario
+ */
+function traducirErrorSupabase(err: any, mensajePorDefecto: string): string {
+  if (!err) return mensajePorDefecto;
+
+  const code = err.code || err.status || '';
+  const rawMessage = (err.message || '').toLowerCase();
+  const rawDetails = (err.details || '').toLowerCase();
+
+  // Errores de permisos o RLS
+  if (
+    code === '42501' ||
+    rawMessage.includes('permission denied') ||
+    rawMessage.includes('row-level security') ||
+    rawMessage.includes('policy') ||
+    rawDetails.includes('row-level security')
+  ) {
+    return 'No tenés permisos suficientes para realizar esta acción o tu sesión administrativa expiró.';
+  }
+
+  // Errores de duplicados (clave única)
+  if (code === '23505' || rawMessage.includes('unique') || rawMessage.includes('duplicate')) {
+    return 'Ya existe un registro con estos datos o título.';
+  }
+
+  // Errores de claves foráneas
+  if (code === '23503' || rawMessage.includes('foreign key')) {
+    return 'La operación hace referencia a un registro que no existe o fue eliminado.';
+  }
+
+  // Errores de conexión / red
+  if (
+    rawMessage.includes('failed to fetch') ||
+    rawMessage.includes('network') ||
+    rawMessage.includes('connection')
+  ) {
+    return 'No se pudo conectar con el servidor. Por favor, verificá tu conexión a internet e intentá nuevamente.';
+  }
+
+  // Si tiene un mensaje legible no técnico
+  if (err.message && typeof err.message === 'string' && err.message.trim().length > 0) {
+    return err.message;
+  }
+
+  return mensajePorDefecto;
+}
+
+/**
  * Crea un nuevo curso en el catálogo municipal
  */
 export async function crearCursoAdmin(datos: {
@@ -1164,8 +1212,16 @@ export async function crearCursoAdmin(datos: {
       .single();
 
     if (error) {
-      console.error('Error al insertar curso:', error);
-      return { success: false, error: error.message };
+      console.error('Error al insertar curso en base de datos:', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+      });
+      return {
+        success: false,
+        error: traducirErrorSupabase(error, 'No fue posible guardar el curso. Verificá los permisos o intentá nuevamente.'),
+      };
     }
 
     return { success: true, curso: data as Curso };
@@ -1209,8 +1265,16 @@ export async function actualizarCursoAdmin(
       .single();
 
     if (error) {
-      console.error('Error al actualizar curso:', error);
-      return { success: false, error: error.message };
+      console.error('Error al actualizar curso en base de datos:', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+      });
+      return {
+        success: false,
+        error: traducirErrorSupabase(error, 'No fue posible actualizar el curso. Verificá los permisos o intentá nuevamente.'),
+      };
     }
 
     return { success: true, curso: data as Curso };

@@ -10,10 +10,14 @@ import {
   getPostulanteProfile,
   getPostulanteApplications,
   getPostulanteCourses,
+  confirmarAsistenciaCurso,
+  darDeBajaCursoPostulante,
 } from '@/lib/postulante';
 import { getRubros } from '@/lib/jobs';
 import { PostulanteCurso, Rubro, EstadoPostulanteCurso } from '@/types/database';
 import { Badge, BadgeProps } from '@/components/ui/Badge';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { CourseDetailModal } from '@/components/postulante/CourseDetailModal';
 import { CurriculumManager } from '@/components/postulante/CurriculumManager';
 import { ApplicationsHistoryList } from '@/components/postulante/ApplicationsHistoryList';
 import { ProfilePersonalModal } from '@/components/postulante/ProfilePersonalModal';
@@ -38,6 +42,12 @@ import {
   ArrowUpDown,
   Mail,
   MapPin,
+  Play,
+  Loader2,
+  Info,
+  XCircle,
+  Building2,
+  PhoneCall,
 } from 'lucide-react';
 
 type TabKey = 'perfil' | 'postulaciones' | 'cursos';
@@ -89,6 +99,78 @@ function PostulanteDashboardContent() {
   const [isLoadingData, setIsLoadingData] = useState<boolean>(true);
   const [isPersonalModalOpen, setIsPersonalModalOpen] = useState<boolean>(false);
   const [isLaboralModalOpen, setIsLaboralModalOpen] = useState<boolean>(false);
+  const [confirmandoCursoId, setConfirmandoCursoId] = useState<string | null>(null);
+  const [mensajeCurso, setMensajeCurso] = useState<{ tipo: 'success' | 'error'; texto: string } | null>(null);
+  const [cursoParaVerDetalle, setCursoParaVerDetalle] = useState<PostulanteCurso | null>(null);
+  const [cursoParaBaja, setCursoParaBaja] = useState<PostulanteCurso | null>(null);
+  const [isSubmittingBaja, setIsSubmittingBaja] = useState<boolean>(false);
+
+  const handleConfirmarInicioCurso = async (asignacionId: string, tituloCurso: string) => {
+    setConfirmandoCursoId(asignacionId);
+    setMensajeCurso(null);
+    try {
+      const res = await confirmarAsistenciaCurso(asignacionId);
+      if (res.success) {
+        setCourses((prev) =>
+          prev.map((c) => (c.id === asignacionId ? { ...c, estado: 'en_curso' } : c))
+        );
+        setMensajeCurso({
+          tipo: 'success',
+          texto: `¡Felicitaciones! Confirmaste tu inicio en "${tituloCurso}". La Oficina de Empleo fue notificada.`,
+        });
+      } else {
+        setMensajeCurso({
+          tipo: 'error',
+          texto: res.error || 'No se pudo confirmar el inicio del curso.',
+        });
+      }
+    } catch {
+      setMensajeCurso({
+        tipo: 'error',
+        texto: 'Ocurrió un error inesperado al confirmar la cursada.',
+      });
+    } finally {
+      setConfirmandoCursoId(null);
+    }
+  };
+
+  const handleConfirmarBajaCurso = async (motivo?: string) => {
+    if (!cursoParaBaja || !motivo?.trim()) return;
+
+    setIsSubmittingBaja(true);
+    setMensajeCurso(null);
+    try {
+      const res = await darDeBajaCursoPostulante({
+        asignacionId: cursoParaBaja.id,
+        motivo: motivo.trim(),
+        estadoActual: cursoParaBaja.estado,
+      });
+
+      if (res.success) {
+        const nuevoEstado = cursoParaBaja.estado === 'asignado' ? 'cancelado' : 'abandonado';
+        setCourses((prev) =>
+          prev.map((c) => (c.id === cursoParaBaja.id ? { ...c, estado: nuevoEstado } : c))
+        );
+        setMensajeCurso({
+          tipo: 'success',
+          texto: 'Se registró la baja de la capacitación y se informó a la Oficina de Empleo.',
+        });
+        setCursoParaBaja(null);
+      } else {
+        setMensajeCurso({
+          tipo: 'error',
+          texto: res.error || 'No se pudo registrar la baja del curso.',
+        });
+      }
+    } catch {
+      setMensajeCurso({
+        tipo: 'error',
+        texto: 'Ocurrió un error inesperado al registrar la baja.',
+      });
+    } finally {
+      setIsSubmittingBaja(false);
+    }
+  };
 
   // Sincronizar tab cuando cambian los searchParams (ej. notificación "Ver detalle")
   useEffect(() => {
@@ -583,6 +665,31 @@ function PostulanteDashboardContent() {
               )}
             </div>
 
+            {mensajeCurso && (
+              <div
+                className={`p-3.5 rounded-xl border flex items-center justify-between text-xs font-sans transition-all animate-in fade-in duration-200 ${
+                  mensajeCurso.tipo === 'success'
+                    ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                    : 'bg-rose-50 border-rose-200 text-rose-800'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  {mensajeCurso.tipo === 'success' ? (
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  ) : (
+                    <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                  )}
+                  <span>{mensajeCurso.texto}</span>
+                </div>
+                <button
+                  onClick={() => setMensajeCurso(null)}
+                  className="text-zinc-400 hover:text-zinc-700 text-xs font-bold ml-3 cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+
             {isLoadingData ? (
               <div className="space-y-4 py-2">
                 {Array.from({ length: 2 }).map((_, i) => (
@@ -677,12 +784,84 @@ function PostulanteDashboardContent() {
                         )}
                       </div>
 
-                      {pc.estado === 'completado' && (
-                        <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-800 bg-[#D9EEDF] px-3 py-1.5 rounded-full shrink-0">
-                          <CheckCircle2 className="w-3.5 h-3.5" />
-                          Acreditado
-                        </div>
-                      )}
+                      <div className="flex flex-wrap items-center gap-2 shrink-0 self-start sm:self-center">
+                        {/* Botón Ver Detalle */}
+                        <button
+                          type="button"
+                          onClick={() => setCursoParaVerDetalle(pc)}
+                          className="h-8.5 px-3 rounded-xl border border-zinc-200 bg-white hover:bg-zinc-50 active:scale-98 text-zinc-700 font-semibold text-xs inline-flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs"
+                        >
+                          <Info className="w-3.5 h-3.5 text-zinc-500" />
+                          Ver detalle
+                        </button>
+
+                        {/* Botón Comencé a Cursar (solo si está asignado) */}
+                        {pc.estado === 'asignado' && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleConfirmarInicioCurso(
+                                pc.id,
+                                pc.curso?.titulo || 'la capacitación'
+                              )
+                            }
+                            disabled={confirmandoCursoId === pc.id}
+                            className="h-8.5 px-3.5 rounded-xl bg-brand-800 hover:bg-brand-900 active:scale-98 text-white font-bold text-xs inline-flex items-center gap-1.5 transition-all shadow-2xs disabled:opacity-50 cursor-pointer"
+                          >
+                            {confirmandoCursoId === pc.id ? (
+                              <>
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                Confirmando...
+                              </>
+                            ) : (
+                              <>
+                                <Play className="w-3.5 h-3.5 fill-current" />
+                                Comencé a cursar
+                              </>
+                            )}
+                          </button>
+                        )}
+
+                        {/* Botón No podré asistir (si está asignado) */}
+                        {pc.estado === 'asignado' && (
+                          <button
+                            type="button"
+                            onClick={() => setCursoParaBaja(pc)}
+                            className="h-8.5 px-3 rounded-xl border border-rose-200 bg-rose-50/50 hover:bg-rose-100 text-rose-700 font-semibold text-xs inline-flex items-center gap-1.5 transition-all cursor-pointer"
+                            title="Avisar que no podrás asistir a la capacitación"
+                          >
+                            <XCircle className="w-3.5 h-3.5 text-rose-600" />
+                            No podré asistir
+                          </button>
+                        )}
+
+                        {/* Botón Darme de baja (si ya está en curso) */}
+                        {pc.estado === 'en_curso' && (
+                          <button
+                            type="button"
+                            onClick={() => setCursoParaBaja(pc)}
+                            className="h-8.5 px-3 rounded-xl border border-zinc-200 bg-white hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200 text-zinc-600 font-semibold text-xs inline-flex items-center gap-1.5 transition-all cursor-pointer"
+                            title="Informar baja de la cursada"
+                          >
+                            <XCircle className="w-3.5 h-3.5" />
+                            Darme de baja
+                          </button>
+                        )}
+
+                        {pc.estado === 'en_curso' && (
+                          <div className="flex items-center gap-1.5 text-xs font-semibold text-amber-800 bg-amber-50 border border-amber-200/80 px-3 py-1.5 rounded-full shrink-0">
+                            <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                            Cursando actualmente
+                          </div>
+                        )}
+
+                        {pc.estado === 'completado' && (
+                          <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-800 bg-[#D9EEDF] px-3 py-1.5 rounded-full shrink-0">
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            Acreditado
+                          </div>
+                        )}
+                      </div>
                     </div>
                   );
                 })}
@@ -710,6 +889,39 @@ function PostulanteDashboardContent() {
           availableRubros={availableRubros}
           onClose={() => setIsLaboralModalOpen(false)}
           onSaved={handleDataChanged}
+        />
+      )}
+
+      {/* Modal: Ficha Detallada de la Capacitación */}
+      {cursoParaVerDetalle && (
+        <CourseDetailModal
+          isOpen={Boolean(cursoParaVerDetalle)}
+          asignacion={cursoParaVerDetalle}
+          onClose={() => setCursoParaVerDetalle(null)}
+        />
+      )}
+
+      {/* ConfirmDialog: Motivo de imposibilidad o baja de curso */}
+      {cursoParaBaja && (
+        <ConfirmDialog
+          isOpen={Boolean(cursoParaBaja)}
+          title={
+            cursoParaBaja.estado === 'asignado'
+              ? '¿No podrás asistir a la capacitación?'
+              : '¿Dar de baja la cursada?'
+          }
+          description={`Se notificará a la Oficina de Empleo de Funes sobre tu situación para la capacitación "${cursoParaBaja.curso?.titulo || 'Capacitación Municipal'}".`}
+          confirmText="Confirmar baja"
+          cancelText="Volver"
+          variant="destructive"
+          requireReason={true}
+          reasonLabel="Motivo de la baja o imposibilidad de cursar *"
+          reasonPlaceholder="Ej. Conseguí empleo / Incompatibilidad de horarios / Problemas de traslado..."
+          isLoading={isSubmittingBaja}
+          onConfirm={handleConfirmarBajaCurso}
+          onClose={() => {
+            if (!isSubmittingBaja) setCursoParaBaja(null);
+          }}
         />
       )}
     </div>

@@ -227,7 +227,7 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <div className="portal-fullpage-layout relative w-full flex-1 flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] bg-[#eef5f0] px-4 py-12 sm:px-6 lg:px-8 2xl:py-16 overflow-hidden">
+    <div className="portal-fullpage-layout relative w-full flex-1 flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] bg-[#eef5f0] px-4 pt-6 pb-14 sm:pt-8 sm:pb-20 lg:pt-10 lg:pb-24 2xl:py-16 overflow-hidden">
       {/* Marca de agua decorativa: Logo oficial de Funes de trazo fino */}
       <Image
         src="/favicon-funes.png"
@@ -251,7 +251,7 @@ export default function LoginPage() {
         style={{ opacity: 0.07 }}
       />
 
-      <div className="relative z-10 w-full max-w-[460px] 2xl:max-w-[500px] mx-auto flex flex-col items-center gap-6 2xl:gap-8">
+      <div className="relative z-10 w-full max-w-[460px] 2xl:max-w-[500px] mx-auto flex flex-col items-center gap-6 2xl:gap-8 sm:-translate-y-4 lg:-translate-y-6">
         <Suspense
           fallback={
             <div className="text-center py-12">

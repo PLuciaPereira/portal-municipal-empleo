@@ -4,6 +4,7 @@ import {
   Perfil,
   Postulacion,
   PostulanteCurso,
+  EstadoPostulanteCurso,
   Rubro,
 } from '@/types/database';
 import { createClient } from '@/lib/supabase/client';
@@ -1018,6 +1019,171 @@ export async function getPostulanteCourses(
   } catch (err) {
     console.error('Error inesperado consultando cursos del postulante:', err);
     return [];
+  }
+}
+
+/**
+ * Permite al postulante confirmar su asistencia / inicio de cursada en una capacitación asignada
+ */
+export async function confirmarAsistenciaCurso(
+  asignacionId: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const supabase = createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return {
+        success: false,
+        error: 'Sesión no válida o expirada. Por favor, iniciá sesión nuevamente.',
+      };
+    }
+
+    // Actualizar estado a 'en_curso'
+    const { error } = await supabase
+      .from('postulante_cursos')
+      .update({
+        estado: 'en_curso',
+      })
+      .eq('id', asignacionId)
+      .eq('postulante_id', user.id);
+
+    if (error) {
+      console.error('Error al confirmar asistencia al curso:', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+      });
+      return {
+        success: false,
+        error: 'No se pudo confirmar el inicio del curso. Verificá tu conexión o intentá nuevamente.',
+      };
+    }
+
+    // Notificar a administradores de la Oficina de Empleo
+    try {
+      const { notificarAdmins } = await import('@/lib/notifications');
+      const { data: asig } = await supabase
+        .from('postulante_cursos')
+        .select('curso:cursos(titulo)')
+        .eq('id', asignacionId)
+        .single();
+
+      const nomCurso = (asig?.curso as any)?.titulo || 'la capacitación';
+      await notificarAdmins({
+        titulo: 'Postulante inició cursada',
+        mensaje: `El postulante confirmó el inicio de clases en: "${nomCurso}".`,
+        tipo: 'curso',
+        link: '/admin?tab=capacitaciones&subtab=derivaciones&estado=en_curso',
+        agrupadorKey: `curso_confirmado_${asignacionId}`,
+      });
+    } catch (e) {
+      console.warn('Aviso: no se pudo notificar a administradores sobre inicio de cursada:', e);
+    }
+
+    return { success: true };
+  } catch (err) {
+    console.error('Error inesperado al confirmar asistencia al curso:', err);
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : 'Error inesperado al confirmar la cursada.',
+    };
+  }
+}
+
+/**
+ * Permite al postulante informar imposibilidad de asistir o solicitar baja con motivo
+ */
+export async function darDeBajaCursoPostulante(params: {
+  asignacionId: string;
+  motivo: string;
+  estadoActual: EstadoPostulanteCurso;
+}): Promise<{ success: boolean; error?: string }> {
+  try {
+    const supabase = createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return {
+        success: false,
+        error: 'Sesión no válida o expirada. Por favor, iniciá sesión nuevamente.',
+      };
+    }
+
+    if (!params.motivo.trim()) {
+      return {
+        success: false,
+        error: 'El motivo de la baja es obligatorio.',
+      };
+    }
+
+    // Si estaba asignado pasa a cancelado; si ya había comenzado pasa a abandonado
+    const nuevoEstado: EstadoPostulanteCurso =
+      params.estadoActual === 'asignado' ? 'cancelado' : 'abandonado';
+
+    // Obtener observaciones existentes para concatenar
+    const { data: existente } = await supabase
+      .from('postulante_cursos')
+      .select('observaciones, curso:cursos(titulo)')
+      .eq('id', params.asignacionId)
+      .eq('postulante_id', user.id)
+      .single();
+
+    const timestamp = new Date().toLocaleDateString('es-AR');
+    const notaBaja = `[${timestamp} - Baja informada por postulante]: ${params.motivo.trim()}`;
+    const nuevasObservaciones = existente?.observaciones
+      ? `${existente.observaciones}\n${notaBaja}`
+      : notaBaja;
+
+    const { error } = await supabase
+      .from('postulante_cursos')
+      .update({
+        estado: nuevoEstado,
+        observaciones: nuevasObservaciones,
+      })
+      .eq('id', params.asignacionId)
+      .eq('postulante_id', user.id);
+
+    if (error) {
+      console.error('Error al registrar baja de curso por postulante:', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+      });
+      return {
+        success: false,
+        error: 'No se pudo registrar la baja del curso. Intentá nuevamente.',
+      };
+    }
+
+    // Notificar a la Oficina de Empleo
+    try {
+      const { notificarAdmins } = await import('@/lib/notifications');
+      const nomCurso = (existente?.curso as any)?.titulo || 'la capacitación';
+      const accionTexto = nuevoEstado === 'cancelado' ? 'no podrá asistir a' : 'se dio de baja de';
+
+      await notificarAdmins({
+        titulo: `Postulante informó baja de curso`,
+        mensaje: `El postulante ${accionTexto}: "${nomCurso}". Motivo: ${params.motivo.trim()}`,
+        tipo: 'curso',
+        link: `/admin?tab=capacitaciones&subtab=derivaciones&estado=${nuevoEstado}`,
+        agrupadorKey: `curso_baja_${params.asignacionId}`,
+      });
+    } catch (e) {
+      console.warn('Aviso: no se pudo notificar a administradores sobre baja de curso:', e);
+    }
+
+    return { success: true };
+  } catch (err) {
+    console.error('Error inesperado al registrar baja de curso:', err);
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : 'Error inesperado al registrar la baja.',
+    };
   }
 }
 

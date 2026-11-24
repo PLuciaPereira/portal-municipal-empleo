@@ -1678,6 +1678,8 @@ CREATE POLICY "cursos_admin_all" ON public.cursos FOR ALL
 
 CREATE POLICY "postulante_cursos_owner_select" ON public.postulante_cursos FOR SELECT
     TO authenticated USING (postulante_id = auth.uid() OR public.is_admin());
+CREATE POLICY "postulante_cursos_owner_update" ON public.postulante_cursos FOR UPDATE
+    TO authenticated USING (postulante_id = auth.uid()) WITH CHECK (postulante_id = auth.uid());
 CREATE POLICY "postulante_cursos_admin_all" ON public.postulante_cursos FOR ALL
     TO authenticated USING (public.is_admin()) WITH CHECK (public.is_admin());
 
@@ -1775,7 +1777,7 @@ GRANT SELECT, INSERT, UPDATE ON public.postulaciones TO authenticated;
 GRANT SELECT, INSERT ON public.historial_postulacion TO authenticated;
 GRANT SELECT, INSERT, UPDATE ON public.curriculums TO authenticated;
 REVOKE DELETE ON public.curriculums FROM anon, authenticated;
-GRANT SELECT ON public.cursos TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.cursos TO authenticated;
 GRANT SELECT, INSERT, UPDATE ON public.postulante_cursos TO authenticated;
 GRANT SELECT ON public.vista_candidatos_empresa TO authenticated;
 REVOKE ALL ON public.vista_candidatos_empresa FROM PUBLIC, anon;
