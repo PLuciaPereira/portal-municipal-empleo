@@ -222,7 +222,8 @@ export async function solicitarRecuperoPasswordAction(
     }
 
     // Enviar correo de restablecimiento vía Supabase Auth
-    const redirectTo = `${origin}/auth/callback?next=/recuperar-password/cambiar`;
+    const cleanOrigin = origin ? origin.replace(/\/+$/, '') : '';
+    const redirectTo = `${cleanOrigin}/auth/callback?next=/recuperar-password/cambiar`;
     const { error: resetError } = await supabaseAdmin.auth.resetPasswordForEmail(emailDestino, {
       redirectTo,
     });

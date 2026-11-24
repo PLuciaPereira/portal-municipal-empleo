@@ -22,6 +22,7 @@ import { CurriculumManager } from '@/components/postulante/CurriculumManager';
 import { ApplicationsHistoryList } from '@/components/postulante/ApplicationsHistoryList';
 import { ProfilePersonalModal } from '@/components/postulante/ProfilePersonalModal';
 import { ProfileLaboralModal } from '@/components/postulante/ProfileLaboralModal';
+import { PostulanteProfileAlert } from '@/components/postulante/PostulanteProfileAlert';
 import {
   Edit3,
   GraduationCap,
@@ -356,6 +357,52 @@ function PostulanteDashboardContent() {
         </section>
       )}
 
+      {/* Aviso de Estado y Progresión Continuo (Idéntico en jerarquía a CompanyVerificationAlert) */}
+      {!isLoadingData && (
+        <PostulanteProfileAlert
+          percentage={profileCompletionPercentage}
+          isMandatoryIncomplete={isMandatoryIncomplete}
+          hasCurriculum={hasCurriculum}
+          missingRequiredFields={missingRequiredFields}
+          optionalSuggestions={optionalSuggestions}
+          onActionClick={() => {
+            // Asegurar que siempre estemos en la pestaña de perfil
+            if (activeTab !== 'perfil') {
+              setActiveTab('perfil');
+              router.push('/postulante?tab=perfil');
+            }
+
+            if (isMandatoryIncomplete) {
+              // Si falta el CV, prioridad absoluta: scroll directo y enfocado a la sección de CV
+              if (!hasCurriculum) {
+                setTimeout(() => {
+                  const cvSection = document.getElementById('seccion-cv');
+                  if (cvSection) {
+                    cvSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  } else {
+                    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                  }
+                }, 100);
+                return;
+              }
+
+              // Si ya tiene CV pero le falta contacto (DNI, Teléfono o Localidad)
+              const missingContact =
+                !displayProfile?.dni?.trim() ||
+                !displayProfile?.telefono?.trim() ||
+                !displayProfile?.localidad?.trim();
+
+              if (missingContact) {
+                setIsPersonalModalOpen(true);
+              }
+            } else {
+              // Si los datos obligatorios ya están completos, abrir el modal de perfil laboral
+              setIsLaboralModalOpen(true);
+            }
+          }}
+        />
+      )}
+
       {/* 2. Contenedor de Contenido Principal Full-Width (hasta 1720px) */}
       <div className="max-w-[1600px] 2xl:max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 py-5 sm:py-6 2xl:py-8 w-full flex-1 space-y-5 2xl:space-y-6">
 
@@ -393,84 +440,6 @@ function PostulanteDashboardContent() {
                 </div>
               ))}
             </div>
-          </div>
-        )}
-        
-        {/* 1. Aviso de datos obligatorios faltantes (indispensables para postularse) */}
-        {!isLoadingData && isMandatoryIncomplete && (
-          <div className="mb-6 p-4 sm:p-5 bg-amber-50/90 border border-amber-300 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs sm:text-sm text-amber-950 shadow-xs">
-            <div className="flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
-              <div className="space-y-1">
-                <strong className="font-bold block text-amber-900 text-sm">
-                  Datos obligatorios pendientes para postularte
-                </strong>
-                <p className="text-amber-800 leading-relaxed">
-                  Para poder postularte a las ofertas laborales vigentes necesitás completar:{' '}
-                  <span className="font-semibold text-amber-950">
-                    {missingRequiredFields.join(', ')}
-                  </span>.
-                </p>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                const missingContact =
-                  !displayProfile?.dni?.trim() ||
-                  !displayProfile?.telefono?.trim() ||
-                  !displayProfile?.localidad?.trim();
-                if (missingContact) {
-                  setIsPersonalModalOpen(true);
-                } else {
-                  // Si solo falta CV, asegurar que esté en tab perfil y scroll hacia CurriculumManager
-                  if (activeTab !== 'perfil') {
-                    setActiveTab('perfil');
-                  }
-                  window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-                }
-              }}
-              className="px-4 py-2 rounded-xl border border-amber-400 bg-white font-bold text-amber-900 hover:bg-amber-100 transition-colors cursor-pointer shrink-0 shadow-2xs text-center"
-            >
-              Completar datos requeridos
-            </button>
-          </div>
-        )}
-
-        {/* 2. Indicador visual compacto de progreso de perfil y sugerencias (estilo Computrabajo / Upwork) - Visible únicamente en la pestaña 'Mi perfil y CV' */}
-        {!isLoadingData && activeTab === 'perfil' && !isMandatoryIncomplete && profileCompletionPercentage < 100 && (
-          <div className="mb-4 py-3 px-4 sm:px-5 bg-surface border border-zinc-200/90 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs shadow-2xs">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 flex-1 min-w-0">
-              {/* Badge de porcentaje y barra compacta */}
-              <div className="flex items-center gap-2.5 shrink-0">
-                <span className="inline-flex items-center justify-center font-bold text-xs px-2 py-0.5 rounded-md bg-brand-50 text-brand-900 border border-brand-200">
-                  {profileCompletionPercentage}%
-                </span>
-                <div className="w-24 sm:w-32 bg-zinc-100 rounded-full h-2 overflow-hidden border border-zinc-200/80">
-                  <div
-                    className="bg-brand-700 h-full rounded-full transition-all duration-500 ease-out"
-                    style={{ width: `${profileCompletionPercentage}%` }}
-                  />
-                </div>
-              </div>
-
-              {/* Texto explicativo discreto */}
-              <div className="min-w-0 flex-1">
-                <p className="text-zinc-600 truncate sm:text-clip">
-                  <strong className="text-zinc-900 font-semibold mr-1">Completá tu perfil:</strong>
-                  sumá <span className="text-zinc-800 font-medium">{optionalSuggestions.join(', ')}</span> para potenciar tus postulaciones en Funes.
-                </p>
-              </div>
-            </div>
-
-            {/* Botón de acción rápido y discreto */}
-            <button
-              type="button"
-              onClick={() => setIsLaboralModalOpen(true)}
-              className="px-3 py-1.5 rounded-lg border border-brand-200 bg-brand-50/50 hover:bg-brand-100/60 font-semibold text-brand-900 text-xs transition-colors cursor-pointer shrink-0 self-start md:self-center shadow-2xs"
-            >
-              Completar perfil →
-            </button>
           </div>
         )}
 
@@ -603,7 +572,7 @@ function PostulanteDashboardContent() {
             </div>
 
             {/* 4. Módulo de Currículum Vitae Integrado */}
-            <div className="p-6 sm:p-8">
+            <div id="seccion-cv" className="p-6 sm:p-8 scroll-mt-20">
               <CurriculumManager
                 curriculums={profileFull?.curriculums || []}
                 isLoading={isLoadingData}

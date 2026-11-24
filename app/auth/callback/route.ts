@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse, type NextRequest } from 'next/server';
+import type { EmailOtpType } from '@supabase/supabase-js';
 
 /**
  * Valida que una ruta de redirección interna sea segura y pertenezca al dominio de la aplicación.
@@ -41,27 +42,55 @@ function getSafeRedirectPath(candidate: string | null): string | null {
  * Route Handler para procesar el callback de Supabase Auth.
  * Utilizado para:
  * 1. Confirmación de correo electrónico (registro de postulantes y empresas).
- * 2. Intercambio de código (PKCE) en recuperación de contraseñas.
+ * 2. Intercambio de código (PKCE) o verificación de Token Hash (OTP/recovery) en recuperación de contraseñas.
  */
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
+  const tokenHash = searchParams.get('token_hash');
+  const type = searchParams.get('type') as EmailOtpType | null;
   const nextRaw = searchParams.get('next');
   const error = searchParams.get('error');
   const errorDescription = searchParams.get('error_description');
 
+  const isRecovery = nextRaw?.includes('recuperar-password');
+
   // Si Supabase reporta un error en los parámetros de la URL
   if (error) {
     console.error('Error reportado por Supabase Auth en callback:', error, errorDescription);
-    const isRecovery = nextRaw?.includes('recuperar-password');
     const redirectUrl = new URL(isRecovery ? '/recuperar-password' : '/login', origin);
     redirectUrl.searchParams.set('error', 'link_expirado');
     return NextResponse.redirect(redirectUrl);
   }
 
-  if (code) {
-    try {
-      const supabase = await createClient();
+  try {
+    const supabase = await createClient();
+
+    // Caso A: Verificación por Token Hash (OTP / Email template estándar de Supabase con token_hash)
+    if (tokenHash && type) {
+      const { error: verifyError } = await supabase.auth.verifyOtp({
+        token_hash: tokenHash,
+        type,
+      });
+
+      if (!verifyError) {
+        const safeNext = getSafeRedirectPath(nextRaw);
+        if (safeNext) {
+          return NextResponse.redirect(new URL(safeNext, origin));
+        }
+
+        if (type === 'recovery') {
+          return NextResponse.redirect(new URL('/recuperar-password/cambiar', origin));
+        }
+
+        return NextResponse.redirect(new URL('/login?confirmed=true', origin));
+      }
+
+      console.error('Error al verificar OTP por token_hash:', verifyError.message);
+    }
+
+    // Caso B: Intercambio de código por sesión (Flujo PKCE estándar)
+    if (code) {
       const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
 
       if (!exchangeError) {
@@ -102,13 +131,12 @@ export async function GET(request: NextRequest) {
       }
 
       console.error('Error al intercambiar código por sesión:', exchangeError.message);
-    } catch (err) {
-      console.error('Excepción en auth/callback route handler:', err);
     }
+  } catch (err) {
+    console.error('Excepción en auth/callback route handler:', err);
   }
 
-  // Si no hay código o hubo un fallo en el intercambio
-  const isRecovery = nextRaw?.includes('recuperar-password');
+  // Si no hay código/token_hash o hubo un fallo en la verificación
   const failRedirect = new URL(isRecovery ? '/recuperar-password' : '/login', origin);
   failRedirect.searchParams.set('error', 'link_expirado');
   return NextResponse.redirect(failRedirect);

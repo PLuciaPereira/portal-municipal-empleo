@@ -20,13 +20,32 @@ export default function CambiarPasswordPage() {
   const [hasValidSession, setHasValidSession] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Verificar que el usuario tenga una sesión activa producto del intercambio de código en /auth/callback
+  // Verificar que el usuario tenga una sesión activa o escuchar PASSWORD_RECOVERY
   useEffect(() => {
     let isMounted = true;
+    const supabase = createClient();
 
+    // 1. Escuchar cambios de estado de autenticación (evento PASSWORD_RECOVERY o SIGNED_IN)
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!isMounted) return;
+
+      if (event === 'PASSWORD_RECOVERY' || (event === 'SIGNED_IN' && session)) {
+        setHasValidSession(true);
+        setIsVerifyingSession(false);
+      } else if (event === 'SIGNED_OUT') {
+        // Solo si no estamos procesando el submit de cambio de clave
+        if (!isLoading) {
+          setHasValidSession(false);
+          setIsVerifyingSession(false);
+        }
+      }
+    });
+
+    // 2. Comprobar sesión actual existente
     async function checkSession() {
       try {
-        const supabase = createClient();
         const {
           data: { session },
           error: sessionError,
@@ -35,15 +54,25 @@ export default function CambiarPasswordPage() {
         if (!isMounted) return;
 
         if (sessionError || !session) {
-          setHasValidSession(false);
+          // Si no hay sesión inmediata, aguardar brevemente por si Supabase está extrayendo tokens del hash
+          const timer = setTimeout(() => {
+            if (isMounted) {
+              setHasValidSession(false);
+              setIsVerifyingSession(false);
+            }
+          }, 1200);
+
+          return () => clearTimeout(timer);
         } else {
           setHasValidSession(true);
+          setIsVerifyingSession(false);
         }
       } catch (err) {
         console.warn('Error verificando sesión de recuperación:', err);
-        if (isMounted) setHasValidSession(false);
-      } finally {
-        if (isMounted) setIsVerifyingSession(false);
+        if (isMounted) {
+          setHasValidSession(false);
+          setIsVerifyingSession(false);
+        }
       }
     }
 
@@ -51,8 +80,9 @@ export default function CambiarPasswordPage() {
 
     return () => {
       isMounted = false;
+      subscription.unsubscribe();
     };
-  }, []);
+  }, [isLoading]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
