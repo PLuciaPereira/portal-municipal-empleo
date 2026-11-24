@@ -433,6 +433,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           const lower = error.message.toLowerCase();
           if (lower.includes('user already registered') || lower.includes('already registered')) {
             errorMsg = 'Ya existe una cuenta registrada con este correo electrónico.';
+          } else if (lower.includes('rate limit') || lower.includes('too many requests') || (error as any).status === 429) {
+            errorMsg = 'Se ha superado el límite temporal de envío de correos. Por favor, aguardá unos minutos antes de intentar registrarte nuevamente o contactá a la Oficina de Empleo.';
           } else if (lower.includes('password should be at least')) {
             errorMsg = 'La contraseña debe tener al menos 6 caracteres.';
           } else if (
@@ -546,6 +548,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           const lower = error.message.toLowerCase();
           if (lower.includes('user already registered') || lower.includes('already registered')) {
             errorMsg = 'Ya existe una cuenta registrada con este correo electrónico.';
+          } else if (lower.includes('rate limit') || lower.includes('too many requests') || (error as any).status === 429) {
+            errorMsg = 'Se ha superado el límite temporal de envío de correos. Por favor, aguardá unos minutos antes de intentar registrarte nuevamente o contactá a la Oficina de Empleo.';
           } else if (lower.includes('password should be at least')) {
             errorMsg = 'La contraseña debe tener al menos 6 caracteres.';
           } else if (lower.includes('cuit ingresado ya se encuentra registrado') || lower.includes('cuit')) {
