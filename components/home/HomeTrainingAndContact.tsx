@@ -21,11 +21,11 @@ export const HomeTrainingAndContact: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-16">
+    <div className="space-y-16 sm:space-y-24 lg:space-y-28">
       {/* =========================================================
           BLOQUE 1: CURSOS Y CAPACITACIONES LABORALES
           ========================================================= */}
-      <section id="capacitaciones" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section id="capacitaciones" className="max-w-7xl 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 scroll-mt-20 lg:scroll-mt-24">
         <div className="bg-brand-900 text-white rounded-3xl p-6 sm:p-10 lg:p-12 relative overflow-hidden border border-brand-800 shadow-xl">
           {/* Fondo sutil radial */}
           <div
@@ -96,7 +96,7 @@ export const HomeTrainingAndContact: React.FC = () => {
       {/* =========================================================
           BLOQUE 2: ATENCIÓN Y CONTACTO INSTITUCIONAL (#contacto)
           ========================================================= */}
-      <section id="contacto" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section id="contacto" className="max-w-7xl 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 scroll-mt-20 lg:scroll-mt-24">
         <div className="bg-surface rounded-3xl border border-border p-6 sm:p-10 shadow-xs relative overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             

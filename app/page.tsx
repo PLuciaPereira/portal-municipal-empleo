@@ -20,7 +20,7 @@ export default async function Home() {
     .slice(0, 3);
 
   return (
-    <div className="space-y-16 pb-16">
+    <div className="space-y-20 sm:space-y-28 lg:space-y-32 pb-24">
       {/* Fase 1: Hero Principal Renovado (Buscador y Ofertas Destacadas) */}
       <HomeHero latestJobs={topJobs} />
 

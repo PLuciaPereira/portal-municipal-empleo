@@ -395,11 +395,11 @@ function RegisterPostulanteForm() {
   }
 
   return (
-    <div className="w-full flex-1 grid grid-cols-1 lg:grid-cols-[420px_1fr] xl:grid-cols-[480px_1fr] bg-surface">
+    <div className="w-full flex-1 grid grid-cols-1 lg:grid-cols-[380px_1fr] xl:grid-cols-[440px_1fr] 2xl:grid-cols-[480px_1fr] bg-surface">
       <RegistroPostulanteAside />
 
       <div className="flex flex-col justify-between min-w-0 bg-surface">
-        <div className="w-full max-w-none p-6 sm:p-10 lg:p-12 xl:p-14 space-y-8">
+        <div className="w-full max-w-5xl mx-auto p-6 sm:p-10 lg:p-12 xl:p-14 space-y-6 sm:space-y-8">
           <div className="flex items-center justify-between border-b border-border/80 pb-4">
             <h2 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight">
               Completá tu registro
@@ -419,9 +419,9 @@ function RegisterPostulanteForm() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-8" noValidate>
+          <form onSubmit={handleSubmit} className="space-y-7 sm:space-y-8" noValidate>
             {/* SECCIÓN 1: DATOS DEL POSTULANTE */}
-            <section className="space-y-5" aria-labelledby="sec-datos-postulante">
+            <section className="space-y-4 sm:space-y-5" aria-labelledby="sec-datos-postulante">
               <div className="flex items-center gap-3 border-b border-border/60 pb-3">
                 <span className="w-7 h-7 rounded-full bg-brand-100 text-brand-800 font-bold text-xs flex items-center justify-center shrink-0">
                   1
@@ -437,7 +437,7 @@ function RegisterPostulanteForm() {
               </div>
 
               {/* Nombre y Apellido */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                 <Input
                   ref={nombreRef}
                   id="nombre"
@@ -480,7 +480,7 @@ function RegisterPostulanteForm() {
               </div>
 
               {/* DNI y Teléfono */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                 <Input
                   ref={dniRef}
                   id="dni"
@@ -528,7 +528,7 @@ function RegisterPostulanteForm() {
               </div>
 
               {/* Dirección y Localidad */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                 <Input
                   ref={direccionRef}
                   id="direccion"
@@ -572,7 +572,7 @@ function RegisterPostulanteForm() {
             </section>
 
             {/* SECCIÓN 2: DATOS DE ACCESO */}
-            <section className="space-y-5" aria-labelledby="sec-datos-acceso">
+            <section className="space-y-4 sm:space-y-5" aria-labelledby="sec-datos-acceso">
               <div className="flex items-center gap-3 border-b border-border/60 pb-3">
                 <span className="w-7 h-7 rounded-full bg-brand-100 text-brand-800 font-bold text-xs flex items-center justify-center shrink-0">
                   2
@@ -587,8 +587,8 @@ function RegisterPostulanteForm() {
                 </div>
               </div>
 
-              {/* Email y Contraseña */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Email en fila completa */}
+              <div>
                 <Input
                   ref={emailRef}
                   id="email"
@@ -610,7 +610,10 @@ function RegisterPostulanteForm() {
                   error={errors.email}
                   required
                 />
+              </div>
 
+              {/* Contraseña y Confirmar Contraseña en 2 Columnas Coordinadas */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                 <Input
                   ref={passwordRef}
                   id="password"

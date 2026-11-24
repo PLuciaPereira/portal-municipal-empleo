@@ -33,7 +33,8 @@ export default function RootLayout({
   return (
     <html
       lang="es"
-      className={`${manrope.variable} h-full antialiased`}
+      data-scroll-behavior="smooth"
+      className={`${manrope.variable} h-full antialiased scroll-smooth`}
     >
       <body className="min-h-full flex flex-col bg-background text-foreground font-sans selection:bg-brand-100 selection:text-brand-900">
         <AuthProvider>

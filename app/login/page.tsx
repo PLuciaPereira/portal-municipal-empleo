@@ -89,21 +89,21 @@ function LoginForm() {
           Oficina de Empleo · Municipalidad de Funes
         </span>
         <h1
-          className="w-full text-center font-extrabold tracking-[-0.02em] text-[#14231c] leading-tight whitespace-normal min-[440px]:whitespace-nowrap sm:whitespace-nowrap"
+          className="w-full text-center font-extrabold tracking-[-0.02em] text-[#14231c] leading-tight whitespace-normal min-[440px]:whitespace-nowrap sm:whitespace-nowrap 2xl:text-[28px]"
           style={{
             fontSize: 'clamp(20px, 5.2vw, 27px)',
           }}
         >
           Ingresar al Portal de Empleo
         </h1>
-        <p className="text-xs sm:text-sm text-[#4a5a52] max-w-sm">
+        <p className="text-xs sm:text-sm 2xl:text-[15px] text-[#4a5a52] max-w-sm 2xl:max-w-md">
           Acceso para postulantes, empresas y equipo municipal
         </p>
       </div>
 
       {/* Tarjeta blanca con bordes redondeados y sombra sutil verdosa */}
-      <div className="w-full bg-white border border-[#dfe8e2] rounded-[24px] shadow-[0_16px_44px_rgba(11,93,59,0.10)] overflow-hidden">
-        <form onSubmit={handleSubmit} className="p-6 sm:p-8 flex flex-col gap-5">
+      <div className="w-full bg-white border border-[#dfe8e2] rounded-[24px] 2xl:rounded-[28px] shadow-[0_16px_44px_rgba(11,93,59,0.10)] overflow-hidden">
+        <form onSubmit={handleSubmit} className="p-6 sm:p-8 2xl:p-9 flex flex-col gap-5 2xl:gap-6">
           {isRecovered && !error && (
             <div
               role="status"
@@ -227,7 +227,7 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <div className="portal-fullpage-layout relative w-full flex-1 flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] bg-[#eef5f0] px-4 py-12 sm:px-6 lg:px-8 overflow-hidden">
+    <div className="portal-fullpage-layout relative w-full flex-1 flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] bg-[#eef5f0] px-4 py-12 sm:px-6 lg:px-8 2xl:py-16 overflow-hidden">
       {/* Marca de agua decorativa: Logo oficial de Funes de trazo fino */}
       <Image
         src="/favicon-funes.png"
@@ -236,7 +236,7 @@ export default function LoginPage() {
         width={480}
         height={501}
         priority
-        className="absolute -right-24 -bottom-24 sm:-right-32 sm:-bottom-32 w-[340px] sm:w-[480px] h-auto pointer-events-none select-none z-0 mix-blend-multiply"
+        className="absolute -right-24 -bottom-24 sm:-right-32 sm:-bottom-32 2xl:-right-24 2xl:-bottom-24 w-[340px] sm:w-[480px] 2xl:w-[580px] h-auto pointer-events-none select-none z-0 mix-blend-multiply"
         style={{ opacity: 0.07 }}
       />
 
@@ -247,11 +247,11 @@ export default function LoginPage() {
         width={320}
         height={334}
         priority
-        className="absolute -left-16 -top-12 sm:-left-24 sm:-top-16 w-[220px] sm:w-[300px] h-auto pointer-events-none select-none z-0 mix-blend-multiply"
+        className="absolute -left-16 -top-12 sm:-left-24 sm:-top-16 2xl:-left-20 2xl:-top-16 w-[220px] sm:w-[300px] 2xl:w-[380px] h-auto pointer-events-none select-none z-0 mix-blend-multiply"
         style={{ opacity: 0.07 }}
       />
 
-      <div className="relative z-10 w-full max-w-[460px] mx-auto flex flex-col items-center gap-6">
+      <div className="relative z-10 w-full max-w-[460px] 2xl:max-w-[500px] mx-auto flex flex-col items-center gap-6 2xl:gap-8">
         <Suspense
           fallback={
             <div className="text-center py-12">

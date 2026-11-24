@@ -216,7 +216,7 @@ function EmpresaDashboardContent() {
     <div className="min-h-screen bg-page text-foreground flex flex-col font-sans">
       {/* 1. Banda Verde Superior Institucional Funes Compacta */}
       <section className="bg-gradient-to-r from-brand-950 via-brand-900 to-brand-800 text-white border-b border-brand-950/40 shadow-sm py-4 sm:py-5 min-h-[72px] flex items-center">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 w-full flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="max-w-[1600px] 2xl:max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 w-full flex flex-col md:flex-row md:items-center justify-between gap-4">
           {/* Lado Izquierdo: Avatar con botón de cámara + Info en varias líneas organizadas */}
           <div className="flex items-center gap-3.5 sm:gap-4 min-w-0 flex-1">
             {/* Avatar Cuadrado redondeado con botón de cámara integrado */}
@@ -343,7 +343,7 @@ function EmpresaDashboardContent() {
 
       {/* 2. Barra de Navegación por Pestañas Segmentadas (Estilo unificado con Admin) */}
       <div className="bg-surface border-b border-zinc-200 shadow-2xs">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10">
+        <div className="max-w-[1600px] 2xl:max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
           <div className="flex items-center gap-1 overflow-x-auto py-1.5 scroll-smooth no-scrollbar text-xs" role="tablist">
             <button
               type="button"
@@ -394,7 +394,7 @@ function EmpresaDashboardContent() {
       </div>
 
       {/* 3. Contenedor de Contenido Principal Full-Width (hasta 1600px) */}
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 py-6 sm:py-8 w-full flex-1 space-y-6">
+      <div className="max-w-[1600px] 2xl:max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 py-6 sm:py-8 2xl:py-10 w-full flex-1 space-y-6 2xl:space-y-8">
         {/* Avisos de Estado Diferenciados (Neutro durante carga para evitar parpadeo) */}
         {!isStateReady ? null : isRechazada ? (
           <div className="mb-6 p-5 bg-rose-50 border border-rose-200 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 text-xs sm:text-sm text-rose-950 shadow-xs">

@@ -537,9 +537,9 @@ function RegisterEmpresaForm() {
   }
 
   return (
-    <div className="w-full flex-1 grid grid-cols-1 lg:grid-cols-[400px_1fr] bg-surface">
+    <div className="w-full flex-1 grid grid-cols-1 lg:grid-cols-[380px_1fr] xl:grid-cols-[440px_1fr] 2xl:grid-cols-[480px_1fr] bg-surface">
       {/* ========================================================================= */}
-      {/* PANEL LATERAL BRAND-800 (Fijo 400px en desktop, sticky en desktop) */}
+      {/* PANEL LATERAL BRAND-800 (Fijo 380/440px en desktop, sticky en desktop) */}
       {/* ========================================================================= */}
       <RegistroEmpresaAside />
 
@@ -549,7 +549,7 @@ function RegisterEmpresaForm() {
       <div className="flex flex-col justify-between min-w-0 bg-surface">
         <form
           onSubmit={handleSubmit}
-          className="w-full px-6 lg:px-12 py-8 sm:py-10 lg:py-12 space-y-8 flex-1 flex flex-col justify-start"
+          className="w-full max-w-5xl mx-auto p-6 sm:p-10 lg:p-12 xl:p-14 space-y-7 sm:space-y-8 flex-1 flex flex-col justify-start"
           noValidate
         >
           <p className="text-xs text-muted-foreground text-right">
@@ -570,7 +570,7 @@ function RegisterEmpresaForm() {
           {/* ========================================================================= */}
           {/* SECCIÓN 1: DATOS DE LA EMPRESA */}
           {/* ========================================================================= */}
-          <section className="space-y-5" aria-labelledby="sec1-title">
+          <section className="space-y-4 sm:space-y-5" aria-labelledby="sec1-title">
             <div className="flex items-center gap-3 border-b border-border/80 pb-3">
               <span className="w-7 h-7 rounded-full bg-brand-100 text-brand-800 font-bold text-xs flex items-center justify-center shrink-0">
                 1
@@ -585,174 +585,178 @@ function RegisterEmpresaForm() {
               </div>
             </div>
 
-            <div style={sectionGridStyle}>
-              {/* Fila 1: Razón Social (*) | CUIT (*) | Nombre de fantasía (opcional) */}
-              <Input
-                ref={razonSocialRef}
-                id="razonSocial"
-                name="razonSocial"
-                required
-                label={
-                  <span>
-                    Razón social <span className="text-destructive" aria-hidden="true">*</span>
-                  </span>
-                }
-                placeholder="Ej: Funes Retail S.R.L."
-                value={formData.razonSocial}
-                onChange={(e) => {
-                  setFormData({ ...formData, razonSocial: e.target.value });
-                  if (errors.razonSocial) {
-                    setErrors({ ...errors, razonSocial: undefined });
+            <div className="space-y-4 sm:space-y-5">
+              {/* Fila 1: Razón Social (*) | CUIT (*) | Nombre de fantasía (opcional) en 3 columnas */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
+                <Input
+                  ref={razonSocialRef}
+                  id="razonSocial"
+                  name="razonSocial"
+                  required
+                  label={
+                    <span>
+                      Razón social <span className="text-destructive" aria-hidden="true">*</span>
+                    </span>
                   }
-                }}
-                error={errors.razonSocial}
-              />
+                  placeholder="Ej: Funes Retail S.R.L."
+                  value={formData.razonSocial}
+                  onChange={(e) => {
+                    setFormData({ ...formData, razonSocial: e.target.value });
+                    if (errors.razonSocial) {
+                      setErrors({ ...errors, razonSocial: undefined });
+                    }
+                  }}
+                  error={errors.razonSocial}
+                />
 
-              <Input
-                ref={cuitRef}
-                id="cuit"
-                name="cuit"
-                required
-                maxLength={13}
-                inputMode="numeric"
-                label={
-                  <span>
-                    CUIT <span className="text-destructive" aria-hidden="true">*</span>
-                  </span>
-                }
-                placeholder="30-12345678-9"
-                value={formData.cuit}
-                onChange={handleCuitChange}
-                hint="Se completa con guiones automáticamente."
-                error={errors.cuit}
-                success={isCuitValid}
-                rightElement={
-                  isCuitValid ? (
-                    <div className="text-success pointer-events-none">
-                      <Check className="w-5 h-5" aria-hidden="true" />
-                    </div>
-                  ) : undefined
-                }
-                className="font-mono"
-              />
+                <Input
+                  ref={cuitRef}
+                  id="cuit"
+                  name="cuit"
+                  required
+                  maxLength={13}
+                  inputMode="numeric"
+                  label={
+                    <span>
+                      CUIT <span className="text-destructive" aria-hidden="true">*</span>
+                    </span>
+                  }
+                  placeholder="30-12345678-9"
+                  value={formData.cuit}
+                  onChange={handleCuitChange}
+                  hint="Se completa con guiones automáticamente."
+                  error={errors.cuit}
+                  success={isCuitValid}
+                  rightElement={
+                    isCuitValid ? (
+                      <div className="text-success pointer-events-none">
+                        <Check className="w-5 h-5" aria-hidden="true" />
+                      </div>
+                    ) : undefined
+                  }
+                  className="font-mono"
+                />
 
-              <Input
-                ref={nombreFantasiaRef}
-                id="nombreFantasia"
-                name="nombreFantasia"
-                label={
-                  <span className="flex items-center gap-1.5">
-                    <span>Nombre de fantasía</span>
-                    <span className="text-xs font-normal text-muted-foreground">(opcional)</span>
-                  </span>
-                }
-                placeholder="Ej: Supermercado Funes"
-                value={formData.nombreFantasia}
-                onChange={(e) =>
-                  setFormData({ ...formData, nombreFantasia: e.target.value })
-                }
-              />
-
-              {/* Fila 2: Rubro o actividad (*) | Dirección (*) | Localidad (*) */}
-              <div className="w-full space-y-1.5">
-                <label
-                  htmlFor="rubro"
-                  className="block text-sm font-medium text-foreground"
-                >
-                  Rubro o actividad <span className="text-destructive" aria-hidden="true">*</span>
-                </label>
-                <div className="relative">
-                  <select
-                    ref={rubroRef}
-                    id="rubro"
-                    name="rubro"
-                    required
-                    aria-invalid={!!errors.rubro}
-                    aria-describedby={errors.rubro ? 'rubro-error' : undefined}
-                    value={formData.rubro}
-                    onChange={(e) => {
-                      setFormData({ ...formData, rubro: e.target.value });
-                      if (errors.rubro) {
-                        setErrors({ ...errors, rubro: undefined });
-                      }
-                    }}
-                    className={`w-full h-11 px-3.5 pr-10 rounded-xl border bg-surface text-foreground text-sm transition-all duration-150 focus:outline-none focus:ring-3 appearance-none cursor-pointer ${
-                      errors.rubro
-                        ? 'border-destructive focus:border-destructive focus:ring-destructive/20'
-                        : 'border-border hover:border-brand-600/70 focus:border-brand-800 focus:ring-brand-800/15'
-                    }`}
-                  >
-                    <option value="" disabled>
-                      {isLoadingRubros
-                        ? 'Cargando rubros disponibles...'
-                        : 'Seleccioná un rubro o actividad...'}
-                    </option>
-                    {rubros.map((r) => (
-                      <option key={r.id} value={r.nombre}>
-                        {r.nombre}
-                      </option>
-                    ))}
-                  </select>
-                  <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-muted-foreground">
-                    <ChevronDown className="w-4 h-4" aria-hidden="true" />
-                  </div>
-                </div>
-                {errors.rubro && (
-                  <p
-                    id="rubro-error"
-                    className="text-xs text-destructive font-medium flex items-center gap-1 mt-1"
-                  >
-                    <AlertCircle className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
-                    <span>{errors.rubro}</span>
-                  </p>
-                )}
+                <Input
+                  ref={nombreFantasiaRef}
+                  id="nombreFantasia"
+                  name="nombreFantasia"
+                  label={
+                    <span className="flex items-center gap-1.5">
+                      <span>Nombre de fantasía</span>
+                      <span className="text-xs font-normal text-muted-foreground">(opcional)</span>
+                    </span>
+                  }
+                  placeholder="Ej: Supermercado Funes"
+                  value={formData.nombreFantasia}
+                  onChange={(e) =>
+                    setFormData({ ...formData, nombreFantasia: e.target.value })
+                  }
+                />
               </div>
 
-              <Input
-                ref={direccionRef}
-                id="direccion"
-                name="direccion"
-                required
-                label={
-                  <span>
-                    Dirección del establecimiento{' '}
-                    <span className="text-destructive" aria-hidden="true">*</span>
-                  </span>
-                }
-                placeholder="Ej: Santa Fe 1650"
-                value={formData.direccion}
-                onChange={(e) => {
-                  setFormData({ ...formData, direccion: e.target.value });
-                  if (errors.direccion) {
-                    setErrors({ ...errors, direccion: undefined });
-                  }
-                }}
-                error={errors.direccion}
-              />
+              {/* Fila 2: Rubro o actividad (*) | Dirección (*) | Localidad (*) en 3 columnas */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
+                <div className="w-full space-y-1.5">
+                  <label
+                    htmlFor="rubro"
+                    className="block text-sm font-medium text-foreground"
+                  >
+                    Rubro o actividad <span className="text-destructive" aria-hidden="true">*</span>
+                  </label>
+                  <div className="relative">
+                    <select
+                      ref={rubroRef}
+                      id="rubro"
+                      name="rubro"
+                      required
+                      aria-invalid={!!errors.rubro}
+                      aria-describedby={errors.rubro ? 'rubro-error' : undefined}
+                      value={formData.rubro}
+                      onChange={(e) => {
+                        setFormData({ ...formData, rubro: e.target.value });
+                        if (errors.rubro) {
+                          setErrors({ ...errors, rubro: undefined });
+                        }
+                      }}
+                      className={`w-full h-11 px-3.5 pr-10 rounded-xl border bg-surface text-foreground text-sm transition-all duration-150 focus:outline-none focus:ring-3 appearance-none cursor-pointer ${
+                        errors.rubro
+                          ? 'border-destructive focus:border-destructive focus:ring-destructive/20'
+                          : 'border-border hover:border-brand-600/70 focus:border-brand-800 focus:ring-brand-800/15'
+                      }`}
+                    >
+                      <option value="" disabled>
+                        {isLoadingRubros
+                          ? 'Cargando rubros disponibles...'
+                          : 'Seleccioná un rubro o actividad...'}
+                      </option>
+                      {rubros.map((r) => (
+                        <option key={r.id} value={r.nombre}>
+                          {r.nombre}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-muted-foreground">
+                      <ChevronDown className="w-4 h-4" aria-hidden="true" />
+                    </div>
+                  </div>
+                  {errors.rubro && (
+                    <p
+                      id="rubro-error"
+                      className="text-xs text-destructive font-medium flex items-center gap-1 mt-1"
+                    >
+                      <AlertCircle className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+                      <span>{errors.rubro}</span>
+                    </p>
+                  )}
+                </div>
 
-              <Input
-                ref={localidadRef}
-                id="localidad"
-                name="localidad"
-                required
-                label={
-                  <span>
-                    Localidad <span className="text-destructive" aria-hidden="true">*</span>
-                  </span>
-                }
-                placeholder="Ej: Funes"
-                value={formData.localidad}
-                onChange={(e) => {
-                  setFormData({ ...formData, localidad: e.target.value });
-                  if (errors.localidad) {
-                    setErrors({ ...errors, localidad: undefined });
+                <Input
+                  ref={direccionRef}
+                  id="direccion"
+                  name="direccion"
+                  required
+                  label={
+                    <span>
+                      Dirección del establecimiento{' '}
+                      <span className="text-destructive" aria-hidden="true">*</span>
+                    </span>
                   }
-                }}
-                error={errors.localidad}
-              />
+                  placeholder="Ej: Santa Fe 1650"
+                  value={formData.direccion}
+                  onChange={(e) => {
+                    setFormData({ ...formData, direccion: e.target.value });
+                    if (errors.direccion) {
+                      setErrors({ ...errors, direccion: undefined });
+                    }
+                  }}
+                  error={errors.direccion}
+                />
 
-              {/* Fila 3: Página web o redes sociales (opcional, ancho completo) */}
-              <div className="col-span-full" style={{ gridColumn: '1 / -1' }}>
+                <Input
+                  ref={localidadRef}
+                  id="localidad"
+                  name="localidad"
+                  required
+                  label={
+                    <span>
+                      Localidad <span className="text-destructive" aria-hidden="true">*</span>
+                    </span>
+                  }
+                  placeholder="Ej: Funes"
+                  value={formData.localidad}
+                  onChange={(e) => {
+                    setFormData({ ...formData, localidad: e.target.value });
+                    if (errors.localidad) {
+                      setErrors({ ...errors, localidad: undefined });
+                    }
+                  }}
+                  error={errors.localidad}
+                />
+              </div>
+
+              {/* Fila 3: Página web o redes sociales (opcional) */}
+              <div>
                 <Input
                   ref={sitioWebRef}
                   id="sitioWeb"
@@ -847,7 +851,7 @@ function RegisterEmpresaForm() {
           {/* ========================================================================= */}
           {/* SECCIÓN 2: PERSONA RESPONSABLE */}
           {/* ========================================================================= */}
-          <section className="space-y-5" aria-labelledby="sec2-title">
+          <section className="space-y-4 sm:space-y-5" aria-labelledby="sec2-title">
             <div className="flex items-center gap-3 border-b border-border/80 pb-3">
               <span className="w-7 h-7 rounded-full bg-brand-100 text-brand-800 font-bold text-xs flex items-center justify-center shrink-0">
                 2
@@ -862,7 +866,7 @@ function RegisterEmpresaForm() {
               </div>
             </div>
 
-            <div style={sectionGridStyle}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
               <Input
                 ref={personaContactoRef}
                 id="personaContacto"
@@ -918,7 +922,7 @@ function RegisterEmpresaForm() {
           {/* ========================================================================= */}
           {/* SECCIÓN 3: DATOS DE ACCESO */}
           {/* ========================================================================= */}
-          <section className="space-y-5" aria-labelledby="sec3-title">
+          <section className="space-y-4 sm:space-y-5" aria-labelledby="sec3-title">
             <div className="flex items-center gap-3 border-b border-border/80 pb-3">
               <span className="w-7 h-7 rounded-full bg-brand-100 text-brand-800 font-bold text-xs flex items-center justify-center shrink-0">
                 3
@@ -933,109 +937,115 @@ function RegisterEmpresaForm() {
               </div>
             </div>
 
-            <div style={sectionGridStyle}>
-              <Input
-                ref={emailRef}
-                id="email"
-                name="email"
-                type="email"
-                required
-                leftIcon={<Mail className="w-4 h-4" aria-hidden="true" />}
-                label={
-                  <span>
-                    Correo electrónico{' '}
-                    <span className="text-destructive" aria-hidden="true">*</span>
-                  </span>
-                }
-                placeholder="rrhh@empresa.com.ar"
-                value={formData.email}
-                onChange={(e) => {
-                  setFormData({ ...formData, email: e.target.value });
-                  if (errors.email) {
-                    setErrors({ ...errors, email: undefined });
+            <div className="space-y-4 sm:space-y-5">
+              {/* Correo electrónico */}
+              <div>
+                <Input
+                  ref={emailRef}
+                  id="email"
+                  name="email"
+                  type="email"
+                  required
+                  leftIcon={<Mail className="w-4 h-4" aria-hidden="true" />}
+                  label={
+                    <span>
+                      Correo electrónico{' '}
+                      <span className="text-destructive" aria-hidden="true">*</span>
+                    </span>
                   }
-                }}
-                error={errors.email}
-              />
+                  placeholder="rrhh@empresa.com.ar"
+                  value={formData.email}
+                  onChange={(e) => {
+                    setFormData({ ...formData, email: e.target.value });
+                    if (errors.email) {
+                      setErrors({ ...errors, email: undefined });
+                    }
+                  }}
+                  error={errors.email}
+                />
+              </div>
 
-              <Input
-                ref={passwordRef}
-                id="password"
-                name="password"
-                type={showPassword ? 'text' : 'password'}
-                required
-                minLength={6}
-                leftIcon={<Lock className="w-4 h-4" aria-hidden="true" />}
-                label={
-                  <span>
-                    Contraseña <span className="text-destructive" aria-hidden="true">*</span>
-                  </span>
-                }
-                placeholder="Mínimo 6 caracteres"
-                value={formData.password}
-                onChange={(e) => {
-                  setFormData({ ...formData, password: e.target.value });
-                  if (errors.password) {
-                    setErrors({ ...errors, password: undefined });
+              {/* Contraseñas en 2 columnas paralelas */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+                <Input
+                  ref={passwordRef}
+                  id="password"
+                  name="password"
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  minLength={6}
+                  leftIcon={<Lock className="w-4 h-4" aria-hidden="true" />}
+                  label={
+                    <span>
+                      Contraseña <span className="text-destructive" aria-hidden="true">*</span>
+                    </span>
                   }
-                }}
-                hint="Mínimo 6 caracteres (alfanumérico recomendado)."
-                error={errors.password}
-                rightElement={
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((prev) => !prev)}
-                    aria-pressed={showPassword}
-                    aria-label="Mostrar u ocultar contraseña"
-                    className="text-placeholder hover:text-foreground focus:outline-none focus:ring-1 focus:ring-brand-800 rounded p-1 cursor-pointer transition-colors"
-                  >
-                    {showPassword ? (
-                      <EyeOff className="w-4 h-4" aria-hidden="true" />
-                    ) : (
-                      <Eye className="w-4 h-4" aria-hidden="true" />
-                    )}
-                  </button>
-                }
-              />
+                  placeholder="Mínimo 6 caracteres"
+                  value={formData.password}
+                  onChange={(e) => {
+                    setFormData({ ...formData, password: e.target.value });
+                    if (errors.password) {
+                      setErrors({ ...errors, password: undefined });
+                    }
+                  }}
+                  hint="Mínimo 6 caracteres (alfanumérico recomendado)."
+                  error={errors.password}
+                  rightElement={
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      aria-pressed={showPassword}
+                      aria-label="Mostrar u ocultar contraseña"
+                      className="text-placeholder hover:text-foreground focus:outline-none focus:ring-1 focus:ring-brand-800 rounded p-1 cursor-pointer transition-colors"
+                    >
+                      {showPassword ? (
+                        <EyeOff className="w-4 h-4" aria-hidden="true" />
+                      ) : (
+                        <Eye className="w-4 h-4" aria-hidden="true" />
+                      )}
+                    </button>
+                  }
+                />
 
-              <Input
-                ref={confirmPasswordRef}
-                id="confirmPassword"
-                name="confirmPassword"
-                type={showConfirmPassword ? 'text' : 'password'}
-                required
-                minLength={6}
-                leftIcon={<Lock className="w-4 h-4" aria-hidden="true" />}
-                label={
-                  <span>
-                    Repetir contraseña <span className="text-destructive" aria-hidden="true">*</span>
-                  </span>
-                }
-                placeholder="Reingresá tu contraseña"
-                value={formData.confirmPassword}
-                onChange={(e) => {
-                  setFormData({ ...formData, confirmPassword: e.target.value });
-                  if (errors.confirmPassword) {
-                    setErrors({ ...errors, confirmPassword: undefined });
+                <Input
+                  ref={confirmPasswordRef}
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  required
+                  minLength={6}
+                  leftIcon={<Lock className="w-4 h-4" aria-hidden="true" />}
+                  label={
+                    <span>
+                      Repetir contraseña <span className="text-destructive" aria-hidden="true">*</span>
+                    </span>
                   }
-                }}
-                error={errors.confirmPassword}
-                rightElement={
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword((prev) => !prev)}
-                    aria-pressed={showConfirmPassword}
-                    aria-label="Mostrar u ocultar confirmación de contraseña"
-                    className="text-placeholder hover:text-foreground focus:outline-none focus:ring-1 focus:ring-brand-800 rounded p-1 cursor-pointer transition-colors"
-                  >
-                    {showConfirmPassword ? (
-                      <EyeOff className="w-4 h-4" aria-hidden="true" />
-                    ) : (
-                      <Eye className="w-4 h-4" aria-hidden="true" />
-                    )}
-                  </button>
-                }
-              />
+                  placeholder="Reingresá tu contraseña"
+                  value={formData.confirmPassword}
+                  onChange={(e) => {
+                    setFormData({ ...formData, confirmPassword: e.target.value });
+                    if (errors.confirmPassword) {
+                      setErrors({ ...errors, confirmPassword: undefined });
+                    }
+                  }}
+                  error={errors.confirmPassword}
+                  rightElement={
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword((prev) => !prev)}
+                      aria-pressed={showConfirmPassword}
+                      aria-label="Mostrar u ocultar confirmación de contraseña"
+                      className="text-placeholder hover:text-foreground focus:outline-none focus:ring-1 focus:ring-brand-800 rounded p-1 cursor-pointer transition-colors"
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff className="w-4 h-4" aria-hidden="true" />
+                      ) : (
+                        <Eye className="w-4 h-4" aria-hidden="true" />
+                      )}
+                    </button>
+                  }
+                />
+              </div>
             </div>
 
           {/* Checkbox de Términos y Condiciones y Política de Privacidad */}

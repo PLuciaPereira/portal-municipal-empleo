@@ -74,17 +74,17 @@ export const HomeCategories: React.FC = () => {
   ];
 
   return (
-    <section id="rubros" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="rubros" className="max-w-7xl 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 scroll-mt-20 lg:scroll-mt-24">
       {/* Cabecera */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4 border-b border-border pb-4">
-        <div className="space-y-1.5">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 sm:mb-10 gap-4 border-b border-border pb-5">
+        <div className="space-y-2">
           <Badge variant="brand" size="sm">
             Mercado laboral en Funes
           </Badge>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-foreground">
             Principales rubros de empleo en la ciudad
           </h2>
-          <p className="text-sm text-muted-foreground max-w-2xl">
+          <p className="text-sm text-muted-foreground max-w-2xl leading-relaxed">
             Explorá las búsquedas y sectores con mayor demanda laboral en los comercios, servicios e industrias de Funes.
           </p>
         </div>
@@ -98,7 +98,7 @@ export const HomeCategories: React.FC = () => {
       </div>
 
       {/* Grilla de Rubros */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 2xl:gap-6">
         {rubros.map((rubro, index) => {
           const RubroIcon = rubro.icon;
           return (

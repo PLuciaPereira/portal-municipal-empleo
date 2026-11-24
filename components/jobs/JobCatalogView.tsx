@@ -261,7 +261,7 @@ export const JobCatalogView: React.FC<JobCatalogViewProps> = ({
       )}
 
       {/* Contenedor Principal: Sidebar Filtros + Grilla de Ofertas */}
-      <div className="flex flex-col lg:flex-row gap-8 items-start">
+      <div className="flex flex-col lg:flex-row gap-8 2xl:gap-10 items-start">
         <JobFilters
           filters={filters}
           rubros={rubros}
@@ -298,7 +298,7 @@ export const JobCatalogView: React.FC<JobCatalogViewProps> = ({
 
           {filteredJobs.length > 0 ? (
             <>
-            <div className="grid grid-cols-1 gap-4">
+            <div className="grid grid-cols-1 2xl:grid-cols-2 gap-4">
               {paginatedJobs.map((job) => (
                 <JobCard key={job.id} job={job} />
               ))}

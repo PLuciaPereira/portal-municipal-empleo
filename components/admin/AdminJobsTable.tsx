@@ -463,14 +463,14 @@ export function AdminJobsTable({
                           </div>
                           <div className="min-w-0">
                             <div className="flex items-center gap-1.5">
-                              <span className="font-bold text-zinc-900 block leading-tight text-xs truncate max-w-[220px]" title={of.titulo}>
+                              <span className="font-bold text-zinc-900 block leading-tight text-xs truncate max-w-[220px] xl:max-w-[340px] 2xl:max-w-[480px]" title={of.titulo}>
                                 {of.titulo}
                               </span>
                               {of.destacada && !isBaja && (
                                 <Star className="w-3 h-3 fill-amber-500 text-amber-500 shrink-0" />
                               )}
                             </div>
-                            <div className="text-[11px] font-medium text-zinc-500 truncate max-w-[220px] mt-0.5" title={of.empresa?.nombre_fantasia || of.empresa?.razon_social || 'Empresa'}>
+                            <div className="text-[11px] font-medium text-zinc-500 truncate max-w-[220px] xl:max-w-[340px] 2xl:max-w-[480px] mt-0.5" title={of.empresa?.nombre_fantasia || of.empresa?.razon_social || 'Empresa'}>
                               {of.empresa?.nombre_fantasia || of.empresa?.razon_social || 'Empresa'}
                             </div>
                           </div>
@@ -479,10 +479,10 @@ export function AdminJobsTable({
 
                       {/* Rubro y modalidad */}
                       <td className="py-2.5 px-3">
-                        <span className="font-semibold text-zinc-800 block text-xs truncate max-w-[170px]" title={of.rubro?.nombre || 'General'}>
+                        <span className="font-semibold text-zinc-800 block text-xs truncate max-w-[170px] xl:max-w-[260px] 2xl:max-w-[360px]" title={of.rubro?.nombre || 'General'}>
                           {of.rubro?.nombre || 'General'}
                         </span>
-                        <div className="text-[11px] text-zinc-500 mt-0.5 truncate max-w-[170px]">
+                        <div className="text-[11px] text-zinc-500 mt-0.5 truncate max-w-[170px] xl:max-w-[260px] 2xl:max-w-[360px]">
                           {of.tipo_jornada}
                         </div>
                       </td>

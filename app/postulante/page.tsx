@@ -198,7 +198,7 @@ function PostulanteDashboardContent() {
     <div className="min-h-screen bg-page text-foreground flex flex-col font-sans">
       {/* 1. Banda Verde Superior Institucional Funes Full-Width */}
       <section className="bg-gradient-to-r from-brand-950 via-brand-900 to-brand-800 text-white py-4 sm:py-5 border-b border-brand-950/40 shadow-sm">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10">
+        <div className="max-w-[1600px] 2xl:max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center gap-3.5 sm:gap-4 min-w-0 flex-1">
               {/* Avatar cuadrado de 44 px */}
@@ -275,7 +275,7 @@ function PostulanteDashboardContent() {
 
       {/* 2. Barra de Navegación por Pestañas Segmentadas (Estilo unificado con Admin) */}
       <div className="bg-surface border-b border-zinc-200 shadow-2xs">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10">
+        <div className="max-w-[1600px] 2xl:max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
           <div className="flex items-center gap-1 overflow-x-auto py-1.5 scroll-smooth no-scrollbar text-xs" role="tablist">
             <button
               type="button"
@@ -344,7 +344,7 @@ function PostulanteDashboardContent() {
       </div>
 
       {/* 3. Contenedor de Contenido Principal Full-Width (hasta 1600px) */}
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 py-5 sm:py-6 w-full flex-1 space-y-5">
+      <div className="max-w-[1600px] 2xl:max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 py-5 sm:py-6 2xl:py-8 w-full flex-1 space-y-5 2xl:space-y-6">
 
         {/* Banner de entrevistas agendadas */}
         {upcomingInterviews.length > 0 && (

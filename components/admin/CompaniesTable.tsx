@@ -351,7 +351,7 @@ export function CompaniesTable({ empresas, loading, onRefresh }: CompaniesTableP
                       <span className="font-mono text-zinc-800 block font-semibold text-[11px]">
                         {emp.cuit}
                       </span>
-                      <span className="text-[11px] text-zinc-500 block truncate max-w-[150px]">
+                      <span className="text-[11px] text-zinc-500 block truncate max-w-[150px] xl:max-w-[260px] 2xl:max-w-[360px]">
                         {emp.rubro || 'Sin rubro'}
                       </span>
                     </td>

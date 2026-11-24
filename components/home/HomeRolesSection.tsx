@@ -6,15 +6,15 @@ import { Card, CardContent } from '@/components/ui/Card';
 
 export const HomeRolesSection: React.FC = () => {
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
+    <section className="max-w-7xl 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 2xl:gap-10">
         
         {/* =========================================================
             TARJETA 1: POSTULANTES / VECINOS DE FUNES
             ========================================================= */}
         <Card className="border-border bg-surface border shadow-xs hover:shadow-md transition-shadow relative overflow-hidden flex flex-col justify-between">
           <div className="absolute top-0 left-0 right-0 h-1.5 bg-brand-800" />
-          <CardContent className="p-6 sm:p-8 space-y-5">
+          <CardContent className="p-7 sm:p-9 2xl:p-10 space-y-6">
             <div className="flex items-center justify-between">
               <div className="w-12 h-12 rounded-xl bg-brand-100 text-brand-800 flex items-center justify-center border border-brand-200">
                 <UserIcon className="w-6 h-6" />
@@ -75,7 +75,7 @@ export const HomeRolesSection: React.FC = () => {
             ========================================================= */}
         <Card className="border-border bg-surface border shadow-xs hover:shadow-md transition-shadow relative overflow-hidden flex flex-col justify-between">
           <div className="absolute top-0 left-0 right-0 h-1.5 bg-brand-600" />
-          <CardContent className="p-6 sm:p-8 space-y-5">
+          <CardContent className="p-7 sm:p-9 2xl:p-10 space-y-6">
             <div className="flex items-center justify-between">
               <div className="w-12 h-12 rounded-xl bg-brand-100 text-brand-800 flex items-center justify-center border border-brand-200">
                 <BuildingIcon className="w-6 h-6" />

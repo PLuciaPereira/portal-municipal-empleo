@@ -178,7 +178,7 @@ function AdminDashboardContent() {
     <div className="min-h-screen bg-page text-foreground flex flex-col font-sans">
       {/* 1. Header Maestro Institucional Delgado y Nítido */}
       <section className="bg-gradient-to-r from-brand-950 via-brand-900 to-brand-800 text-white border-b border-brand-950/40 shadow-sm py-3 sm:py-3.5">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 w-full">
+        <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 w-full">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
             
             {/* Lado Izquierdo: Avatar 42px + Chip y Título */}
@@ -239,7 +239,7 @@ function AdminDashboardContent() {
 
       {/* 2. Barra de Navegación por Pestañas Segmentadas (Con scroll horizontal asistido) */}
       <div className="bg-surface border-b border-zinc-200 shadow-2xs">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10">
+        <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
           <div className="flex items-center gap-1 overflow-x-auto py-1.5 scroll-smooth no-scrollbar text-xs" role="tablist">
             
             {/* Ofertas */}
@@ -371,8 +371,8 @@ function AdminDashboardContent() {
         </div>
       </div>
 
-      {/* 3. Contenedor Principal Full-Width (hasta 1600px) */}
-      <main className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 py-4 sm:py-6 w-full space-y-5 flex-1">
+      {/* 3. Contenedor Principal Full-Width (hasta 1800px) */}
+      <main className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 py-4 sm:py-6 w-full space-y-5 flex-1">
         {/* TARJETAS INDICADORAS COMPACTAS (Baja altura ~75-80px, responsive 2 cols móvil / 4 cols desktop) */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5">
           

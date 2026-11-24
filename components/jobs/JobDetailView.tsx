@@ -233,7 +233,7 @@ export const JobDetailView: React.FC<JobDetailViewProps> = ({
       </div>
 
       {/* Cuerpo Principal: 2 Columnas */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 2xl:gap-10 items-start">
         {/* Columna Izquierda: Información Detallada del Puesto */}
         <div className="lg:col-span-2 space-y-8">
           {/* 1. Descripción y Tareas */}

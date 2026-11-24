@@ -12,9 +12,9 @@ import { Button } from '@/components/ui/Button';
 
 export const HomeHowItWorks: React.FC = () => {
   return (
-    <section id="como-funciona" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="como-funciona" className="max-w-7xl 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 scroll-mt-20 lg:scroll-mt-24">
       {/* Cabecera de Sección */}
-      <div className="text-center max-w-3xl mx-auto mb-10 space-y-3">
+      <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-14 space-y-3">
         <Badge variant="brand" size="md">
           Proceso transparente y gratuito
         </Badge>

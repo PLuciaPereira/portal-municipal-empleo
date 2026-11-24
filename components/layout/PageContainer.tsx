@@ -13,9 +13,9 @@ export const PageContainer: React.FC<PageContainerProps> = ({
 }) => {
   const sizeClasses = {
     narrow: 'max-w-4xl',
-    default: 'max-w-7xl',
-    dashboard: 'max-w-[1600px] px-4 sm:px-6 lg:px-8 xl:px-10',
-    full: 'max-w-full px-4 sm:px-6 lg:px-8',
+    default: 'max-w-7xl 2xl:max-w-[1600px]',
+    dashboard: 'max-w-[1800px] w-full px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12',
+    full: 'max-w-full px-4 sm:px-6 lg:px-8 2xl:px-12',
   };
 
   const paddingClasses = size === 'dashboard' || size === 'full' 

@@ -35,8 +35,8 @@ const PanelFooter: React.FC = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-zinc-900 text-zinc-400 border-t border-zinc-800 py-3 px-4 sm:px-6 lg:px-8 mt-auto shrink-0">
-      <div className="max-w-[1600px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-2.5 text-xs">
+    <footer className="bg-zinc-900 text-zinc-400 border-t border-zinc-800 py-3 px-4 sm:px-6 lg:px-8 2xl:px-12 mt-auto shrink-0">
+      <div className="max-w-[1600px] 2xl:max-w-[1720px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-2.5 text-xs">
         {/* Identidad Oficial y Derechos */}
         <div className="flex items-center gap-2.5">
           <div className="w-5 h-5 rounded-md bg-brand-800 flex items-center justify-center p-0.5 shrink-0 shadow-xs">
@@ -82,7 +82,7 @@ const PublicFooter: React.FC = () => {
 
   return (
     <footer className="bg-zinc-900 text-zinc-300 border-t border-zinc-800 shrink-0">
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 py-5">
+      <div className="max-w-[1600px] 2xl:max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 py-5 2xl:py-7">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-start">
           {/* Columna 1: Identidad Institucional */}
           <div className="space-y-2 md:col-span-1">

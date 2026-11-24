@@ -274,8 +274,16 @@
   animation: modalScaleIn 180ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* Desplazamiento suave para navegación por anclas */
+html {
+  scroll-behavior: smooth;
+}
+
 /* Accesibilidad: respeta la preferencia de reducción de movimiento */
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
   .interactive-press,
   .interactive-card,
   .tab-panel-enter,

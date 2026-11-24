@@ -22,8 +22,7 @@ import { NotificationBell } from '@/components/layout/NotificationBell';
 export const Navbar: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [empresaDropdownOpen, setEmpresaDropdownOpen] = useState(false);
-  const [isVisible, setIsVisible] = useState(true);
-  const lastScrollY = useRef(0);
+  const [isScrolled, setIsScrolled] = useState(false);
   const empresaDropdownRef = useRef<HTMLDivElement>(null);
 
   // Cerrar dropdown de empresa con click outside o escape
@@ -51,33 +50,17 @@ export const Navbar: React.FC = () => {
     };
   }, []);
 
+  // Detectar scroll para transición sutil de altura y apariencia
   useEffect(() => {
     const handleScroll = () => {
-      if (mobileMenuOpen) {
-        setIsVisible(true);
-        return;
-      }
-
       const currentScrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
-      const delta = currentScrollY - lastScrollY.current;
-
-      // Arriba de todo siempre visible
-      if (currentScrollY <= 20) {
-        setIsVisible(true);
-      } else if (delta > 8 && currentScrollY > 70) {
-        // Scrolleando hacia abajo de manera clara -> ocultar
-        setIsVisible(false);
-      } else if (delta < -5) {
-        // Scrolleando hacia arriba (incluso leve) -> mostrar inmediatamente
-        setIsVisible(true);
-      }
-
-      lastScrollY.current = currentScrollY;
+      setIsScrolled(currentScrollY > 20);
     };
 
+    handleScroll();
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [mobileMenuOpen]);
+  }, []);
   const pathname = usePathname();
   const { user, empresa, isAuthenticated, logout } = useAuth();
 
@@ -88,6 +71,36 @@ export const Navbar: React.FC = () => {
     { label: 'Cursos', href: '/#capacitaciones' },
     { label: 'Oficina de Empleo', href: '/#contacto' },
   ];
+
+  // Desplazamiento suave para enlaces con anclas en la misma página
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    if (href.startsWith('/#')) {
+      const targetId = href.replace('/#', '');
+      if (pathname === '/') {
+        e.preventDefault();
+        const targetElement = document.getElementById(targetId);
+        if (targetElement) {
+          targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          window.history.pushState(null, '', href);
+        }
+        if (mobileMenuOpen) {
+          setMobileMenuOpen(false);
+        }
+      }
+    }
+  };
+
+  // Volver al inicio absoluto al hacer click en el logo/escudo cuando estamos en la home
+  const handleLogoClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (pathname === '/') {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.history.pushState(null, '', '/');
+      if (mobileMenuOpen) {
+        setMobileMenuOpen(false);
+      }
+    }
+  };
 
   const role = user?.rol || user?.role;
 
@@ -125,12 +138,27 @@ export const Navbar: React.FC = () => {
       : `${user?.nombre || 'Usuario'} ${user?.apellido || ''}`.trim();
 
   return (
-    <header className={`sticky top-0 z-50 w-full bg-surface/95 backdrop-blur-md border-b border-border transform-gpu transition-all duration-300 ease-in-out ${isVisible ? 'translate-y-0 opacity-100 shadow-xs' : '-translate-y-full opacity-0 pointer-events-none'}`}>
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10">
-        <div className="flex items-center justify-between h-16">
+    <>
+      <header
+        className={`fixed top-0 left-0 right-0 z-50 w-full transition-all duration-300 ease-in-out border-b ${
+          isScrolled
+            ? 'bg-surface/90 backdrop-blur-md shadow-xs border-border/80'
+            : 'bg-surface/95 backdrop-blur-sm shadow-none border-border'
+        }`}
+      >
+      <div className="max-w-[1600px] 2xl:max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
+        <div
+          className={`flex items-center justify-between transition-all duration-300 ease-in-out ${
+            isScrolled ? 'h-14' : 'h-16'
+          }`}
+        >
           {/* Logo y Branding Institucional */}
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-brand-800 flex items-center justify-center p-1.5 shadow-xs group-hover:bg-brand-900 transition-colors">
+          <Link href="/" onClick={handleLogoClick} className="flex items-center gap-3 group">
+            <div
+              className={`rounded-xl bg-brand-800 flex items-center justify-center p-1.5 shadow-xs group-hover:bg-brand-900 transition-all duration-300 ${
+                isScrolled ? 'w-9 h-9' : 'w-10 h-10'
+              }`}
+            >
               <Image
                 src="/escudo-funes-blanco.png"
                 alt="Escudo Oficial de la Municipalidad de Funes"
@@ -158,8 +186,9 @@ export const Navbar: React.FC = () => {
                 <Link
                   key={link.href}
                   href={link.href}
+                  onClick={(e) => handleNavClick(e, link.href)}
                   className={`text-sm font-medium transition-colors hover:text-brand-800 ${
-                    isActive ? 'text-brand-800 font-bold' : 'text-muted-foreground'
+                    isActive ? 'text-brand-800 font-bold' : 'text-zinc-700'
                   }`}
                 >
                   {link.label}
@@ -321,7 +350,7 @@ export const Navbar: React.FC = () => {
 
       {/* Menú Desplegable Móvil */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-border bg-surface px-4 pt-3 pb-6 space-y-4">
+        <div className="md:hidden border-t border-border bg-surface px-4 pt-3 pb-6 space-y-4 max-h-[calc(100vh-4rem)] overflow-y-auto">
           {isAuthenticated && (
             <div className="p-3 bg-brand-50/60 rounded-xl border border-brand-200 flex items-center justify-between">
               <div>
@@ -363,7 +392,10 @@ export const Navbar: React.FC = () => {
               <Link
                 key={link.href}
                 href={link.href}
-                onClick={() => setMobileMenuOpen(false)}
+                onClick={(e) => {
+                  handleNavClick(e, link.href);
+                  setMobileMenuOpen(false);
+                }}
                 className="px-3 py-2 text-base font-medium text-foreground hover:text-brand-800 hover:bg-brand-50 rounded-lg transition-colors"
               >
                 {link.label}
@@ -442,6 +474,9 @@ export const Navbar: React.FC = () => {
           )}
         </div>
       )}
-    </header>
+      </header>
+      {/* Espaciador de flujo que preserva la altura exacta de la cabecera en el documento */}
+      <div className="h-16 shrink-0" aria-hidden="true" />
+    </>
   );
 };
