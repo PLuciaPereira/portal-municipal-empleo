@@ -19,8 +19,8 @@ export default function CambiarPasswordPage() {
   const [isVerifyingSession, setIsVerifyingSession] = useState(true);
   const [hasValidSession, setHasValidSession] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [expiredReason, setExpiredReason] = useState<string | null>(null);
 
-  // Verificar que el usuario tenga una sesión activa o escuchar PASSWORD_RECOVERY
   useEffect(() => {
     let isMounted = true;
     const supabase = createClient();
@@ -42,61 +42,106 @@ export default function CambiarPasswordPage() {
       }
     });
 
-    // 2. Extraer parámetros de error o tokens directamente de window.location
-    if (typeof window !== 'undefined') {
-      const hash = window.location.hash;
-      const search = window.location.search;
-
-      if (hash.includes('error=') || search.includes('error=')) {
-        const params = new URLSearchParams(hash.replace(/^#/, '') || search);
-        const errDesc = params.get('error_description') || params.get('error');
-        if (errDesc) {
-          console.warn('Error detectado en parámetros de URL:', errDesc);
-        }
-      }
-    }
-
-    // 3. Comprobar sesión actual existente
-    async function checkSession() {
+    // 2. Procesar tokens directamente desde el fragmento Hash o Query Params
+    async function initSessionFromUrl() {
       try {
+        if (typeof window === 'undefined') return;
+
+        const hash = window.location.hash || '';
+        const search = window.location.search || '';
+
+        // Detectar si Supabase envió un error explícito en hash o query
+        if (hash.includes('error=') || search.includes('error=')) {
+          const rawParams = hash.startsWith('#') ? hash.substring(1) : search.startsWith('?') ? search.substring(1) : '';
+          const params = new URLSearchParams(rawParams || search);
+          const errCode = params.get('error_code');
+          const errDesc = params.get('error_description') || params.get('error');
+
+          if (isMounted) {
+            if (errCode === 'otp_expired' || (errDesc && errDesc.toLowerCase().includes('expired'))) {
+              setExpiredReason('El enlace de recuperación ha caducado porque superó el tiempo límite o ya fue utilizado.');
+            } else if (errDesc) {
+              setExpiredReason(decodeURIComponent(errDesc.replace(/\+/g, ' ')));
+            } else {
+              setExpiredReason('El enlace de recuperación no es válido o ya fue utilizado.');
+            }
+            setHasValidSession(false);
+            setIsVerifyingSession(false);
+          }
+          return;
+        }
+
+        // Si viene un access_token y refresh_token en el hash
+        if (hash.includes('access_token=')) {
+          const params = new URLSearchParams(hash.replace(/^#/, ''));
+          const accessToken = params.get('access_token');
+          const refreshToken = params.get('refresh_token');
+
+          if (accessToken && refreshToken) {
+            const { data, error: setSessionError } = await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken,
+            });
+
+            if (!setSessionError && data.session && isMounted) {
+              setHasValidSession(true);
+              setIsVerifyingSession(false);
+              // Limpiar el hash de la URL por motivos de seguridad
+              if (window.history && window.history.replaceState) {
+                window.history.replaceState(null, '', window.location.pathname + window.location.search);
+              }
+              return;
+            }
+          }
+        }
+
+        // Si viene un código PKCE en la query (?code=...)
+        if (search.includes('code=')) {
+          const searchParams = new URLSearchParams(search);
+          const code = searchParams.get('code');
+          if (code) {
+            const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+            if (!exchangeError && data.session && isMounted) {
+              setHasValidSession(true);
+              setIsVerifyingSession(false);
+              return;
+            }
+          }
+        }
+
+        // Si no vino token en la URL, consultar si ya existe una sesión activa persistida
         const {
-          data: { session },
-          error: sessionError,
+          data: { session: existingSession },
         } = await supabase.auth.getSession();
 
         if (!isMounted) return;
 
-        if (sessionError || !session) {
-          // Si la URL contiene un fragmento con access_token, darle tiempo al cliente Supabase para procesarlo
-          const hasHashToken =
-            typeof window !== 'undefined' &&
-            window.location.hash.includes('access_token');
-
-          const waitTime = hasHashToken ? 2500 : 1200;
-
-          const timer = setTimeout(() => {
-            if (isMounted) {
-              // Chequear una vez más antes de descartar
-              supabase.auth.getSession().then(({ data: { session: recheck } }) => {
-                if (isMounted) {
-                  if (recheck) {
-                    setHasValidSession(true);
-                  } else {
-                    setHasValidSession(false);
-                  }
-                  setIsVerifyingSession(false);
-                }
-              });
-            }
-          }, waitTime);
-
-          return () => clearTimeout(timer);
-        } else {
+        if (existingSession) {
           setHasValidSession(true);
           setIsVerifyingSession(false);
+          return;
         }
+
+        // Si no se encontró sesión de inmediato, dar un breve margen por si el listener onAuthStateChange la recibe
+        const timer = setTimeout(async () => {
+          if (!isMounted) return;
+          const {
+            data: { session: retrySession },
+          } = await supabase.auth.getSession();
+
+          if (isMounted) {
+            if (retrySession) {
+              setHasValidSession(true);
+            } else {
+              setHasValidSession(false);
+            }
+            setIsVerifyingSession(false);
+          }
+        }, 1500);
+
+        return () => clearTimeout(timer);
       } catch (err) {
-        console.warn('Error verificando sesión de recuperación:', err);
+        console.warn('Error durante la inicialización de sesión de recuperación:', err);
         if (isMounted) {
           setHasValidSession(false);
           setIsVerifyingSession(false);
@@ -104,7 +149,7 @@ export default function CambiarPasswordPage() {
       }
     }
 
-    checkSession();
+    initSessionFromUrl();
 
     return () => {
       isMounted = false;
@@ -207,7 +252,8 @@ export default function CambiarPasswordPage() {
           {isVerifyingSession ? (
             <div className="p-10 flex flex-col items-center justify-center gap-3 text-center">
               <div className="inline-block animate-spin h-8 w-8 border-4 border-brand-800 border-t-transparent rounded-full" />
-              <p className="text-sm text-[#4a5a52]">Verificando enlace de seguridad...</p>
+              <p className="text-sm font-medium text-[#14231c]">Verificando enlace de seguridad...</p>
+              <p className="text-xs text-[#5a6a62]">Aguardá un instante mientras validamos tu sesión</p>
             </div>
           ) : !hasValidSession ? (
             <div className="p-6 sm:p-8 flex flex-col items-center text-center gap-4">
@@ -220,7 +266,8 @@ export default function CambiarPasswordPage() {
               </h2>
 
               <p className="text-sm text-[#4a5a52] leading-relaxed max-w-sm">
-                No detectamos una sesión de recuperación válida. Los enlaces de restablecimiento expiran automáticamente y sólo pueden usarse una única vez.
+                {expiredReason ||
+                  'No detectamos una sesión de recuperación válida. Los enlaces de restablecimiento expiran automáticamente y sólo pueden usarse una única vez.'}
               </p>
 
               <div className="flex flex-col gap-3 w-full mt-4">

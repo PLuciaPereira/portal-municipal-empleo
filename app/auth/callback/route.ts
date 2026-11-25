@@ -138,7 +138,7 @@ export async function GET(request: NextRequest) {
 
   // Si no hay código ni token_hash visibles para el servidor, pero el usuario puede
   // tener el token en el fragmento hash del navegador (#access_token=...&type=recovery),
-  // retornamos un script HTML cliente que inspecciona window.location.hash.
+  // retornamos un script HTML cliente que inspecciona window.location.hash y lo preserva.
   const fallbackTarget = isRecovery ? '/recuperar-password/cambiar' : '/login';
   const errorTarget = isRecovery
     ? `${origin}/recuperar-password?error=link_expirado`

@@ -221,12 +221,15 @@ export async function solicitarRecuperoPasswordAction(
       console.warn('Aviso: no se pudo verificar estado de confirmación previo:', checkErr);
     }
 
-    // Enviar correo de restablecimiento vía Supabase Auth
-    // Apuntamos directamente a /recuperar-password/cambiar porque Supabase Auth
-    // devuelve los tokens de recuperación en el fragmento hash (#access_token=...)
-    // que el cliente de Supabase en el navegador consume de manera nativa.
-    const cleanOrigin = origin ? origin.replace(/\/+$/, '') : '';
-    const redirectTo = `${cleanOrigin}/recuperar-password/cambiar`;
+    // Enviar correo de restablecimiento vía Supabase Auth.
+    // Redirigir a /recuperar-password/cambiar donde el cliente gestiona los tokens de recuperación
+    // tanto si llegan en fragmento hash (#access_token=...) como si llegan como parámetros de callback.
+    const resolvedOrigin =
+      origin && origin.trim().length > 0
+        ? origin.trim().replace(/\/+$/, '')
+        : process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, '') || 'https://portal-municipal-empleo-cung.vercel.app';
+
+    const redirectTo = `${resolvedOrigin}/recuperar-password/cambiar`;
     const { error: resetError } = await supabaseAdmin.auth.resetPasswordForEmail(emailDestino, {
       redirectTo,
     });
