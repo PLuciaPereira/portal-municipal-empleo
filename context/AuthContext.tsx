@@ -16,6 +16,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 
 import { resolverEmailParaLoginAction } from '@/app/auth/actions';
+import { AuthHashRedirector } from '@/components/auth/AuthHashRedirector';
 
 export interface AuthUser extends Perfil {
   email?: string;
@@ -675,7 +676,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     ]
   );
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      <AuthHashRedirector />
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 export const useAuth = (): AuthContextType => {
