@@ -35,9 +35,14 @@ export default function CambiarPasswordPage() {
         setHasValidSession(true);
         setIsVerifyingSession(false);
       } else if (event === 'SIGNED_OUT') {
+        // Solo marcar inválida si no se está verificando activamente
         if (!isLoading) {
-          setHasValidSession(false);
-          setIsVerifyingSession(false);
+          // Si el hash o search de la URL actual indica recuperación, no invalidar por SIGNED_OUT transitorio
+          const currentHash = typeof window !== 'undefined' ? window.location.hash : '';
+          if (!currentHash.includes('access_token=') && !currentHash.includes('type=recovery')) {
+            setHasValidSession(false);
+            setIsVerifyingSession(false);
+          }
         }
       }
     });
@@ -71,27 +76,48 @@ export default function CambiarPasswordPage() {
           return;
         }
 
-        // Si viene un access_token y refresh_token en el hash
+        // Si viene un access_token en el hash
         if (hash.includes('access_token=')) {
           const params = new URLSearchParams(hash.replace(/^#/, ''));
           const accessToken = params.get('access_token');
-          const refreshToken = params.get('refresh_token');
+          const refreshToken = params.get('refresh_token') || '';
 
-          if (accessToken && refreshToken) {
-            const { data, error: setSessionError } = await supabase.auth.setSession({
-              access_token: accessToken,
-              refresh_token: refreshToken,
-            });
-
-            if (!setSessionError && data.session && isMounted) {
+          if (accessToken) {
+            // Activar inmediatamente la sesión válida para la interfaz
+            if (isMounted) {
               setHasValidSession(true);
               setIsVerifyingSession(false);
-              // Limpiar el hash de la URL por motivos de seguridad
-              if (window.history && window.history.replaceState) {
-                window.history.replaceState(null, '', window.location.pathname + window.location.search);
-              }
-              return;
             }
+
+            try {
+              const { data, error: setSessionError } = await supabase.auth.setSession({
+                access_token: accessToken,
+                refresh_token: refreshToken,
+              });
+
+              if (setSessionError) {
+                console.warn('Aviso al sincronizar sesión:', setSessionError.message);
+                if (
+                  setSessionError.message.includes('expired') ||
+                  setSessionError.message.includes('invalid')
+                ) {
+                  if (isMounted) {
+                    setExpiredReason('El enlace de recuperación ha caducado o ya fue utilizado.');
+                    setHasValidSession(false);
+                    setIsVerifyingSession(false);
+                  }
+                  return;
+                }
+              }
+
+              if (data?.session && isMounted) {
+                setHasValidSession(true);
+                setIsVerifyingSession(false);
+              }
+            } catch (syncErr) {
+              console.warn('Excepción al sincronizar sesión con token:', syncErr);
+            }
+            return;
           }
         }
 
@@ -122,7 +148,7 @@ export default function CambiarPasswordPage() {
           return;
         }
 
-        // Si no se encontró sesión de inmediato, dar un breve margen por si el listener onAuthStateChange la recibe
+        // Si no se encontró sesión de inmediato, dar un margen por si el listener onAuthStateChange la recibe
         const timer = setTimeout(async () => {
           if (!isMounted) return;
           const {
@@ -137,7 +163,7 @@ export default function CambiarPasswordPage() {
             }
             setIsVerifyingSession(false);
           }
-        }, 1500);
+        }, 2000);
 
         return () => clearTimeout(timer);
       } catch (err) {
