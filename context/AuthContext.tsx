@@ -198,6 +198,23 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const initAuth = async () => {
       if (isSupabaseConfigured) {
         try {
+          // Si estamos en la página de cambiar contraseña o la URL trae un token de recuperación,
+          // no auto-loguear en el contexto global para evitar que otras vistas adopten la sesión antes de cambiar la clave.
+          if (typeof window !== 'undefined') {
+            const isRecoveryUrl =
+              window.location.pathname.startsWith('/recuperar-password') ||
+              window.location.hash.includes('type=recovery') ||
+              sessionStorage.getItem('portal_funes_recovering_password') === 'true';
+
+            if (isRecoveryUrl) {
+              setUser(null);
+              setEmpresa(null);
+              setAppliedJobIds([]);
+              if (isMounted) setIsLoading(false);
+              return;
+            }
+          }
+
           const supabase = createClient();
           const {
             data: { session },
@@ -240,9 +257,32 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           async (event, session) => {
             if (!isMounted) return;
 
+            // Blindaje de recuperación de contraseña:
+            // Si el evento es PASSWORD_RECOVERY o la pestaña actual está en el flujo de recuperación,
+            // no autenticar al usuario en el contexto general hasta que haya concluido el proceso formal de login.
+            if (event === 'PASSWORD_RECOVERY') {
+              if (typeof window !== 'undefined') {
+                sessionStorage.setItem('portal_funes_recovering_password', 'true');
+              }
+              setUser(null);
+              setEmpresa(null);
+              setAppliedJobIds([]);
+              setIsLoading(false);
+              return;
+            }
+
+            if (typeof window !== 'undefined' && sessionStorage.getItem('portal_funes_recovering_password') === 'true') {
+              if (event !== 'SIGNED_OUT') {
+                return;
+              }
+            }
+
             if (session?.user) {
               await loadUserData(session.user.id, session.user.email);
             } else if (event === 'SIGNED_OUT') {
+              if (typeof window !== 'undefined') {
+                sessionStorage.removeItem('portal_funes_recovering_password');
+              }
               setUser(null);
               setEmpresa(null);
               setAppliedJobIds([]);
