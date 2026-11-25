@@ -222,14 +222,14 @@ export async function solicitarRecuperoPasswordAction(
     }
 
     // Enviar correo de restablecimiento vía Supabase Auth.
-    // Redirigir a /recuperar-password/cambiar donde el cliente gestiona los tokens de recuperación
-    // tanto si llegan en fragmento hash (#access_token=...) como si llegan como parámetros de callback.
+    // Redirigir a través de /auth/callback para que el servidor intercambie el código por cookies de sesión
+    // y luego derive automáticamente a /recuperar-password/cambiar con una sesión válida establecida.
     const resolvedOrigin =
       origin && origin.trim().length > 0
         ? origin.trim().replace(/\/+$/, '')
         : process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, '') || 'https://portal-municipal-empleo-cung.vercel.app';
 
-    const redirectTo = `${resolvedOrigin}/recuperar-password/cambiar`;
+    const redirectTo = `${resolvedOrigin}/auth/callback?next=/recuperar-password/cambiar`;
     const { error: resetError } = await supabaseAdmin.auth.resetPasswordForEmail(emailDestino, {
       redirectTo,
     });

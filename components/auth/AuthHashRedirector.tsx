@@ -19,20 +19,25 @@ export function AuthHashRedirector() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const hash = window.location.hash;
-    if (!hash) return;
+    const hash = window.location.hash || '';
+    const search = window.location.search || '';
+    if (!hash && !search) return;
 
-    // Si ya estamos en la página de cambio de contraseña, permitir que esa página lo procese
-    if (pathname === '/recuperar-password/cambiar') return;
+    // Si ya estamos en la página de cambio de contraseña o en el callback, permitir que lo procesen
+    if (pathname === '/recuperar-password/cambiar' || pathname === '/auth/callback') return;
 
-    // Detectar si el hash corresponde a recuperación de contraseña
-    const hasRecoveryToken =
+    // Detectar si el hash o los parámetros de búsqueda corresponden a recuperación de contraseña
+    const hasRecoveryHash =
       hash.includes('type=recovery') ||
       (hash.includes('access_token=') && !hash.includes('type=signup') && !hash.includes('type=invite'));
 
-    if (hasRecoveryToken) {
+    const hasRecoveryQuery =
+      search.includes('type=recovery') ||
+      (search.includes('next=%2Frecuperar-password') || search.includes('next=/recuperar-password'));
+
+    if (hasRecoveryHash || hasRecoveryQuery) {
       console.info('AuthHashRedirector: detectada sesión de recuperación en ruta no específica. Redirigiendo a /recuperar-password/cambiar...');
-      window.location.replace('/recuperar-password/cambiar' + hash);
+      window.location.replace('/recuperar-password/cambiar' + search + hash);
     }
   }, [pathname, router]);
 
