@@ -220,7 +220,10 @@ export default function CambiarPasswordPage() {
         return;
       }
 
-      // Por seguridad, cerrar la sesión temporal tras restablecer y exigir inicio formal
+      // Por seguridad, limpiar bandera de recuperación y cerrar la sesión temporal tras restablecer
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('portal_funes_recovering_password');
+      }
       await supabase.auth.signOut();
 
       // Redirigir a login con aviso de confirmación exitosa
